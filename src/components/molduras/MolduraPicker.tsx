@@ -10,10 +10,10 @@ import { ORBIT_PLUS } from "@/lib/molduras/config";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
 const RARIDADE_CLASSE: Record<Raridade, string> = {
-  comum: "border-white/25 text-slate-300",
-  rara: "border-sky-300/50 text-sky-200",
-  epica: "border-fuchsia-300/50 text-fuchsia-200",
-  lendaria: "border-amber-300/60 text-amber-200",
+  comum: "border-white/25 text-marfim-suave",
+  rara: "border-salvia/60 text-salvia",
+  epica: "border-alerta/60 text-alerta",
+  lendaria: "border-areia/60 text-areia",
 };
 
 /** Gallery of collectible frames for the user's own avatar ring. */
@@ -46,17 +46,17 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
 
   return (
     <div className="flex flex-col gap-3">
-      <p className="text-xs leading-relaxed text-slate-300">
+      <p className="text-xs leading-relaxed text-marfim-suave">
         A moldura envolve o anel do seu avatar no radar, nas Conexões, no mini chat e no cartão. Você ganha novas
         molduras usando o app.{" "}
         {ORBIT_PLUS.modo === "simulado" && (
           <>
-            As marcadas como <strong className="text-amber-200">{ORBIT_PLUS.nome}</strong> mostram como seria um extra
-            pago. {ORBIT_PLUS.aviso}
+            As marcadas como <strong className="text-areia">{ORBIT_PLUS.nome}</strong> mostram como seria um extra pago.{" "}
+            {ORBIT_PLUS.aviso}
           </>
         )}
       </p>
-      <p className="text-[11px] font-semibold text-areia" aria-live="polite">
+      <p className="text-xs font-semibold text-areia" aria-live="polite">
         {total} de {visiveis.length} molduras desbloqueadas
       </p>
       <ul className={`grid gap-2.5 ${compact ? "grid-cols-2" : "grid-cols-3"}`}>
@@ -69,7 +69,7 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
           return (
             <li
               key={m.id}
-              className={`flex flex-col items-center gap-2 rounded-2xl border p-3 text-center ${
+              className={`flex flex-col items-center gap-2 rounded-cartao border p-3 text-center ${
                 emUso ? "border-areia/70 bg-areia/10" : "border-white/[0.12] bg-tinta/60"
               }`}
             >
@@ -81,18 +81,16 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
               <div className="min-w-0">
                 <div className="text-xs font-bold text-white">{m.nome}</div>
                 <div className="mt-1 flex flex-wrap justify-center gap-1">
-                  <span
-                    className={`rounded-full border px-1.5 py-px text-[10px] font-bold ${RARIDADE_CLASSE[m.raridade]}`}
-                  >
+                  <span className={`rounded-full border px-1.5 py-px text-xs font-bold ${RARIDADE_CLASSE[m.raridade]}`}>
                     {RARIDADE_LABEL[m.raridade]}
                   </span>
                   {plus && (
-                    <span className="rounded-full bg-amber-200 px-1.5 py-px text-[10px] font-extrabold text-tinta">
+                    <span className="rounded-full bg-areia px-1.5 py-px text-xs font-extrabold text-tinta">
                       {ORBIT_PLUS.nome}
                     </span>
                   )}
                 </div>
-                <p className="mt-1 text-[10px] leading-snug text-slate-300">{m.descricao}</p>
+                <p className="mt-1 text-xs leading-snug text-marfim-suave">{m.descricao}</p>
               </div>
               <div className="mt-auto w-full">
                 {liberada ? (
@@ -101,7 +99,7 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
                     aria-pressed={emUso}
                     onClick={() => !emUso && usar(m)}
                     aria-label={emUso ? `${m.nome}, em uso` : `Usar a moldura ${m.nome}`}
-                    className={`w-full rounded-full px-3 py-1.5 text-[11px] font-bold ${
+                    className={`w-full rounded-full px-3 py-1.5 text-xs font-bold ${
                       emUso ? "lg-active-lens cursor-default" : "lg-pill text-white"
                     }`}
                   >
@@ -112,13 +110,13 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
                     type="button"
                     onClick={() => desbloquearPlus(m)}
                     aria-label={`Desbloquear ${m.nome} com ${ORBIT_PLUS.nome} simulado, sem cobrança`}
-                    className="w-full rounded-full bg-amber-200 px-3 py-1.5 text-[11px] font-extrabold text-tinta"
+                    className="w-full rounded-full bg-areia px-3 py-1.5 text-xs font-extrabold text-tinta"
                   >
                     Desbloquear (simulação)
                   </button>
                 ) : conquista && prog ? (
                   <div className="text-left">
-                    <p className="text-[10px] leading-snug text-white">
+                    <p className="text-xs leading-snug text-white">
                       <span aria-hidden="true">🔒 </span>
                       <span className="sr-only">Bloqueada. </span>
                       {CONQUISTAS[conquista].titulo}
@@ -136,7 +134,7 @@ export function MolduraPicker({ compact }: { compact: boolean }) {
                         style={{ width: `${(prog.atual / prog.meta) * 100}%` }}
                       />
                     </div>
-                    <p className="mt-1 text-right text-[10px] text-slate-300">
+                    <p className="mt-1 text-right text-xs text-marfim-suave">
                       {prog.atual} de {prog.meta}
                     </p>
                   </div>

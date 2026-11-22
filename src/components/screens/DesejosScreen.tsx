@@ -48,7 +48,7 @@ function Cabecalho({ isMobile, children }: { isMobile: boolean; children?: React
         >
           Desejos
         </h1>
-        <span className="rounded-full border border-areia/50 bg-areia/15 px-2.5 py-0.5 text-[11px] font-bold text-areia">
+        <span className="rounded-full border border-areia/50 bg-areia/15 px-2.5 py-0.5 text-xs font-bold text-areia">
           18+ · privado
         </span>
         {children}
@@ -56,7 +56,7 @@ function Cabecalho({ isMobile, children }: { isMobile: boolean; children?: React
       <button
         type="button"
         onClick={() => dispatch({ type: "setTab", tab: "perfil" })}
-        className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-semibold text-white"
+        className="lg-pill rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white"
       >
         ← Meu Hub
       </button>
@@ -82,23 +82,26 @@ function Intro({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <Cabecalho isMobile={isMobile} />
-      <div className="lg-panel overflow-hidden rounded-[28px]">
+      <div className="lg-glass-tint overflow-hidden rounded-cartao">
         <div className="grid grid-cols-3 gap-1.5 bg-tinta p-3" aria-hidden="true">
-          <Ilustracao id="jantar" className="w-full rounded-xl" />
-          <Ilustracao id="mascaras" className="w-full rounded-xl" />
-          <Ilustracao id="floresta" className="w-full rounded-xl" />
+          <Ilustracao id="jantar" className="w-full rounded-cartao" />
+          <Ilustracao id="mascaras" className="w-full rounded-cartao" />
+          <Ilustracao id="floresta" className="w-full rounded-cartao" />
         </div>
         <div className="p-5">
-          <h2 className={`${isMobile ? "text-base" : "text-xl"} font-bold text-white`}>
+          <p className="font-display text-xs font-bold tracking-wider text-areia uppercase">
+            Quiz visual · {PERGUNTAS.length} perguntas
+          </p>
+          <h2 className={`mt-1 ${isMobile ? "text-lg" : "text-xl"} font-bold text-white`}>
             O que desperta a sua curiosidade?
           </h2>
-          <p className="mt-1 text-sm leading-relaxed text-slate-300">
+          <p className="mt-1 text-sm leading-relaxed text-marfim-suave">
             Um quiz visual sobre desejos, sem nada explícito. No fim, você vê barras de 0 a 100% por tema, com uma
             explicação de cada um.
           </p>
           <dl className="mt-4 grid gap-2.5">
             {avisos.map(([titulo, texto]) => (
-              <div key={titulo} className="rounded-2xl border border-white/[0.12] bg-tinta/60 px-3.5 py-2.5">
+              <div key={titulo} className="rounded-cartao border border-white/[0.12] bg-tinta/60 px-3.5 py-2.5">
                 <dt className="text-xs font-bold text-areia">{titulo}</dt>
                 <dd className="mt-0.5 text-xs leading-relaxed text-white">{texto}</dd>
               </div>
@@ -119,14 +122,14 @@ function Intro({ isMobile }: { isMobile: boolean }) {
               type="button"
               disabled={!adulto}
               onClick={() => dispatch({ type: "setDesejosTela", tela: "quiz" })}
-              className="lg-btn-primary rounded-full px-5 py-2.5 text-sm font-extrabold disabled:cursor-not-allowed disabled:opacity-50"
+              className="lg-btn-primary min-h-11 rounded-full px-5 text-sm font-extrabold disabled:cursor-not-allowed disabled:opacity-50"
             >
               {retomar ? `Continuar (pergunta ${state.desejos.passo + 1} de ${PERGUNTAS.length})` : "Começar"}
             </button>
             <button
               type="button"
               onClick={() => dispatch({ type: "setTab", tab: "perfil" })}
-              className="lg-pill rounded-full px-5 py-2.5 text-sm font-semibold text-white"
+              className="lg-pill min-h-11 rounded-full px-5 text-sm font-semibold text-white"
             >
               Agora não
             </button>
@@ -172,12 +175,14 @@ function Quiz({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <Cabecalho isMobile={isMobile} />
-      <section aria-labelledby={tituloId} className="lg-panel rounded-[28px] p-5">
-        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300">
+      <section aria-labelledby={tituloId} className="lg-glass-tint rounded-cartao p-5">
+        <div className="flex items-center justify-between text-xs font-semibold text-marfim-suave">
           <span>
             Pergunta {passo + 1} de {PERGUNTAS.length}
           </span>
-          <span>{TIPO_ROTULO[pergunta.tipo]}</span>
+          <span className="font-display font-bold tracking-wider text-areia uppercase">
+            {TIPO_ROTULO[pergunta.tipo]}
+          </span>
         </div>
         <div
           role="progressbar"
@@ -269,7 +274,7 @@ function Cenas({
                 type="button"
                 aria-pressed={escolhida}
                 onClick={() => onResponder(o.id)}
-                className={`flex h-full w-full flex-col overflow-hidden rounded-2xl border text-left transition ${
+                className={`flex h-full w-full flex-col overflow-hidden rounded-cartao border text-left transition ${
                   escolhida ? "border-areia bg-areia/15" : "border-white/[0.14] bg-tinta hover:border-white/40"
                 }`}
               >
@@ -292,7 +297,7 @@ function Cenas({
         className={`mt-2.5 w-full rounded-full border px-4 py-2 text-xs font-semibold transition ${
           resposta === NENHUMA
             ? "border-areia bg-areia/15 text-white"
-            : "border-white/[0.14] text-slate-300 hover:text-white"
+            : "border-white/[0.14] text-marfim-suave hover:text-white"
         }`}
       >
         Nenhuma dessas
@@ -315,7 +320,7 @@ function Regua({
 }) {
   return (
     <div>
-      <Ilustracao id={pergunta.ilustracao} className="mx-auto w-full max-w-[260px] rounded-2xl" />
+      <Ilustracao id={pergunta.ilustracao} className="mx-auto w-full max-w-[260px] rounded-cartao" />
       <div role="radiogroup" aria-labelledby={labelledBy} className="relative mt-4">
         <div className="absolute top-[22px] right-[12.5%] left-[12.5%] h-0.5 bg-white/20" aria-hidden="true" />
         <div className="relative grid grid-cols-4 gap-1">
@@ -328,19 +333,19 @@ function Regua({
                 role="radio"
                 aria-checked={marcado}
                 onClick={() => onResponder(nivel as NivelIntensidade)}
-                className="group flex flex-col items-center gap-1.5 rounded-2xl py-1"
+                className="group flex flex-col items-center gap-1.5 rounded-cartao py-1"
               >
                 <span
                   aria-hidden="true"
                   className={`flex h-11 w-11 items-center justify-center rounded-full border-2 text-xs font-bold transition ${
                     marcado
                       ? "border-areia bg-areia text-tinta"
-                      : "border-white/40 bg-noite text-slate-300 group-hover:border-white/70"
+                      : "border-white/40 bg-noite text-marfim-suave group-hover:border-white/70"
                   }`}
                 >
                   {nivel}
                 </span>
-                <span className={`text-[11px] font-semibold ${marcado ? "text-white" : "text-slate-300"}`}>
+                <span className={`text-xs font-semibold ${marcado ? "text-white" : "text-marfim-suave"}`}>
                   {rotulo}
                 </span>
               </button>
@@ -372,10 +377,10 @@ function Rapida({
             role="radio"
             aria-checked={marcado}
             onClick={() => onResponder(r.id)}
-            className={`rounded-2xl border py-4 text-sm font-bold transition ${
+            className={`min-h-12 rounded-full border py-3 text-sm font-bold transition ${
               marcado
                 ? "border-areia bg-areia/15 text-white"
-                : "border-white/[0.14] bg-tinta text-slate-300 hover:text-white"
+                : "border-white/[0.14] bg-tinta text-marfim-suave hover:text-white"
             }`}
           >
             {r.rotulo}
@@ -417,12 +422,12 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
   return (
     <>
       <Cabecalho isMobile={isMobile} />
-      <section className="lg-panel rounded-[28px] p-5" aria-labelledby={tituloId}>
+      <section className="lg-glass-tint rounded-cartao p-5" aria-labelledby={tituloId}>
         <h2 id={tituloId} className={`${isMobile ? "text-base" : "text-xl"} font-bold text-white`}>
           Seu resultado de hoje
         </h2>
-        <p className="mt-1 text-sm leading-relaxed text-slate-300">{FRASE_RESULTADO}</p>
-        <p className="mt-2 rounded-2xl border border-salvia/40 bg-salvia/10 px-3 py-2 text-xs leading-relaxed text-salvia">
+        <p className="mt-1 text-sm leading-relaxed text-marfim-suave">{FRASE_RESULTADO}</p>
+        <p className="mt-2 rounded-cartao border border-salvia/40 bg-salvia/10 px-3 py-2 text-xs leading-relaxed text-salvia">
           Nada é público por padrão. Use “Mostrar no perfil” para escolher, um por um, o que aparece no seu cartão.
           {!state.user.isPublic && " Seu perfil está privado: só conexões aprovadas veriam."}
         </p>
@@ -433,15 +438,15 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
             const semDados = r.pct === null;
             const publico = publicos.includes(r.id);
             return (
-              <li key={r.id} className="rounded-2xl border border-white/[0.12] bg-tinta p-3">
+              <li key={r.id} className="rounded-cartao border border-white/[0.12] bg-tinta p-3">
                 <div className="flex items-center gap-3">
-                  <Ilustracao id={c.ilustracao} className="h-12 w-16 shrink-0 rounded-lg" />
+                  <Ilustracao id={c.ilustracao} className="h-12 w-16 shrink-0 rounded-cartao" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <span className="truncate text-sm font-bold text-white">
                         {c.nome}
                         {c.nomeOriginal !== c.nome && (
-                          <span className="ml-1.5 text-[11px] font-semibold text-slate-300">{c.nomeOriginal}</span>
+                          <span className="ml-1.5 text-xs font-semibold text-marfim-suave">{c.nomeOriginal}</span>
                         )}
                       </span>
                       <span className="shrink-0 text-sm font-extrabold text-areia">{semDados ? "—" : `${r.pct}%`}</span>
@@ -457,7 +462,7 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
                     >
                       <div className="h-full rounded-full bg-areia" style={{ width: `${r.pct ?? 0}%` }} />
                     </div>
-                    <p className="mt-1 text-[11px] text-slate-300">
+                    <p className="mt-1 text-xs text-marfim-suave">
                       {semDados ? "Sem dados suficientes: responda mais perguntas deste tema." : c.resumo}
                     </p>
                   </div>
@@ -466,12 +471,12 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
                   <button
                     type="button"
                     onClick={() => dispatch({ type: "abrirDesejo", id: r.id })}
-                    className="lg-pill rounded-full px-3 py-1 text-[11px] font-semibold text-white"
+                    className="lg-pill rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white"
                   >
                     Entender este tema
                   </button>
                   {!semDados && (
-                    <span className="flex items-center gap-2 text-[11px] font-semibold text-slate-300">
+                    <span className="flex items-center gap-2 text-xs font-semibold text-marfim-suave">
                       Mostrar no perfil
                       <Switch
                         size="sm"
@@ -487,7 +492,7 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
           })}
         </ul>
 
-        <p className="mt-4 text-[11px] leading-relaxed text-slate-300">
+        <p className="mt-4 text-xs leading-relaxed text-marfim-suave">
           <strong className="text-white">Como calculamos:</strong> cada resposta vale pontos para os temas ligados a ela
           (régua 0 a 3, sim/talvez/não 2/1/0, cena escolhida 2). O percentual é o total obtido dividido pelo máximo
           possível nas perguntas que você respondeu. Perguntas puladas não contam, os temas não somam 100% e um tema com
@@ -512,7 +517,7 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
         </div>
       </section>
 
-      <p className="mt-4 text-center text-[11px] leading-relaxed text-slate-300">
+      <p className="mt-4 text-center text-xs leading-relaxed text-marfim-suave">
         Ter um desejo não é transtorno. Se algum tema te traz sofrimento, vale conversar com um profissional de saúde.{" "}
         <button
           type="button"

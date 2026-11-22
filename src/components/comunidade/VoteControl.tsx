@@ -13,24 +13,25 @@ function Arrow({ down = false }: { down?: boolean }) {
 
 export function VoteControl({ post, horizontal = false }: { post: CommunityPost; horizontal?: boolean }) {
   const { dispatch } = useOrbit();
-  const button = "flex h-7 w-7 items-center justify-center rounded-full transition";
+  const button =
+    "relative flex h-9 w-9 items-center justify-center rounded-full transition after:absolute after:-inset-1 after:content-['']";
   return (
     <div
-      className={`relative z-10 flex shrink-0 items-center rounded-full border border-white/[0.14] bg-white/[0.06] p-0.5 ${horizontal ? "flex-row gap-1" : "flex-col"}`}
+      className={`lg-pill relative z-10 flex shrink-0 items-center rounded-full p-0.5 ${horizontal ? "flex-row gap-1" : "flex-col"}`}
     >
       <button
         type="button"
         aria-pressed={post.vote === 1}
         aria-label="Votar a favor"
         onClick={() => dispatch({ type: "votePost", id: post.id, direction: 1 })}
-        className={`${button} ${post.vote === 1 ? "bg-areia/25 text-areia" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+        className={`${button} ${post.vote === 1 ? "bg-areia/25 text-areia" : "text-marfim-suave hover:bg-white/10 hover:text-white"}`}
       >
         <Arrow />
       </button>
       <span
         aria-label={`${post.score} pontos`}
-        className={`min-w-7 text-center text-[11px] font-extrabold tabular-nums ${
-          post.vote === 1 ? "text-areia" : post.vote === -1 ? "text-cyan-200" : "text-white"
+        className={`min-w-7 text-center text-xs font-extrabold tabular-nums ${
+          post.vote === 1 ? "text-areia" : post.vote === -1 ? "text-salvia" : "text-white"
         }`}
       >
         {post.score}
@@ -40,7 +41,7 @@ export function VoteControl({ post, horizontal = false }: { post: CommunityPost;
         aria-pressed={post.vote === -1}
         aria-label="Votar contra"
         onClick={() => dispatch({ type: "votePost", id: post.id, direction: -1 })}
-        className={`${button} ${post.vote === -1 ? "bg-cyan-400/20 text-cyan-200" : "text-slate-300 hover:bg-white/10 hover:text-white"}`}
+        className={`${button} ${post.vote === -1 ? "bg-salvia/20 text-salvia" : "text-marfim-suave hover:bg-white/10 hover:text-white"}`}
       >
         <Arrow down />
       </button>

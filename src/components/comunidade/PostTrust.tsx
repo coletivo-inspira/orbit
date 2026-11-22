@@ -3,19 +3,19 @@ import type { CommunityPost } from "@/lib/types";
 
 type Tone = "dark" | "light";
 
-const BADGE = "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold";
+const BADGE = "inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-bold";
 
 const STYLES: Record<"pending" | "verified" | "community", Record<Tone, string>> = {
   pending: {
-    dark: "border-amber-300/45 bg-amber-400/15 text-amber-100",
-    light: "border-amber-700/40 bg-amber-100 text-amber-900",
+    dark: "border-areia/45 bg-areia/15 text-areia",
+    light: "border-cobre/50 bg-areia/50 text-tinta",
   },
   verified: {
-    dark: "border-emerald-300/45 bg-emerald-400/15 text-emerald-100",
+    dark: "border-salvia/45 bg-salvia/15 text-salvia",
     light: "border-presenca/40 bg-salvia text-presenca",
   },
   community: {
-    dark: "border-white/20 bg-white/[0.07] text-slate-200",
+    dark: "border-white/20 bg-white/[0.07] text-marfim-suave",
     light: "border-linha bg-marfim text-texto-suave",
   },
 };

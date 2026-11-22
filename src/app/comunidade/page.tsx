@@ -31,7 +31,7 @@ export default function ComunidadePage() {
             <li key={post.id} className="flex">
               <Link
                 href={`/comunidade/${post.id}`}
-                className="flex w-full flex-col gap-3 rounded-[20px] border border-linha bg-leitura p-5 transition-colors hover:border-cobre"
+                className="flex w-full flex-col gap-3 rounded-cartao border border-linha bg-leitura p-5 transition-colors hover:border-cobre"
               >
                 <div className="flex items-center justify-between gap-2 text-xs font-bold text-cobre-texto">
                   <span>c/{category.slug}</span>
@@ -50,7 +50,7 @@ export default function ComunidadePage() {
           );
         })}
       </ul>
-      <div className="mt-8 rounded-[20px] border border-linha bg-leitura p-5">
+      <div className="mt-8 rounded-cartao border border-linha bg-leitura p-5">
         <RedditCommunities tone="light" />
       </div>
     </PublicShell>

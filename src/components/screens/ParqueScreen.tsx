@@ -21,6 +21,7 @@ import { ClayCityScene } from "@/lib/engines/scenes/clayCity";
 import type { ParkScene } from "@/lib/engines/scenes/types";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
+import { CloseButton } from "@/components/ui/Button";
 
 const CHAT_MAX_LENGTH = 75;
 
@@ -62,7 +63,7 @@ function ParkRoom({ room }: { room: ParkRoomDefinition | null }) {
         <h1 className="text-sm font-bold text-white">
           {failed ? "Não deu para abrir essa sala agora." : `Modelando ${room?.city} em massinha…`}
         </h1>
-        <p className="text-xs text-slate-300">
+        <p className="text-xs text-marfim-suave">
           {failed ? "Verifique sua conexão e tente de novo." : "Ruas, quadras e árvores vêm do mapa real da região."}
         </p>
       </div>
@@ -74,7 +75,7 @@ function ParkRoom({ room }: { room: ParkRoomDefinition | null }) {
               setFailed(false);
               setAttempt((a) => a + 1);
             }}
-            className="lg-btn-primary rounded-full px-4 py-1.5 text-xs font-bold"
+            className="lg-btn-primary rounded-full px-4 min-h-9 py-1.5 text-xs font-bold"
           >
             Tentar de novo
           </button>
@@ -82,7 +83,7 @@ function ParkRoom({ room }: { room: ParkRoomDefinition | null }) {
         <button
           type="button"
           onClick={() => dispatch({ type: "leaveParkRoom" })}
-          className="lg-pill rounded-full px-4 py-1.5 text-xs font-bold text-white"
+          className="lg-pill rounded-full px-4 min-h-9 py-1.5 text-xs font-bold text-white"
         >
           ← Voltar ao mapa-múndi
         </button>
@@ -219,7 +220,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
                 onClick={() => dispatch({ type: "leaveParkRoom" })}
                 aria-label="Voltar ao mapa-múndi"
                 title="Voltar ao mapa-múndi"
-                className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm text-white"
+                className="lg-pill flex h-9 w-9 shrink-0 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-sm text-white"
               >
                 <span aria-hidden="true">🌍</span>
               </button>
@@ -232,7 +233,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
                 {room && <span aria-hidden="true">{room.flag} </span>}
                 {title}
               </h1>
-              <span className="presenca-chip shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold">
+              <span className="presenca-chip shrink-0 rounded-full px-2 py-0.5 text-xs font-bold">
                 {scene.bots.length} online
               </span>
             </div>
@@ -243,7 +244,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
                 aria-expanded={peopleOpen}
                 aria-controls={`${ids}-people`}
                 onClick={() => setPeopleOpen((o) => !o)}
-                className="lg-bar pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white"
+                className="lg-bar pointer-events-auto rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white"
               >
                 👥 Pessoas ({roster.length || scene.bots.length})
               </button>
@@ -252,14 +253,14 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
                   type="button"
                   aria-pressed={state.showDesktopDpad}
                   onClick={() => dispatch({ type: "toggleDesktopDpad" })}
-                  className={`lg-bar pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white ${state.showDesktopDpad ? "lg-active-lens" : ""}`}
+                  className={`lg-bar pointer-events-auto rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white ${state.showDesktopDpad ? "lg-active-lens" : ""}`}
                 >
                   🕹️ Direcional
                 </button>
               )}
             </div>
           </div>
-          <p id={`${ids}-controls`} className="lg-bar rounded-full px-3 py-1 text-[11px] text-white">
+          <p id={`${ids}-controls`} className="lg-bar rounded-full px-3 py-1 text-xs text-white">
             {isMobile
               ? "Toque no chão ou use o direcional"
               : "Foque o mapa e use WASD/setas, clique no chão ou use a lista de pessoas"}
@@ -271,7 +272,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
             href="https://www.openstreetmap.org/copyright"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute right-2 bottom-1.5 z-10 rounded-full bg-marfim px-2 py-0.5 text-[10px] font-semibold text-tinta"
+            className="absolute right-2 bottom-1.5 z-10 rounded-full bg-marfim px-2 py-0.5 text-xs font-semibold text-tinta"
           >
             Mapa © OpenStreetMap<span className="sr-only"> (abre em nova aba)</span>
           </a>
@@ -293,7 +294,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
             <div
               role="group"
               aria-label="Direcional"
-              className="lg-bar grid h-[108px] w-[108px] grid-cols-3 gap-1 rounded-[26px] p-1.5"
+              className="lg-bar grid h-[108px] w-[108px] grid-cols-3 gap-1 rounded-cartao p-1.5"
             >
               <div />
               <DpadButton dir="up" label="Andar para cima" path="m18 15-6-6-6 6" onPress={pressDpad} />
@@ -328,12 +329,10 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
         )}
       </div>
 
-      <div
-        className={`z-20 shrink-0 border-t border-white/15 bg-noite ${isMobile ? "px-3 pt-2 pb-[86px]" : "px-3 py-2"}`}
-      >
+      <div className={`lg-glass lg-glass-footer z-20 shrink-0 ${isMobile ? "px-3 pt-2 pb-[86px]" : "px-3 py-2"}`}>
         <form
           onSubmit={onChatSubmit}
-          className="lg-pill flex h-10 items-center gap-2 rounded-full px-2 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim"
+          className="lg-pill flex h-11 items-center gap-2 rounded-full px-2 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim"
         >
           <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/35" aria-hidden="true">
             <Avatar cfg={state.user.avatar} />
@@ -345,11 +344,11 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
             onChange={(e) => setChat(e.target.value)}
             placeholder="Falar no Parque (aparece sobre seu boneco)..."
             aria-label="Mensagem no Parque"
-            className="min-w-0 flex-1 bg-transparent px-1.5 py-1 text-sm text-white placeholder-slate-300 focus-visible:outline-none"
+            className="min-w-0 flex-1 bg-transparent px-1.5 py-1 text-sm text-white placeholder-marfim-apagado focus-visible:outline-none"
           />
           <button
             type="submit"
-            className="lg-btn-primary shrink-0 rounded-full px-3.5 py-1 text-xs font-bold active:scale-95"
+            className="lg-btn-primary min-h-8 shrink-0 rounded-full px-4 text-xs font-bold active:scale-95"
           >
             Enviar
           </button>
@@ -381,7 +380,7 @@ function PeopleList({
     <section
       id={id}
       aria-label="Pessoas no Parque"
-      className={`lg-bar orbit-scroll absolute z-20 overflow-y-auto rounded-[22px] p-2 ${
+      className={`lg-bar orbit-scroll absolute z-20 overflow-y-auto rounded-cartao p-2 ${
         isMobile ? "top-[124px] right-3 left-3 max-h-[42%]" : "top-[92px] right-3 max-h-[60%] w-[300px]"
       }`}
     >
@@ -392,14 +391,14 @@ function PeopleList({
           return (
             <li
               key={r.id}
-              className={`flex items-center gap-2 rounded-2xl px-2 py-1.5 ${r.id === activeId ? "bg-white/10" : ""}`}
+              className={`flex items-center gap-2 rounded-full px-2 py-1.5 ${r.id === activeId ? "bg-white/10" : ""}`}
             >
               {profile && intention && (
                 <RingedAvatar cfg={profile.avatar} color={intention.color} size={30} ring={2} halo={false} />
               )}
               <div className="min-w-0 flex-1">
                 <div className="truncate text-xs font-bold text-white">{r.name}</div>
-                <div className="text-[11px] text-slate-300">
+                <div className="text-xs text-marfim-suave">
                   {r.proximity === "perto" ? (
                     <span className="presenca-chip rounded-full px-1.5 font-semibold whitespace-nowrap">
                       {PROXIMITY_LABEL[r.proximity]}
@@ -413,14 +412,14 @@ function PeopleList({
               <button
                 type="button"
                 onClick={() => onTalk(r.id)}
-                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+                className="lg-pill rounded-full px-2.5 min-h-9 py-1.5 text-xs font-bold text-white"
               >
                 Conversar<span className="sr-only"> com {r.name}</span>
               </button>
               <button
                 type="button"
                 onClick={() => onProfile(r.id)}
-                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+                className="lg-pill rounded-full px-2.5 min-h-9 py-1.5 text-xs font-bold text-white"
               >
                 Perfil<span className="sr-only"> de {r.name}</span>
               </button>
@@ -469,7 +468,7 @@ function DpadButton({
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
       onBlur={release}
-      className="pointer-events-auto flex touch-none items-center justify-center rounded-xl border border-white/25 bg-white/[0.12] text-white transition hover:bg-white/[0.24] active:bg-areia/50"
+      className="pointer-events-auto flex touch-none items-center justify-center rounded-full border border-white/25 bg-white/[0.12] text-white transition hover:bg-white/[0.24] active:bg-areia/50"
     >
       <svg
         className="h-4 w-4"
@@ -507,7 +506,7 @@ function BotCard({
   return (
     <section
       aria-label={`Conversa com ${bot.name}`}
-      className={`lg-sheet pointer-events-auto absolute z-30 rounded-[22px] p-3.5 ${isMobile ? "right-3 bottom-[124px] left-3" : "right-4 bottom-4 w-[380px] max-w-[46%]"}`}
+      className={`lg-sheet pointer-events-auto absolute z-30 rounded-cartao p-3.5 ${isMobile ? "right-3 bottom-[124px] left-3" : "right-4 bottom-4 w-[380px] max-w-[46%]"}`}
     >
       <div className="flex items-start gap-3">
         {profile && <RingedAvatar cfg={profile.avatar} color={intention.color} size={44} ring={2} halo={false} />}
@@ -516,31 +515,24 @@ function BotCard({
             <div className="flex flex-wrap items-center gap-1.5 text-xs font-extrabold text-white">
               <span>{bot.name}</span>
               <span
-                className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                className="rounded-full px-2 py-0.5 text-xs font-bold"
                 style={{ background: intention.bg, color: intention.text }}
               >
                 {intention.emoji} {intention.short}
               </span>
             </div>
-            <button
-              type="button"
-              onClick={onEnd}
-              aria-label={`Encerrar conversa com ${bot.name}`}
-              className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
-            >
-              ✕
-            </button>
+            <CloseButton onClose={onEnd} label={`Encerrar conversa com ${bot.name}`} size="compacto" />
           </div>
           <p className="mt-1.5 text-sm leading-snug text-white" aria-live="polite">
             &ldquo;{bot.line}&rdquo;
           </p>
           <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-            <span className="presenca-chip rounded-full px-2 py-0.5 text-[11px] font-semibold">Perto no Parque</span>
+            <span className="presenca-chip rounded-full px-2 py-0.5 text-xs font-semibold">Perto no Parque</span>
             <div className="flex items-center gap-1.5">
               <button
                 type="button"
                 onClick={onOpenProfile}
-                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+                className="lg-pill rounded-full px-2.5 min-h-9 py-1.5 text-xs font-bold text-white"
               >
                 Ver perfil
               </button>
@@ -548,7 +540,7 @@ function BotCard({
                 ref={continueRef}
                 type="button"
                 onClick={onContinue}
-                className="lg-btn-primary rounded-full px-3 py-1 text-[11px] font-bold"
+                className="lg-btn-primary rounded-full px-3 min-h-9 py-1.5 text-xs font-bold"
               >
                 Continuar papo →
               </button>

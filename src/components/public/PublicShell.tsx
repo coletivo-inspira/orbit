@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { buttonClass } from "@/components/ui/Button";
 import { OrbitSignature } from "@/components/ui/OrbitLogo";
 
 /** Chrome for public, indexable pages (no login required): opaque ivory reading surface per the brandbook. */
@@ -8,16 +9,16 @@ export function PublicShell({ children }: { children: ReactNode }) {
     <div className="superficie-clara min-h-dvh bg-marfim text-tinta">
       <a
         href="#conteudo"
-        className="fixed top-2 left-2 z-30 -translate-y-[200%] rounded-lg bg-marfim px-3 py-2 text-sm font-bold text-tinta focus:translate-y-0"
+        className="fixed top-2 left-2 z-30 -translate-y-[200%] rounded-full bg-marfim px-4 py-2 text-sm font-bold text-tinta focus:translate-y-0"
       >
         Pular para o conteúdo
       </a>
-      <header className="sticky top-0 z-20 border-b border-white/20 bg-noite text-marfim [--foco:var(--color-marfim)]">
+      <header className="lg-glass lg-header sticky top-0 z-20 text-marfim [--foco:var(--color-marfim)]">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-2.5">
-          <Link href="/comunidade" className="rounded-lg">
-            <OrbitSignature subtitle={<span className="mt-1 text-[11px] font-medium text-areia">Comunidade</span>} />
+          <Link href="/comunidade" className="rounded-full">
+            <OrbitSignature subtitle={<span className="mt-1 text-xs font-medium text-areia">Comunidade</span>} />
           </Link>
-          <Link href="/" className="lg-btn-primary rounded-full px-4 py-2 text-xs font-bold">
+          <Link href="/" className={buttonClass({ variant: "primario", size: "compacto" })}>
             Explorar o Orbit
           </Link>
         </div>

@@ -12,8 +12,8 @@ export function RegionalAlerts({ compact = false }: { compact?: boolean }) {
   return (
     <section aria-label="Alertas de saúde na sua região">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-sans text-sm font-extrabold text-white">📍 Na sua região</h2>
-        <label className="lg-pill flex items-center gap-1.5 rounded-full py-1 pr-2 pl-3 text-[11px] font-semibold text-slate-100">
+        <h2 className="text-sm font-extrabold text-white">📍 Na sua região</h2>
+        <label className="lg-pill flex min-h-9 items-center gap-1.5 rounded-full pr-3 pl-3.5 text-xs font-semibold text-marfim focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim">
           <span className="sr-only">Escolher região</span>
           <select
             value={region.id}
@@ -26,33 +26,33 @@ export function RegionalAlerts({ compact = false }: { compact?: boolean }) {
               </option>
             ))}
           </select>
-          <span aria-hidden className="text-slate-300">
+          <span aria-hidden className="text-marfim-suave">
             ▾
           </span>
         </label>
       </div>
-      <p className="mt-1 text-[11px] leading-snug text-slate-300">
+      <p className="mt-1 text-xs leading-snug text-marfim-suave">
         Você escolhe a região — o Orbit não usa GPS.{" "}
-        <strong className="font-semibold text-amber-100">Alertas de exemplo (simulados):</strong> confirme sempre na
-        fonte oficial.
+        <strong className="font-semibold text-areia">Alertas de exemplo (simulados):</strong> confirme sempre na fonte
+        oficial.
       </p>
 
       <div className="orbit-scroll -mx-1 mt-2.5 flex snap-x gap-3 overflow-x-auto px-1 pb-1.5">
         {alerts.map((alert) => (
           <article
             key={alert.id}
-            className={`lg-panel flex shrink-0 snap-start flex-col gap-2 rounded-[20px] p-3.5 ${compact ? "w-[244px]" : "w-[264px]"}`}
+            className={`lg-glass-tint flex shrink-0 snap-start flex-col gap-2 rounded-cartao p-3.5 ${compact ? "w-[244px]" : "w-[264px]"}`}
           >
             <div className="flex items-start justify-between gap-2">
               <span className="text-lg leading-none" aria-hidden>
                 {alert.emoji}
               </span>
-              <span className="rounded-full border border-amber-300/35 bg-amber-400/10 px-2 py-0.5 text-[10px] font-bold tracking-wide text-amber-100 uppercase">
+              <span className="rounded-full border border-areia/35 bg-areia/10 px-2 py-0.5 text-xs font-bold tracking-wide text-areia uppercase">
                 Exemplo · simulado
               </span>
             </div>
-            <h3 className="font-sans text-sm leading-snug font-bold text-white">{alert.title}</h3>
-            <p className="text-[11px] leading-relaxed text-slate-300">{alert.text}</p>
+            <h3 className="text-sm leading-snug font-bold text-white">{alert.title}</h3>
+            <p className="text-xs leading-relaxed text-marfim-suave">{alert.text}</p>
             <ul className="mt-auto space-y-1 border-t border-white/[0.1] pt-2">
               {alert.sources.map((source) => (
                 <li key={source.url}>
@@ -60,7 +60,7 @@ export function RegionalAlerts({ compact = false }: { compact?: boolean }) {
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-areia underline-offset-2 hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-areia underline-offset-2 hover:underline"
                   >
                     {source.label}
                     <ExternalLinkIcon className="h-2.5 w-2.5" />

@@ -10,10 +10,11 @@ import { REGIONS } from "@/lib/data/regions";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { CommunityCategory, PostDraft, PostKind, ProfessionalCouncil } from "@/lib/types";
+import { Button, CloseButton } from "@/components/ui/Button";
 
 const FIELD =
-  "w-full rounded-2xl border border-white/20 bg-tinta px-3.5 py-2.5 text-sm text-white placeholder-slate-300 focus:border-areia";
-const LABEL = "mb-1 block text-[11px] font-bold text-slate-200";
+  "w-full rounded-cartao border border-white/20 bg-tinta px-3.5 py-2.5 text-sm text-white placeholder-marfim-apagado focus:border-areia";
+const LABEL = "mb-1 block text-xs font-bold text-marfim-suave";
 
 export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind; onClose: () => void }) {
   const { state, dispatch } = useOrbit();
@@ -75,9 +76,9 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
         onClick={(e) => e.stopPropagation()}
         onSubmit={submit}
         noValidate
-        className={`lg-sheet flex w-full flex-col overflow-hidden rounded-[30px] outline-none ${isMobile ? "max-h-[92%]" : "max-h-[90%] max-w-[560px]"}`}
+        className={`lg-sheet flex w-full flex-col overflow-hidden rounded-folha outline-none ${isMobile ? "max-h-[92%]" : "max-h-[90%] max-w-[560px]"}`}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.12] px-5 py-4">
+        <div className="lg-glass lg-header flex shrink-0 items-center justify-between gap-3 px-5 py-3.5">
           <h2
             ref={titleRef}
             id={`${uid}-heading`}
@@ -86,21 +87,14 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
           >
             {kind === "artigo" ? "Enviar artigo para revisão" : "Criar post"}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="lg-pill flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm text-white"
-          >
-            ✕
-          </button>
+          <CloseButton onClose={onClose} />
         </div>
 
         <div className="orbit-scroll flex-1 space-y-3.5 overflow-y-auto p-5">
           <div
             role="group"
             aria-label="Tipo de publicação"
-            className="flex w-fit items-center gap-1 rounded-full border border-white/[0.14] bg-white/[0.05] p-0.5"
+            className="lg-glass-tint flex w-fit items-center gap-1 rounded-full p-1"
           >
             {(
               [
@@ -116,17 +110,17 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
                   setKind(id);
                   setErrors([]);
                 }}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
+                className={`min-h-9 rounded-full px-3.5 text-xs font-semibold transition ${
                   kind === id
                     ? "lg-active-lens text-white"
-                    : "border border-transparent text-slate-300 hover:text-white"
+                    : "border border-transparent text-marfim-suave hover:text-white"
                 }`}
               >
                 {label}
               </button>
             ))}
           </div>
-          <p className="text-xs leading-relaxed text-slate-300">
+          <p className="text-xs leading-relaxed text-marfim-suave">
             {kind === "artigo"
               ? "Artigos passam por conferência do registro profissional e revisão de moderadores antes de aparecer para todo mundo."
               : `Publica na hora como “Post da comunidade”, assinado como ${state.user.name}. Não substitui orientação profissional.`}
@@ -189,14 +183,14 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
 
           <div role="group" aria-labelledby={`${uid}-tags`}>
             <div className="mb-1 flex items-center justify-between gap-2">
-              <span id={`${uid}-tags`} className="text-[11px] font-bold text-slate-200">
+              <span id={`${uid}-tags`} className="text-xs font-bold text-marfim-suave">
                 Tags automáticas
               </span>
               {removedTags.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setRemovedTags([])}
-                  className="text-[11px] font-bold text-areia underline underline-offset-2"
+                  className="text-xs font-bold text-areia underline underline-offset-2"
                 >
                   Restaurar removidas
                 </button>
@@ -210,7 +204,7 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
                       type="button"
                       onClick={() => setRemovedTags((r) => [...r, tagId(tag)])}
                       aria-label={`Tirar a tag ${tag}`}
-                      className="flex items-center gap-1 rounded-full border border-areia/40 bg-areia/10 py-1 pr-2 pl-2.5 text-[11px] font-semibold text-areia hover:bg-areia/20"
+                      className="flex items-center gap-1 rounded-full border border-areia/40 bg-areia/10 py-1 pr-2 pl-2.5 text-xs font-semibold text-areia hover:bg-areia/20"
                     >
                       #{tag} <span aria-hidden="true">✕</span>
                     </button>
@@ -218,20 +212,20 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
                 ))}
               </ul>
             ) : (
-              <p className="text-[11px] text-slate-300">
+              <p className="text-xs text-marfim-suave">
                 {suggested.length
                   ? "Nenhuma tag: o post sai sem palavras-chave."
                   : "Aparecem aqui conforme você escreve."}
               </p>
             )}
-            <p className="mt-1 text-[11px] leading-snug text-slate-300">
+            <p className="mt-1 text-xs leading-snug text-marfim-suave">
               Tiradas do título e do texto, sem artigos e preposições (“a”, “e”, “de”…). Toque numa tag para tirar.
             </p>
           </div>
 
           {kind === "artigo" && (
-            <fieldset className="space-y-3 rounded-[22px] border border-emerald-300/25 bg-emerald-400/[0.06] p-3.5">
-              <legend className="px-1 text-xs font-extrabold text-emerald-100">Verificação profissional</legend>
+            <fieldset className="space-y-3 rounded-cartao border border-salvia/25 bg-salvia/[0.06] p-3.5">
+              <legend className="px-1 text-xs font-extrabold text-salvia">Verificação profissional</legend>
               <div>
                 <label className={LABEL} htmlFor={`${uid}-name`}>
                   Nome profissional
@@ -290,11 +284,10 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
                   </select>
                 </div>
               </div>
-              <p className="text-xs leading-relaxed text-slate-300">
+              <p className="text-xs leading-relaxed text-marfim-suave">
                 Na versão real, o registro seria conferido na consulta pública do {COUNCILS[council].name} e um
-                moderador revisaria o texto e as fontes.{" "}
-                <strong className="text-amber-100">Nesta demo é simulado</strong>: nada é enviado aos conselhos e você
-                mesmo pode aprovar o artigo para ver o fluxo.
+                moderador revisaria o texto e as fontes. <strong className="text-areia">Nesta demo é simulado</strong>:
+                nada é enviado aos conselhos e você mesmo pode aprovar o artigo para ver o fluxo.
               </p>
             </fieldset>
           )}
@@ -302,7 +295,7 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
           {errors.length > 0 && (
             <ul
               role="alert"
-              className="space-y-1 rounded-2xl border border-rose-300/35 bg-rose-500/10 p-3 text-[11px] text-rose-100"
+              className="space-y-1 rounded-cartao border border-alerta/35 bg-alerta/10 p-3 text-xs text-alerta"
             >
               {errors.map((err) => (
                 <li key={err}>• {err}</li>
@@ -311,17 +304,13 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
           )}
         </div>
 
-        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-white/[0.12] bg-tinta p-3.5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="lg-pill rounded-full px-4 py-2 text-xs font-semibold text-white"
-          >
+        <div className="lg-glass lg-glass-footer flex shrink-0 items-center justify-end gap-2 p-3.5">
+          <Button size="compacto" onClick={onClose}>
             Cancelar
-          </button>
-          <button type="submit" className="lg-btn-primary rounded-full px-4 py-2 text-xs font-bold">
+          </Button>
+          <Button type="submit" variant="primario" size="compacto">
             {kind === "artigo" ? "Enviar para revisão" : "Publicar"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

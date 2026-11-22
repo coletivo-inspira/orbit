@@ -40,7 +40,7 @@ export function InteresseScreen() {
         >
           Interesse
         </h1>
-        <p className="mt-0.5 text-[11px] leading-snug text-slate-300">
+        <p className="mt-0.5 text-xs leading-snug text-marfim-suave">
           <span className="font-semibold text-white">
             {INTEREST_FEED.length} pessoas · <span className="text-areia">{INTEREST_TAP_COUNT} toques</span>
           </span>{" "}
@@ -99,17 +99,17 @@ function InterestCaption({ entry }: { entry: InterestEntry }) {
         </span>
         {p.online && (
           <>
-            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />
+            <span className="h-2 w-2 shrink-0 rounded-full presenca-ponto" aria-hidden="true" />
             <span className="sr-only">, online</span>
           </>
         )}
       </p>
-      <p className="flex items-center justify-center gap-1.5 text-[12px] font-medium text-slate-300">
+      <p className="flex items-center justify-center gap-1.5 text-[12px] font-medium text-marfim-suave">
         <span>
           {formatAgo(entry.minutesAgo)} · {p.dist}
         </span>
         {entry.opens > 1 && (
-          <span className="rounded-full border border-white/15 bg-white/[0.07] px-1.5 text-[11px] font-semibold text-white">
+          <span className="rounded-full border border-white/15 bg-white/[0.07] px-1.5 text-xs font-semibold text-white">
             abriu {entry.opens}×
           </span>
         )}

@@ -21,7 +21,7 @@ export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?:
       <div className="pointer-events-none absolute right-3.5 bottom-[max(1rem,env(safe-area-inset-bottom))] left-3.5 z-30 flex flex-col items-center gap-2">
         <nav
           aria-label="Navegação principal"
-          className="lg-bar pointer-events-auto flex h-[60px] w-full items-center justify-around rounded-[30px] px-2"
+          className="lg-bar pointer-events-auto flex h-[60px] w-full items-center justify-around rounded-full px-2"
         >
           {NAV_ITEMS.map((item) => {
             const active = isNavActive(item, state.activeTab);
@@ -31,8 +31,8 @@ export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?:
                 type="button"
                 aria-current={active ? "page" : undefined}
                 onClick={() => dispatch({ type: "setTab", tab: item.id })}
-                className={`relative flex h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[22px] transition-all ${
-                  active ? "lg-active-lens text-white" : "border border-transparent text-slate-300 hover:text-white"
+                className={`relative flex h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-full transition-all ${
+                  active ? "lg-active-lens text-white" : "border border-transparent text-marfim-suave hover:text-white"
                 }`}
               >
                 {item.icon}

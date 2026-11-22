@@ -144,11 +144,11 @@ function StudioContent() {
             onClick={() => dispatch({ type: "resetHome" })}
             aria-label="Orbit — voltar ao início"
             title="Orbit — Início"
-            className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl transition-transform active:scale-95"
+            className="lg-pill flex h-12 w-12 items-center justify-center rounded-full transition-transform active:scale-95"
           >
             <OrbitLogo className="h-8 w-8 text-areia" />
           </button>
-          <span className="font-display text-[11px] font-bold tracking-wide text-marfim">Orbit</span>
+          <span className="font-display text-xs font-bold tracking-wide text-marfim">Orbit</span>
         </div>
 
         <fieldset className="flex flex-col items-center gap-3">
@@ -166,10 +166,10 @@ function StudioContent() {
                   className="peer sr-only"
                 />
                 <span
-                  className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all peer-focus-visible:outline-3 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-marfim ${
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-full transition-all peer-focus-visible:outline-3 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-marfim ${
                     active
                       ? "lg-active-lens text-white"
-                      : "border border-white/[0.14] bg-white/[0.04] text-slate-300 hover:bg-white/[0.10] hover:text-white"
+                      : "border border-white/[0.14] bg-white/[0.04] text-marfim-suave hover:bg-white/[0.10] hover:text-white"
                   }`}
                 >
                   <svg
@@ -185,15 +185,15 @@ function StudioContent() {
                     {d.icon}
                   </svg>
                 </span>
-                <span className="text-[9px] font-semibold tracking-wider text-slate-300 uppercase">{d.label}</span>
+                <span className="text-xs font-semibold tracking-wider text-marfim-suave uppercase">{d.label}</span>
               </label>
             );
           })}
         </fieldset>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="presenca-chip rounded-full px-2 py-0.5 text-[9px] font-bold">MVP</span>
-          <span className="text-[9px] text-slate-300">v0.1</span>
+          <span className="presenca-chip rounded-full px-2 py-0.5 text-xs font-bold">MVP</span>
+          <span className="text-xs text-marfim-suave">v0.1</span>
         </div>
       </aside>
 
@@ -205,7 +205,7 @@ function StudioContent() {
             <span className="hidden text-white/30 md:inline" aria-hidden="true">
               |
             </span>
-            <span className="hidden text-xs text-slate-300 md:inline">
+            <span className="hidden text-xs text-marfim-suave md:inline">
               Moldura em {Math.round(scale * 100)}% · alvos e gestos diferem do aparelho real
             </span>
           </div>
@@ -214,7 +214,7 @@ function StudioContent() {
               aria-label="Ir direto para"
               className="lg-bar hidden items-center gap-1 rounded-full px-2 py-1 sm:flex"
             >
-              <span className="pr-1 pl-2 text-[11px] text-slate-300" aria-hidden="true">
+              <span className="pr-1 pl-2 text-xs text-marfim-suave" aria-hidden="true">
                 Ir direto:
               </span>
               {QUICK_NAV.map((q) => (
@@ -222,13 +222,16 @@ function StudioContent() {
                   key={q.tab}
                   type="button"
                   onClick={() => navigateQuick(q.tab)}
-                  className="rounded-full px-2.5 py-1 text-[11px] font-medium text-slate-100 transition hover:bg-white/15"
+                  className="rounded-full px-2.5 min-h-9 py-1.5 text-xs font-medium text-marfim transition hover:bg-white/15"
                 >
                   {q.label}
                 </button>
               ))}
             </nav>
-            <Link href="/" className="lg-bar rounded-full px-3 py-1.5 text-[11px] font-semibold text-white">
+            <Link
+              href="/"
+              className="inline-flex items-center lg-bar rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white"
+            >
               Abrir app →
             </Link>
           </div>
@@ -259,7 +262,7 @@ function StudioContent() {
         </section>
 
         <footer className="z-20 flex shrink-0 items-center justify-center px-4 pt-0.5 pb-2.5">
-          <p className="lg-bar rounded-full px-4 py-1.5 text-center text-[11px] text-white">{HINTS[device]}</p>
+          <p className="lg-bar rounded-full px-4 py-1.5 text-center text-xs text-white">{HINTS[device]}</p>
         </footer>
       </div>
     </div>

@@ -23,21 +23,22 @@ import { normalizeSearch } from "@/lib/keywords";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { CommunityCategory, CommunityPost } from "@/lib/types";
+import { CloseButton } from "@/components/ui/Button";
 
 const STEP_MS = 900;
 const SPEEDS = [1, 2, 4] as const;
 const DISPLAY_KEY = "orbit:graph:linha-do-tempo:v1";
 
 const CATEGORY_COLOR: Record<CommunityCategory, string> = {
-  vacinas: "#67e8f9",
-  prevencao: "#6ee7b7",
-  bemestar: "#c4b5fd",
-  debates: "#fcd34d",
+  vacinas: "#d9e4d6",
+  prevencao: "#9fc1a8",
+  bemestar: "#f2b8b5",
+  debates: "#e2b293",
 };
 
 const EDGE_STYLES: Record<TimelineEdge["kind"], EdgeStyle> = {
   comentario: { color: "rgb(245 240 231)", alpha: 0.5, dash: [] },
-  resposta: { color: "#c4b5fd", alpha: 0.7, dash: [4, 3] },
+  resposta: { color: "#f2b8b5", alpha: 0.7, dash: [4, 3] },
   tag: { color: "#dec9a8", alpha: 0.32, dash: [] },
 };
 const styleOf = (e: TimelineEdge) => e.kind;
@@ -240,18 +241,11 @@ export function CommunityTimelapse({
           >
             Linha do tempo da comunidade
           </h2>
-          <p className="mt-0.5 text-[11px] leading-snug text-slate-300">
+          <p className="mt-0.5 text-xs leading-snug text-marfim-suave">
             Posts, comentários e respostas aparecem na ordem em que aconteceram, ligados às tags de cada um.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Fechar linha do tempo"
-          className="lg-pill flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm text-white"
-        >
-          ✕
-        </button>
+        <CloseButton onClose={onClose} label="Fechar linha do tempo" size="compacto" />
       </div>
 
       <div
@@ -296,10 +290,10 @@ export function CommunityTimelapse({
                       emphasized || fresh || node.kind === "post" ? "" : "group-data-[zoom=far]/graph:hidden"
                     } ${
                       node.kind === "tag"
-                        ? "text-[10px] font-semibold text-areia"
+                        ? "text-xs font-semibold text-areia"
                         : node.kind === "post"
-                          ? "rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-[10px] font-bold text-white"
-                          : "text-[10px] font-semibold text-slate-200"
+                          ? "rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-xs font-bold text-white"
+                          : "text-xs font-semibold text-marfim-suave"
                     }`}
                     aria-hidden="true"
                   >
@@ -313,7 +307,7 @@ export function CommunityTimelapse({
         </div>
 
         {last < 0 && (
-          <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs text-slate-300">
+          <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs text-marfim-suave">
             Nenhuma publicação nesta subcomunidade ainda.
           </p>
         )}
@@ -339,7 +333,7 @@ export function CommunityTimelapse({
             type="button"
             onClick={() => engineRef.current?.zoomBy(1 / 1.25)}
             aria-label="Afastar"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-base font-bold text-white hover:bg-white/10"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-base font-bold text-white hover:bg-white/10"
           >
             −
           </button>
@@ -347,14 +341,14 @@ export function CommunityTimelapse({
             type="button"
             onClick={() => engineRef.current?.zoomBy(1.25)}
             aria-label="Aproximar"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-base font-bold text-white hover:bg-white/10"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-base font-bold text-white hover:bg-white/10"
           >
             +
           </button>
           <button
             type="button"
             onClick={() => engineRef.current?.fit()}
-            className="rounded-full px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
+            className="rounded-full px-2.5 min-h-9 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
           >
             Ajustar
           </button>
@@ -365,7 +359,7 @@ export function CommunityTimelapse({
               aria-expanded={settingsOpen}
               aria-label="Configurações do grafo"
               title="Configurações do grafo"
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm text-white ${settingsOpen ? "bg-white/15" : "hover:bg-white/10"}`}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-sm text-white ${settingsOpen ? "bg-white/15" : "hover:bg-white/10"}`}
             >
               ⚙
             </button>
@@ -388,9 +382,7 @@ export function CommunityTimelapse({
         )}
       </div>
 
-      <div
-        className={`shrink-0 border-t border-white/[0.12] bg-tinta ${compact ? "px-3.5 pt-2.5 pb-24" : "px-6 py-3"}`}
-      >
+      <div className={`lg-glass lg-glass-footer shrink-0 ${compact ? "px-3.5 pt-2.5 pb-24" : "px-6 py-3"}`}>
         <div className="flex items-baseline justify-between gap-3">
           <p
             role="status"
@@ -402,10 +394,10 @@ export function CommunityTimelapse({
                 <strong className="font-bold text-areia">{formatHoursAgo(current.hoursAgo)}</strong> · {current.caption}
               </>
             ) : (
-              <span className="text-slate-300">Aperte ▶ para ver a comunidade crescer.</span>
+              <span className="text-marfim-suave">Aperte ▶ para ver a comunidade crescer.</span>
             )}
           </p>
-          <span className="shrink-0 text-[10px] whitespace-nowrap text-slate-300">
+          <span className="shrink-0 text-xs whitespace-nowrap text-marfim-suave">
             {counts.posts} posts · {counts.comments} comentários{showTags ? ` · ${counts.tags} tags` : ""}
           </span>
         </div>
@@ -496,9 +488,9 @@ function TimelineDot({
   const profile = node.profileId && node.profileId !== "me" ? profileById(node.profileId) : undefined;
   return (
     <span
-      className={`flex ${size} items-center justify-center overflow-hidden rounded-full bg-noite-elevada text-[11px] font-extrabold text-white`}
+      className={`flex ${size} items-center justify-center overflow-hidden rounded-full bg-noite-elevada text-xs font-extrabold text-white`}
       style={{
-        boxShadow: `0 0 0 2px ${node.kind === "reply" ? "#c4b5fd" : "rgb(245 240 231 / 80%)"}, 0 6px 12px rgba(0,0,0,0.4)${glow}`,
+        boxShadow: `0 0 0 2px ${node.kind === "reply" ? "#f2b8b5" : "rgb(245 240 231 / 80%)"}, 0 6px 12px rgba(0,0,0,0.4)${glow}`,
       }}
       aria-hidden="true"
     >
@@ -531,10 +523,10 @@ function Legend() {
     <ul
       data-graph-control
       aria-label="Legenda"
-      className="lg-bar absolute top-2.5 left-2.5 z-20 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl px-3 py-1.5 text-[10px] text-slate-200"
+      className="lg-bar absolute top-2.5 left-2.5 z-20 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-cartao px-3 py-1.5 text-xs text-marfim-suave"
     >
       <li className="flex items-center gap-1.5">
-        <span className="h-2.5 w-2.5 rounded-full border-2 border-amber-300 bg-noite" aria-hidden="true" />
+        <span className="h-2.5 w-2.5 rounded-full border-2 border-areia bg-noite" aria-hidden="true" />
         Post
       </li>
       <li className="flex items-center gap-1.5">
@@ -542,7 +534,7 @@ function Legend() {
         Comentário
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="h-0 w-3.5 border-t-2 border-dashed border-violet-300" aria-hidden="true" />
+        <span className="h-0 w-3.5 border-t-2 border-dashed border-alerta" aria-hidden="true" />
         Resposta
       </li>
       <li className="flex items-center gap-1.5">
@@ -580,29 +572,22 @@ function FocusCard({
   return (
     <div
       data-graph-control
-      className={`lg-bar absolute z-20 flex items-center gap-2 rounded-2xl px-3 py-2 ${compact ? "top-12 right-2.5 left-2.5" : "bottom-4 left-4 max-w-[60%]"}`}
+      className={`lg-bar absolute z-20 flex items-center gap-2 rounded-cartao px-3 py-2 ${compact ? "top-12 right-2.5 left-2.5" : "bottom-4 left-4 max-w-[60%]"}`}
     >
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-bold text-white">{title}</div>
-        <div className="line-clamp-2 text-[11px] leading-snug text-slate-300">{detail}</div>
+        <div className="line-clamp-2 text-xs leading-snug text-marfim-suave">{detail}</div>
       </div>
       {node.kind !== "tag" && (
         <button
           type="button"
           onClick={() => onOpenPost(node.postId)}
-          className="lg-btn-primary shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold"
+          className="lg-btn-primary shrink-0 rounded-full px-3 min-h-9 py-1.5 text-xs font-bold"
         >
           Abrir post
         </button>
       )}
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label="Limpar destaque"
-        className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
-      >
-        ✕
-      </button>
+      <CloseButton onClose={onClear} label="Limpar destaque" size="compacto" />
     </div>
   );
 }

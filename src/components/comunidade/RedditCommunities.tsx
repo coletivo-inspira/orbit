@@ -7,11 +7,11 @@ type Tone = "dark" | "light";
 const STYLES: Record<Tone, { title: string; muted: string; item: string; icon: string; name: string; lang: string }> = {
   dark: {
     title: "text-white",
-    muted: "text-slate-300",
+    muted: "text-marfim-suave",
     item: "lg-pill",
     icon: "border-areia/40 bg-areia/15 text-areia",
     name: "text-white",
-    lang: "bg-white/10 text-slate-200",
+    lang: "bg-white/10 text-marfim-suave",
   },
   light: {
     title: "text-tinta",
@@ -55,7 +55,7 @@ export function RedditCommunities({
   const s = STYLES[tone];
   return (
     <section aria-label="Comunidades no Reddit">
-      <h2 className={`font-sans text-sm font-extrabold ${s.title}`}>Comunidades no Reddit</h2>
+      <h2 className={`text-sm font-extrabold ${s.title}`}>Comunidades no Reddit</h2>
       <p className={`mt-1 text-xs leading-snug ${s.muted}`}>
         Comunidades maiores que já existem. Os links abrem o Reddit em nova aba; conteúdo, regras e moderação são de lá.
       </p>
@@ -66,15 +66,17 @@ export function RedditCommunities({
               href={redditUrl(c.name)}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-start gap-2.5 rounded-2xl p-2.5 ${s.item}`}
+              className={`flex items-start gap-2.5 rounded-cartao p-2.5 ${s.item}`}
             >
-              <span className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border ${s.icon}`}>
+              <span
+                className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border ${s.icon}`}
+              >
                 <CommunityIcon />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-1.5">
                   <span className={`truncate text-xs font-bold ${s.name}`}>r/{c.name}</span>
-                  <span className={`rounded-full px-1.5 py-px text-[10px] font-bold ${s.lang}`}>
+                  <span className={`rounded-full px-1.5 py-px text-xs font-bold ${s.lang}`}>
                     {c.language === "pt-BR" ? "PT" : "EN"}
                   </span>
                 </span>
