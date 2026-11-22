@@ -1,7 +1,25 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-bricolage), Georgia, serif;
+}
+
+/* Brandbook tokens (docs/design/brandbook.html). Intention colors stay in src/lib/data/intentions.ts. */
+@theme {
+  --color-white: #f5f0e7;
+  --color-tinta: #1c2631;
+  --color-noite: #27323d;
+  --color-noite-elevada: #313d49;
+  --color-marfim: #f5f0e7;
+  --color-leitura: #ece4d8;
+  --color-areia: #dec9a8;
+  --color-cobre: #a87356;
+  --color-cobre-texto: #754b38;
+  --color-texto-suave: #4d5964;
+  --color-salvia: #d9e4d6;
+  --color-presenca: #30483d;
+  --color-linha: #bdb4a7;
 }
 
 /*
@@ -105,6 +123,12 @@
 }
 
 @layer base {
+  :root {
+    --foco: var(--color-marfim);
+    --vidro: rgb(39 50 61 / 88%);
+    --vidro-borda: rgb(245 240 231 / 35%);
+  }
+
   * {
     -webkit-tap-highlight-color: transparent;
   }
@@ -112,8 +136,24 @@
   html,
   body {
     min-height: 100%;
-    background-color: #070a12;
-    color: #f8fafc;
+    background-color: var(--color-tinta);
+    color: var(--color-marfim);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
+
+  /* Distinct from the colored intention rings: ivory, offset and rectangular. */
+  :focus-visible {
+    outline: 3px solid var(--foco);
+    outline-offset: 3px;
+  }
+
+  .superficie-clara {
+    --foco: var(--color-tinta);
   }
 
   button:not(:disabled),
@@ -125,20 +165,21 @@
 @layer components {
   .studio-bg {
     background:
-      radial-gradient(circle at 18% 16%, rgba(124, 106, 214, 0.16), transparent 44%),
-      radial-gradient(circle at 84% 78%, rgba(72, 169, 197, 0.13), transparent 46%),
-      radial-gradient(circle at 52% 48%, rgba(30, 41, 66, 0.48), #070a12 84%);
+      radial-gradient(circle at 18% 16%, rgb(222 201 168 / 9%), transparent 44%),
+      radial-gradient(circle at 84% 78%, rgb(168 115 86 / 10%), transparent 46%),
+      radial-gradient(circle at 52% 48%, #344252, var(--color-tinta) 84%);
   }
 
   /* ---------------------------------------------------------------------------
-     Liquid Glass design system (translucent optical glass + specular light)
+     Surfaces. Glass is reserved for navigation bars and floating actions; long
+     reading and editing happen on opaque surfaces (brandbook "Vidro e leitura").
      --------------------------------------------------------------------------- */
   .app-ambient-bg {
     background:
-      radial-gradient(90% 60% at 15% 10%, rgba(139, 118, 224, 0.22), transparent 62%),
-      radial-gradient(80% 55% at 88% 22%, rgba(78, 174, 206, 0.18), transparent 60%),
-      radial-gradient(75% 60% at 50% 92%, rgba(176, 118, 184, 0.15), transparent 62%),
-      linear-gradient(165deg, #0b101d 0%, #0f1628 48%, #0a0f1c 100%);
+      radial-gradient(90% 60% at 15% 10%, rgb(222 201 168 / 10%), transparent 62%),
+      radial-gradient(80% 55% at 88% 22%, rgb(217 228 214 / 7%), transparent 60%),
+      radial-gradient(75% 60% at 50% 92%, rgb(168 115 86 / 10%), transparent 62%),
+      linear-gradient(165deg, var(--color-tinta) 0%, #212c38 48%, #19222c 100%);
   }
 
   .ambient-orb {
@@ -146,104 +187,82 @@
     pointer-events: none;
   }
 
-  .lg-bar {
+  /* Navigation bars and floating action strips: one blur layer per area. */
+  .lg-bar,
+  .lg-header {
     position: relative;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(226, 232, 240, 0.06) 45%,
-      rgba(148, 163, 184, 0.09) 100%
-    );
-    backdrop-filter: blur(26px) saturate(175%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    box-shadow:
-      0 14px 36px rgba(2, 6, 23, 0.45),
-      inset 0 1px 0 rgba(255, 255, 255, 0.36),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+    background: var(--color-noite);
+    border: 1px solid var(--vidro-borda);
+    box-shadow: 0 12px 30px rgb(10 14 19 / 45%);
+  }
+  .lg-header {
+    border-width: 0 0 1px;
+    box-shadow: none;
+  }
+  @supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+    .lg-bar,
+    .lg-header {
+      background: var(--vidro);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+    }
   }
 
+  /* Opaque reading/editing surfaces. */
   .lg-panel {
     position: relative;
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(203, 213, 225, 0.045) 50%,
-      rgba(15, 23, 42, 0.38) 100%
-    );
-    backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow:
-      0 10px 28px rgba(2, 6, 23, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.24),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+    background: var(--color-noite);
+    border: 1px solid rgb(245 240 231 / 14%);
+    box-shadow: 0 8px 22px rgb(10 14 19 / 30%);
   }
 
-  /* Modal sheet: more frosted to keep reading contrast. */
   .lg-sheet {
     position: relative;
-    background: linear-gradient(
-      155deg,
-      rgba(30, 41, 66, 0.84) 0%,
-      rgba(15, 23, 42, 0.9) 55%,
-      rgba(11, 17, 32, 0.94) 100%
-    );
-    backdrop-filter: blur(30px) saturate(165%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    box-shadow:
-      0 24px 60px rgba(2, 6, 23, 0.65),
-      inset 0 1px 0 rgba(255, 255, 255, 0.32),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+    background: var(--color-noite);
+    border: 1px solid rgb(245 240 231 / 22%);
+    box-shadow: 0 24px 60px rgb(10 14 19 / 60%);
   }
 
+  /* Controls sitting on a bar or panel: tinted, no extra blur layer. */
   .lg-pill {
     position: relative;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.05) 100%);
-    backdrop-filter: blur(18px) saturate(155%);
-    border: 1px solid rgba(255, 255, 255, 0.19);
-    box-shadow:
-      0 6px 18px rgba(2, 6, 23, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: rgb(245 240 231 / 8%);
+    border: 1px solid rgb(245 240 231 / 24%);
     transition:
       background 0.2s ease,
       border-color 0.2s ease,
-      transform 0.16s ease,
-      box-shadow 0.2s ease;
+      transform 0.16s ease;
   }
 
   .lg-pill:hover {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0.08) 100%);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: rgb(245 240 231 / 14%);
+    border-color: rgb(245 240 231 / 36%);
   }
 
   .lg-btn-primary {
     position: relative;
-    background: linear-gradient(
-      135deg,
-      rgba(139, 92, 246, 0.8) 0%,
-      rgba(99, 102, 241, 0.74) 55%,
-      rgba(56, 189, 248, 0.64) 100%
-    );
-    backdrop-filter: blur(16px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.32);
-    box-shadow:
-      0 10px 26px rgba(99, 102, 241, 0.32),
-      inset 0 1px 0 rgba(255, 255, 255, 0.45);
-    transition: all 0.2s ease;
+    background: var(--color-areia);
+    color: var(--color-tinta);
+    border: 1px solid #ecdcc2;
+    box-shadow: 0 8px 20px rgb(10 14 19 / 35%);
+    transition:
+      background 0.2s ease,
+      transform 0.16s ease;
   }
 
   .lg-btn-primary:hover {
-    filter: brightness(1.08);
-    box-shadow:
-      0 12px 30px rgba(124, 58, 237, 0.42),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    background: #e8d7bc;
   }
 
   .lg-active-lens {
-    background: linear-gradient(140deg, rgba(255, 255, 255, 0.24) 0%, rgba(196, 181, 253, 0.16) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.32);
-    box-shadow:
-      0 4px 14px rgba(2, 6, 23, 0.28),
-      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    background: rgb(222 201 168 / 22%);
+    border: 1px solid rgb(222 201 168 / 60%);
+    color: var(--color-marfim);
+  }
+
+  .presenca-chip {
+    background: var(--color-salvia);
+    color: var(--color-presenca);
   }
 
   /* Specular sheen that follows the pointer (position set by <LiquidSheen />). */
@@ -257,19 +276,13 @@
     transition: opacity 0.28s ease;
     background: radial-gradient(
       180px circle at var(--lg-x, 50%) var(--lg-y, 20%),
-      rgba(255, 255, 255, 0.16),
+      rgb(245 240 231 / 10%),
       transparent 68%
     );
   }
 
   .lg-sheen:hover::before {
     opacity: 1;
-  }
-
-  .lg-header {
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.62) 0%, rgba(15, 23, 42, 0.38) 100%);
-    backdrop-filter: blur(22px) saturate(160%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
   }
 
   .orbit-scroll::-webkit-scrollbar {
@@ -328,7 +341,7 @@
     height: 720px;
     overflow: hidden;
     border-radius: 12px;
-    background: #0b101d;
+    background: var(--color-tinta);
     border: 1px solid rgba(255, 255, 255, 0.11);
   }
   .laptop-base {
@@ -393,7 +406,7 @@
     height: 800px;
     overflow: hidden;
     border-radius: 44px;
-    background: #0b101d;
+    background: var(--color-tinta);
   }
 
   .watch-assembly {
@@ -457,7 +470,7 @@
     height: 330px;
     overflow: hidden;
     border-radius: 58px;
-    background: #060914;
+    background: #121921;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
   }
 }
@@ -473,7 +486,33 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .ambient-orb {
     animation: none;
+  }
+  .lg-sheen::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .lg-bar,
+  .lg-header {
+    background: var(--color-noite) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .backdrop-blur-md,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
   }
 }

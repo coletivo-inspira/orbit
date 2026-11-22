@@ -1,37 +1,62 @@
-export function OrbitLogo({ className = "h-6 w-6" }: { className?: string }) {
+import { useId } from "react";
+
+const RING = "M14 72a58 19 0 0 0 116 0";
+
+/**
+ * Official Saturn symbol (docs/design/orbit-marca.svg). The brandbook asks for the
+ * one-color version from 16 px and the colored art (on night ink) from 48 px.
+ */
+export function OrbitLogo({
+  className = "h-8 w-8",
+  variant = "mono",
+  title,
+}: {
+  className?: string;
+  variant?: "mono" | "color";
+  title?: string;
+}) {
+  const maskId = `orbit-folga-${useId().replace(/:/g, "")}`;
+  const disc = variant === "color" ? "#DEC9A8" : "currentColor";
+  const ring = variant === "color" ? "#A87356" : "currentColor";
   return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <circle cx="16" cy="16" r="5.5" fill="url(#orbitCore)" />
-      <ellipse
-        cx="16"
-        cy="16"
-        rx="13"
-        ry="5.5"
-        transform="rotate(-28 16 16)"
-        stroke="url(#orbitRing)"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-      <circle cx="25.5" cy="11" r="2.2" fill="#67e8f9" />
+    <svg
+      className={className}
+      viewBox="0 0 144 144"
+      fill="none"
+      role={title ? "img" : undefined}
+      aria-label={title}
+      aria-hidden={title ? undefined : true}
+    >
       <defs>
-        <linearGradient id="orbitCore" x1="10" y1="10" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#e9d5ff" />
-          <stop offset="1" stopColor="#818cf8" />
-        </linearGradient>
-        <linearGradient id="orbitRing" x1="3" y1="16" x2="29" y2="16" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#c4b5fd" />
-          <stop offset="1" stopColor="#67e8f9" />
-        </linearGradient>
+        <mask
+          id={maskId}
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="144"
+          height="144"
+          style={{ maskType: "luminance" }}
+        >
+          <rect width="144" height="144" fill="#fff" />
+          <path d={RING} transform="rotate(-27 72 72)" stroke="#000" strokeWidth="25" />
+        </mask>
       </defs>
+      <ellipse cx="72" cy="72" rx="58" ry="19" transform="rotate(-27 72 72)" stroke={ring} strokeWidth="12" />
+      <circle cx="72" cy="72" r="35" fill={disc} mask={`url(#${maskId})`} />
+      <path d={RING} transform="rotate(-27 72 72)" stroke={ring} strokeWidth="12" />
     </svg>
   );
 }
 
-export function OrbitMark({ className = "h-5 w-5" }: { className?: string }) {
+/** Symbol + wordmark ("assinatura"); the symbol stays at 32 px or more. */
+export function OrbitSignature({ className = "", subtitle }: { className?: string; subtitle?: React.ReactNode }) {
   return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <circle cx="16" cy="16" r="5" fill="white" />
-      <ellipse cx="16" cy="16" rx="12" ry="5" transform="rotate(-28 16 16)" stroke="white" strokeWidth="2" />
-    </svg>
+    <span className={`flex items-center gap-2 ${className}`}>
+      <OrbitLogo className="h-8 w-8 shrink-0 text-areia" />
+      <span className="flex flex-col">
+        <span className="font-display text-lg leading-none font-bold tracking-tight text-marfim">Orbit</span>
+        {subtitle}
+      </span>
+    </span>
   );
 }

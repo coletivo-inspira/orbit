@@ -1,16 +1,29 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
+import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { PARK_BOTS } from "@/lib/data/park";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
-import { Park2DEngine, type ActiveBotInfo, type Direction } from "@/lib/engines/park2d";
+import {
+  Park2DEngine,
+  type ActiveBotInfo,
+  type Direction,
+  type Proximity,
+  type RosterEntry,
+} from "@/lib/engines/park2d";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
 const CHAT_MAX_LENGTH = 75;
+
+const PROXIMITY_LABEL: Record<Proximity, string> = {
+  perto: "Perto de você",
+  caminho: "A alguns passos",
+  longe: "Mais longe",
+};
 
 export function ParqueScreen() {
   const { state, dispatch } = useOrbit();
@@ -18,12 +31,21 @@ export function ParqueScreen() {
   const showToast = useToast();
   const isMobile = device === "mobile";
   const showDpad = isMobile || state.showDesktopDpad;
+  const ids = useId();
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<Park2DEngine | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const continueRef = useRef<HTMLButtonElement>(null);
+  const peopleToggleRef = useRef<HTMLButtonElement>(null);
+  const cardHadFocus = useRef(false);
+  const pendingFocusBot = useRef<string | null>(null);
   const [activeBot, setActiveBot] = useState<ActiveBotInfo | null>(null);
+  const [roster, setRoster] = useState<RosterEntry[]>([]);
+  const [peopleOpen, setPeopleOpen] = useState(!isMobile);
   const [chat, setChat] = useState("");
+  const [announcement, setAnnouncement] = useState("");
 
   // The engine runs outside React; read the latest values through a ref instead of restarting it.
   const live = useRef({ state, dispatch, showToast });
@@ -37,6 +59,8 @@ export function ParqueScreen() {
     if (!canvas || !wrap) return;
     const engine = new Park2DEngine(canvas, wrap, {
       onActiveBotChange: setActiveBot,
+      onRosterChange: setRoster,
+      reducedMotion: prefersReducedMotion,
       onToast: (msg, type) => live.current.showToast(msg, type),
       onFoundPacoca: () => {
         live.current.state = { ...live.current.state, foundPacoca: true };
@@ -55,12 +79,41 @@ export function ParqueScreen() {
     };
   }, []);
 
+  // A card opened from the people list takes focus; a card that vanishes while focused hands focus to a stable control.
+  useEffect(() => {
+    if (activeBot && pendingFocusBot.current === activeBot.id) {
+      pendingFocusBot.current = null;
+      continueRef.current?.focus();
+      return;
+    }
+    if (!activeBot && cardHadFocus.current) {
+      cardHadFocus.current = false;
+      const active = document.activeElement;
+      if (!active || active === document.body || !active.isConnected) {
+        (peopleToggleRef.current ?? canvasRef.current)?.focus();
+      }
+    }
+  }, [activeBot]);
+
   const onChatSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!chat.trim()) return;
-    engineRef.current?.say(chat);
+    const message = chat.trim();
+    if (!message) return;
+    engineRef.current?.say(message);
     setChat("");
-    (document.activeElement as HTMLElement | null)?.blur();
+    setAnnouncement(`Mensagem enviada no Parque (simulação): ${message}`);
+  };
+
+  const talkTo = (id: string) => {
+    pendingFocusBot.current = id;
+    if (isMobile) setPeopleOpen(false);
+    engineRef.current?.talkTo(id);
+  };
+
+  const endConversation = () => {
+    engineRef.current?.endConversation();
+    cardHadFocus.current = false;
+    (peopleToggleRef.current ?? canvasRef.current)?.focus();
   };
 
   const pressDpad = (dir: Direction, pressed: boolean) => engineRef.current?.setDpad(dir, pressed);
@@ -70,44 +123,76 @@ export function ParqueScreen() {
       <div ref={wrapRef} className="relative min-h-0 w-full flex-1 overflow-hidden">
         <canvas
           ref={canvasRef}
-          className="pixel-canvas block h-full w-full cursor-pointer touch-none"
-          aria-label="Parque Central Orbit — sala 2D interativa"
+          tabIndex={0}
+          role="application"
+          aria-roledescription="mapa"
+          aria-label="Mapa do Parque Central Orbit"
+          aria-describedby={`${ids}-controls`}
+          className="pixel-canvas block h-full w-full cursor-pointer touch-none outline-offset-[-4px]"
         />
 
-        <div className="pointer-events-none absolute top-3 right-3 left-3 z-10 flex items-start justify-between gap-2">
-          <div className="lg-bar pointer-events-auto flex items-center gap-2 rounded-full px-3.5 py-1.5">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
-            <span className={`${isMobile ? "text-[11px]" : "text-xs"} font-bold text-white`}>Parque Central Orbit</span>
-            <span className="text-[11px] font-semibold text-emerald-200">· {PARK_BOTS.length} online</span>
-          </div>
-          {!isMobile && (
-            <div className="flex items-center gap-2">
-              <div className="lg-bar rounded-full px-3.5 py-1.5 text-[11px] text-slate-100">
-                🎮 <strong className="text-white">WASD</strong> / Setas ou{" "}
-                <strong className="text-white">clique/arraste</strong> no chão
-              </div>
-              <button
-                type="button"
-                aria-pressed={state.showDesktopDpad}
-                onClick={() => dispatch({ type: "toggleDesktopDpad" })}
-                title="Mostrar/ocultar direcional na tela"
-                className={`lg-pill pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white transition ${state.showDesktopDpad ? "lg-active-lens" : ""}`}
+        <div className="pointer-events-none absolute top-3 right-3 left-3 z-10 flex flex-col items-start gap-2">
+          <div className="flex w-full flex-wrap items-start justify-between gap-2">
+            <div className="lg-bar pointer-events-auto flex items-center gap-2 rounded-full px-3.5 py-1.5">
+              <h1
+                tabIndex={-1}
+                data-focus-fallback
+                className={`${isMobile ? "text-[12px]" : "text-sm"} font-bold tracking-tight text-white`}
               >
-                🕹️ D-Pad
-              </button>
+                Parque Central Orbit
+              </h1>
+              <span className="presenca-chip rounded-full px-2 py-0.5 text-[11px] font-bold">
+                {PARK_BOTS.length} online
+              </span>
             </div>
-          )}
+            <div className="flex items-center gap-2">
+              <button
+                ref={peopleToggleRef}
+                type="button"
+                aria-expanded={peopleOpen}
+                aria-controls={`${ids}-people`}
+                onClick={() => setPeopleOpen((o) => !o)}
+                className="lg-bar pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white"
+              >
+                👥 Pessoas ({roster.length || PARK_BOTS.length})
+              </button>
+              {!isMobile && (
+                <button
+                  type="button"
+                  aria-pressed={state.showDesktopDpad}
+                  onClick={() => dispatch({ type: "toggleDesktopDpad" })}
+                  className={`lg-bar pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white ${state.showDesktopDpad ? "lg-active-lens" : ""}`}
+                >
+                  🕹️ Direcional
+                </button>
+              )}
+            </div>
+          </div>
+          <p id={`${ids}-controls`} className="lg-bar rounded-full px-3 py-1 text-[11px] text-white">
+            {isMobile
+              ? "Toque no chão ou use o direcional"
+              : "Foque o mapa e use WASD/setas, clique no chão ou use a lista de pessoas"}
+          </p>
         </div>
 
-        {isMobile && (
-          <div className="lg-bar pointer-events-none absolute top-[50px] left-3 z-10 rounded-full px-3 py-1 text-[10px] text-white/95">
-            👆 Toque/arraste no chão ou use o direcional
-          </div>
+        {peopleOpen && (
+          <PeopleList
+            id={`${ids}-people`}
+            roster={roster}
+            isMobile={isMobile}
+            activeId={activeBot?.id ?? null}
+            onTalk={talkTo}
+            onProfile={(id) => dispatch({ type: "openProfile", id })}
+          />
         )}
 
         {showDpad && (
           <div className="pointer-events-none absolute bottom-3 left-3 z-20 select-none">
-            <div className="lg-bar grid h-[108px] w-[108px] grid-cols-3 gap-1 rounded-[26px] p-1.5">
+            <div
+              role="group"
+              aria-label="Direcional"
+              className="lg-bar grid h-[108px] w-[108px] grid-cols-3 gap-1 rounded-[26px] p-1.5"
+            >
               <div />
               <DpadButton dir="up" label="Andar para cima" path="m18 15-6-6-6 6" onPress={pressDpad} />
               <div />
@@ -122,20 +207,33 @@ export function ParqueScreen() {
         )}
 
         {activeBot && (
-          <BotCard
-            bot={activeBot}
-            isMobile={isMobile}
-            onOpenProfile={() => dispatch({ type: "openProfile", id: activeBot.id })}
-            onContinue={() => engineRef.current?.cycleBotDialogue(activeBot.id)}
-          />
+          <div
+            ref={cardRef}
+            onFocusCapture={() => (cardHadFocus.current = true)}
+            onBlurCapture={(e) => {
+              if (!cardRef.current?.contains(e.relatedTarget as Node | null)) cardHadFocus.current = false;
+            }}
+          >
+            <BotCard
+              bot={activeBot}
+              isMobile={isMobile}
+              continueRef={continueRef}
+              onOpenProfile={() => dispatch({ type: "openProfile", id: activeBot.id })}
+              onContinue={() => engineRef.current?.cycleBotDialogue(activeBot.id)}
+              onEnd={endConversation}
+            />
+          </div>
         )}
       </div>
 
       <div
-        className={`z-20 shrink-0 border-t border-white/15 backdrop-blur-2xl ${isMobile ? "bg-slate-950/75 px-3 pt-2 pb-[86px]" : "bg-slate-950/65 px-3 py-2"}`}
+        className={`z-20 shrink-0 border-t border-white/15 bg-noite ${isMobile ? "px-3 pt-2 pb-[86px]" : "px-3 py-2"}`}
       >
-        <form onSubmit={onChatSubmit} className="lg-pill flex h-10 items-center gap-2 rounded-full px-2">
-          <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/35">
+        <form
+          onSubmit={onChatSubmit}
+          className="lg-pill flex h-10 items-center gap-2 rounded-full px-2 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim"
+        >
+          <div className="h-7 w-7 shrink-0 overflow-hidden rounded-full border border-white/35" aria-hidden="true">
             <Avatar cfg={state.user.avatar} />
           </div>
           <input
@@ -145,17 +243,90 @@ export function ParqueScreen() {
             onChange={(e) => setChat(e.target.value)}
             placeholder="Falar no Parque (aparece sobre seu boneco)..."
             aria-label="Mensagem no Parque"
-            className="flex-1 bg-transparent px-1.5 py-1 text-xs text-white placeholder-slate-300/75 outline-none"
+            className="min-w-0 flex-1 bg-transparent px-1.5 py-1 text-sm text-white placeholder-slate-300 focus-visible:outline-none"
           />
           <button
             type="submit"
-            className="lg-btn-primary shrink-0 rounded-full px-3.5 py-1 text-xs font-bold text-white active:scale-95"
+            className="lg-btn-primary shrink-0 rounded-full px-3.5 py-1 text-xs font-bold active:scale-95"
           >
             Enviar
           </button>
         </form>
+        <p role="status" aria-live="polite" className="sr-only">
+          {announcement}
+        </p>
       </div>
     </div>
+  );
+}
+
+function PeopleList({
+  id,
+  roster,
+  isMobile,
+  activeId,
+  onTalk,
+  onProfile,
+}: {
+  id: string;
+  roster: RosterEntry[];
+  isMobile: boolean;
+  activeId: string | null;
+  onTalk: (id: string) => void;
+  onProfile: (id: string) => void;
+}) {
+  return (
+    <section
+      id={id}
+      aria-label="Pessoas no Parque"
+      className={`lg-bar orbit-scroll absolute z-20 overflow-y-auto rounded-[22px] p-2 ${
+        isMobile ? "top-[124px] right-3 left-3 max-h-[42%]" : "top-[92px] right-3 max-h-[60%] w-[300px]"
+      }`}
+    >
+      <ul className="flex flex-col gap-1">
+        {roster.map((r) => {
+          const profile = SIMULATED_PROFILES.find((p) => p.id === r.id);
+          const intention = profile ? INTENTIONS[profile.primaryIntention] : null;
+          return (
+            <li
+              key={r.id}
+              className={`flex items-center gap-2 rounded-2xl px-2 py-1.5 ${r.id === activeId ? "bg-white/10" : ""}`}
+            >
+              {profile && intention && (
+                <RingedAvatar cfg={profile.avatar} color={intention.color} size={30} ring={2} halo={false} />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-xs font-bold text-white">{r.name}</div>
+                <div className="text-[11px] text-slate-300">
+                  {r.proximity === "perto" ? (
+                    <span className="presenca-chip rounded-full px-1.5 font-semibold whitespace-nowrap">
+                      {PROXIMITY_LABEL[r.proximity]}
+                    </span>
+                  ) : (
+                    PROXIMITY_LABEL[r.proximity]
+                  )}
+                  {intention && ` · ${intention.short}`}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onTalk(r.id)}
+                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+              >
+                Conversar<span className="sr-only"> com {r.name}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onProfile(r.id)}
+                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+              >
+                Perfil<span className="sr-only"> de {r.name}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 }
 
@@ -171,6 +342,16 @@ function DpadButton({
   onPress: (dir: Direction, pressed: boolean) => void;
 }) {
   const release = () => onPress(dir, false);
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== " " && e.key !== "Enter") return;
+    e.preventDefault();
+    if (!e.repeat) onPress(dir, true);
+  };
+  const onKeyUp = (e: KeyboardEvent) => {
+    if (e.key !== " " && e.key !== "Enter") return;
+    e.preventDefault();
+    release();
+  };
   return (
     <button
       type="button"
@@ -183,7 +364,10 @@ function DpadButton({
       onPointerUp={release}
       onPointerLeave={release}
       onPointerCancel={release}
-      className="pointer-events-auto flex touch-none items-center justify-center rounded-xl border border-white/25 bg-white/[0.12] text-white shadow-xs transition hover:bg-white/[0.24] active:bg-violet-400/60"
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
+      onBlur={release}
+      className="pointer-events-auto flex touch-none items-center justify-center rounded-xl border border-white/25 bg-white/[0.12] text-white transition hover:bg-white/[0.24] active:bg-areia/50"
     >
       <svg
         className="h-4 w-4"
@@ -204,54 +388,72 @@ function DpadButton({
 function BotCard({
   bot,
   isMobile,
+  continueRef,
   onOpenProfile,
   onContinue,
+  onEnd,
 }: {
   bot: ActiveBotInfo;
   isMobile: boolean;
+  continueRef: React.RefObject<HTMLButtonElement | null>;
   onOpenProfile: () => void;
   onContinue: () => void;
+  onEnd: () => void;
 }) {
   const profile = SIMULATED_PROFILES.find((p) => p.id === bot.id);
   const intention = profile ? INTENTIONS[profile.primaryIntention] : INTENTIONS.troca;
   return (
-    <div
-      className={`lg-sheet pointer-events-auto absolute z-20 rounded-[22px] p-3.5 transition-all ${isMobile ? "right-3 bottom-[124px] left-3" : "right-4 bottom-4 w-[360px] max-w-[46%]"}`}
+    <section
+      aria-label={`Conversa com ${bot.name}`}
+      className={`lg-sheet pointer-events-auto absolute z-30 rounded-[22px] p-3.5 ${isMobile ? "right-3 bottom-[124px] left-3" : "right-4 bottom-4 w-[380px] max-w-[46%]"}`}
     >
       <div className="flex items-start gap-3">
         {profile && <RingedAvatar cfg={profile.avatar} color={intention.color} size={44} ring={2} halo={false} />}
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-xs font-extrabold text-white">
+            <div className="flex flex-wrap items-center gap-1.5 text-xs font-extrabold text-white">
               <span>{bot.name}</span>
               <span
-                className="rounded-full px-2 py-0.5 text-[9px] font-bold"
-                style={{ background: intention.bg, color: intention.color }}
+                className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                style={{ background: intention.bg, color: intention.text }}
               >
                 {intention.emoji} {intention.short}
               </span>
             </div>
             <button
               type="button"
-              onClick={onOpenProfile}
-              className="lg-pill shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold text-white"
+              onClick={onEnd}
+              aria-label={`Encerrar conversa com ${bot.name}`}
+              className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
             >
-              Ver Perfil
+              ✕
             </button>
           </div>
-          <p className="mt-1.5 text-xs leading-snug text-slate-100/95">&ldquo;{bot.line}&rdquo;</p>
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-[10px] text-emerald-300/90">● Perto de você no Parque</span>
-            <button
-              type="button"
-              onClick={onContinue}
-              className="text-[10px] font-bold text-violet-200 transition hover:text-white"
-            >
-              Continuar papo →
-            </button>
+          <p className="mt-1.5 text-sm leading-snug text-white" aria-live="polite">
+            &ldquo;{bot.line}&rdquo;
+          </p>
+          <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
+            <span className="presenca-chip rounded-full px-2 py-0.5 text-[11px] font-semibold">Perto no Parque</span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={onOpenProfile}
+                className="lg-pill rounded-full px-2.5 py-1 text-[11px] font-bold text-white"
+              >
+                Ver perfil
+              </button>
+              <button
+                ref={continueRef}
+                type="button"
+                onClick={onContinue}
+                className="lg-btn-primary rounded-full px-3 py-1 text-[11px] font-bold"
+              >
+                Continuar papo →
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

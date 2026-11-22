@@ -12,32 +12,31 @@ export const metadata: Metadata = {
 export default function ComunidadePage() {
   return (
     <PublicShell>
-      <h1 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">Comunidade & Saúde</h1>
-      <p className="mt-2 max-w-2xl text-sm text-slate-300/85">
+      <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Comunidade &amp; Saúde</h1>
+      <p className="mt-2 max-w-2xl text-base leading-[1.62] text-texto-suave">
         Informação aberta sobre vacinas, prevenção, bem-estar e debates — sem precisar de conta.
       </p>
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <ul className="mt-6 grid gap-4 sm:grid-cols-2">
         {COMMUNITY_POSTS.map((post) => {
           const category = COMMUNITY_CATEGORIES[post.category];
           return (
-            <Link
-              key={post.id}
-              href={`/comunidade/${post.id}`}
-              className="lg-panel lg-sheen flex flex-col gap-3 rounded-[24px] p-5 transition-all hover:-translate-y-0.5 hover:border-white/30"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <span className={`rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${category.badge}`}>
-                  {category.label}
-                </span>
-                <span className="text-[11px] text-slate-300/70">{post.readTime} de leitura</span>
-              </div>
-              <h2 className="text-base leading-snug font-bold text-white">{post.title}</h2>
-              <p className="text-sm leading-relaxed text-slate-300/85">{post.summary}</p>
-              <span className="mt-auto text-xs font-medium text-slate-200">{post.author}</span>
-            </Link>
+            <li key={post.id} className="flex">
+              <Link
+                href={`/comunidade/${post.id}`}
+                className="flex w-full flex-col gap-3 rounded-[20px] border border-linha bg-leitura p-5 transition-colors hover:border-cobre"
+              >
+                <div className="flex items-center justify-between gap-2 text-xs font-bold text-cobre-texto">
+                  <span>{category.label}</span>
+                  <span className="font-medium text-texto-suave">{post.readTime} de leitura</span>
+                </div>
+                <h2 className="text-lg leading-snug font-semibold tracking-tight">{post.title}</h2>
+                <p className="text-sm leading-relaxed text-texto-suave">{post.summary}</p>
+                <span className="mt-auto text-xs font-semibold text-tinta">{post.author}</span>
+              </Link>
+            </li>
           );
         })}
-      </div>
+      </ul>
     </PublicShell>
   );
 }

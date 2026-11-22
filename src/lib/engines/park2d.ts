@@ -59,6 +59,21 @@ export interface ActiveBotInfo {
   line: string;
 }
 
+export type Proximity = "perto" | "caminho" | "longe";
+
+export interface RosterEntry {
+  id: string;
+  name: string;
+  proximity: Proximity;
+}
+
+const TALK_RANGE = 92;
+
+export function proximityOf(distance: number): Proximity {
+  if (distance < TALK_RANGE) return "perto";
+  return distance < 320 ? "caminho" : "longe";
+}
+
 export interface PlayerLook {
   firstName: string;
   skin: string;
@@ -67,6 +82,9 @@ export interface PlayerLook {
 
 export interface Park2DCallbacks {
   onActiveBotChange: (bot: ActiveBotInfo | null) => void;
+  /** Emitted only when someone's proximity bucket or the order changes. */
+  onRosterChange: (roster: RosterEntry[]) => void;
+  reducedMotion: () => boolean;
   onToast: (message: string, type?: "info" | "success") => void;
   onFoundPacoca: () => void;
   getFoundPacoca: () => boolean;
@@ -101,11 +119,17 @@ export class Park2DEngine {
   private camX = 0;
   private camY = 0;
   private time = 0;
+  private decorTime = 0;
   private lastFrame = performance.now();
   private rafId: number | null = null;
   private pointerWalking = false;
   private pacocaSpeechTimer = 0;
   private activeBotId: string | null = null;
+  /** Bot chosen from the list: stays active while the player walks to it. */
+  private engagedBotId: string | null = null;
+  /** Bot whose card was closed; it won't reopen until the player steps away. */
+  private dismissedBotId: string | null = null;
+  private rosterKey = "";
   private readonly keys: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
   private readonly dpad: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
   private readonly flowers = buildFlowers();
@@ -139,7 +163,8 @@ export class Park2DEngine {
     this.resize();
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(wrap);
-    window.addEventListener("keydown", this.onKeyDown);
+    canvas.addEventListener("keydown", this.onKeyDown);
+    canvas.addEventListener("blur", this.onBlur);
     window.addEventListener("keyup", this.onKeyUp);
     window.addEventListener("blur", this.onBlur);
     canvas.addEventListener("pointerdown", this.onPointerDown);
@@ -152,7 +177,8 @@ export class Park2DEngine {
   destroy(): void {
     if (this.rafId !== null) cancelAnimationFrame(this.rafId);
     this.resizeObserver.disconnect();
-    window.removeEventListener("keydown", this.onKeyDown);
+    this.canvas.removeEventListener("keydown", this.onKeyDown);
+    this.canvas.removeEventListener("blur", this.onBlur);
     window.removeEventListener("keyup", this.onKeyUp);
     window.removeEventListener("blur", this.onBlur);
     this.canvas.removeEventListener("pointerdown", this.onPointerDown);
@@ -170,7 +196,29 @@ export class Park2DEngine {
 
   setDpad(dir: Direction, pressed: boolean): void {
     this.dpad[dir] = pressed;
-    if (pressed) this.clearTarget();
+    if (pressed) this.takeManualControl();
+  }
+
+  /** Starts a conversation from the people list: the card opens now and the player walks over. */
+  talkTo(botId: string): void {
+    const bot = this.bots.find((b) => b.id === botId);
+    if (!bot) return;
+    this.engagedBotId = bot.id;
+    this.dismissedBotId = null;
+    this.focusBot(bot);
+  }
+
+  /** Explicit exit from the conversation card. */
+  endConversation(): void {
+    this.dismissedBotId = this.activeBotId;
+    this.engagedBotId = null;
+    this.activeBotId = null;
+    this.cb.onActiveBotChange(null);
+  }
+
+  private takeManualControl() {
+    this.engagedBotId = null;
+    this.clearTarget();
   }
 
   cycleBotDialogue(botId: string): void {
@@ -255,7 +303,7 @@ export class Park2DEngine {
     if (!dir) return;
     e.preventDefault();
     this.keys[dir] = true;
-    this.clearTarget();
+    this.takeManualControl();
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
@@ -273,6 +321,8 @@ export class Park2DEngine {
 
   private onPointerDown = (e: PointerEvent) => {
     e.preventDefault();
+    this.canvas.focus({ preventScroll: true });
+    this.engagedBotId = null;
     const pt = this.screenToWorld(e.clientX, e.clientY);
 
     if (Math.hypot(pt.x - PACOCA_POSITION.x, pt.y - PACOCA_POSITION.y) < 34) this.triggerPacoca();
@@ -292,6 +342,7 @@ export class Park2DEngine {
         const below = b.y + 42;
         this.setTarget(b.x, collidesAt(b.x, below, this.player.r) ? b.y - 42 : below);
         if (this.activeBotId === b.id) b.lineIndex++;
+        this.dismissedBotId = null;
         this.focusBot(b);
         return;
       }
@@ -387,15 +438,23 @@ export class Park2DEngine {
 
     if (Math.hypot(p.x - PACOCA_POSITION.x, p.y - PACOCA_POSITION.y) < 62) this.triggerPacoca();
 
+    const engaged = this.bots.find((b) => b.id === this.engagedBotId) ?? null;
+    if (engaged) {
+      const dist = Math.hypot(engaged.x - p.x, engaged.y - p.y);
+      if (dist > 48) this.setTarget(engaged.x, engaged.y + (collidesAt(engaged.x, engaged.y + 42, p.r) ? -42 : 42));
+      else this.engagedBotId = null;
+    }
+
     let nearest: BotState | null = null;
-    let nearestDist = 92;
+    let nearestDist = TALK_RANGE;
     this.bots.forEach((b, i) => {
       const distToPlayer = Math.hypot(b.x - p.x, b.y - p.y);
-      if (distToPlayer < nearestDist) {
+      if (b.id === this.dismissedBotId && distToPlayer > TALK_RANGE + 30) this.dismissedBotId = null;
+      if (distToPlayer < nearestDist && b.id !== this.dismissedBotId) {
         nearestDist = distToPlayer;
         nearest = b;
       }
-      if (distToPlayer < 88 || b.pauseTimer > 0) {
+      if (distToPlayer < 88 || b.pauseTimer > 0 || b.id === this.engagedBotId) {
         if (distToPlayer >= 88) b.pauseTimer -= dt;
         b.walkPhase = 0;
         return;
@@ -423,24 +482,40 @@ export class Park2DEngine {
       }
     });
 
-    const near = nearest as BotState | null;
+    const near = (this.engagedBotId ? engaged : nearest) as BotState | null;
     if (near) {
       if (this.activeBotId !== near.id) this.focusBot(near);
     } else if (this.activeBotId !== null) {
       this.activeBotId = null;
       this.cb.onActiveBotChange(null);
     }
+    this.emitRoster();
 
     const desiredCamX = Math.max(0, Math.min(WORLD.width - this.viewW, p.x - this.viewW / 2));
     const desiredCamY = Math.max(0, Math.min(WORLD.height - this.viewH, p.y - this.viewH / 2));
-    this.camX += (desiredCamX - this.camX) * Math.min(1, dt * 8);
-    this.camY += (desiredCamY - this.camY) * Math.min(1, dt * 8);
+    const follow = this.cb.reducedMotion() ? 1 : Math.min(1, dt * 8);
+    this.camX += (desiredCamX - this.camX) * follow;
+    this.camY += (desiredCamY - this.camY) * follow;
+  }
+
+  private emitRoster() {
+    const p = this.player;
+    const roster = this.bots
+      .map((b) => ({ id: b.id, name: b.name, distance: Math.hypot(b.x - p.x, b.y - p.y) }))
+      .sort((a, b) => a.distance - b.distance)
+      .map(({ id, name, distance }) => ({ id, name, proximity: proximityOf(distance) }));
+    const key = roster.map((r) => `${r.id}:${r.proximity}`).join("|");
+    if (key === this.rosterKey) return;
+    this.rosterKey = key;
+    this.cb.onRosterChange(roster);
   }
 
   private loop = (now: number) => {
     const dt = Math.min(0.05, Math.max(0.001, (now - this.lastFrame) / 1000));
     this.lastFrame = now;
     this.update(dt);
+    // Decorative motion (ripples, bobbing, pulsing marker) freezes with the OS setting.
+    this.decorTime = this.cb.reducedMotion() ? 0 : this.time;
     this.draw();
     this.rafId = requestAnimationFrame(this.loop);
   };
@@ -524,13 +599,13 @@ export class Park2DEngine {
   private drawTargetMarker(ctx: CanvasRenderingContext2D) {
     const { targetX, targetY } = this.player;
     if (targetX === null || targetY === null) return;
-    const pulse = 8 + Math.sin(this.time * 8) * 3;
-    ctx.strokeStyle = "rgba(196, 181, 253, 0.9)";
+    const pulse = 8 + Math.sin(this.decorTime * 8) * 3;
+    ctx.strokeStyle = "rgba(222, 201, 168, 0.95)";
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(targetX, targetY, pulse, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = "rgba(167, 139, 250, 0.35)";
+    ctx.fillStyle = "rgba(222, 201, 168, 0.45)";
     ctx.beginPath();
     ctx.arc(targetX, targetY, 4, 0, Math.PI * 2);
     ctx.fill();
@@ -549,7 +624,7 @@ export class Park2DEngine {
       ctx.arc(600, y, r, 0, Math.PI * 2);
       ctx.fill();
     }
-    const ripple = 14 + ((this.time * 16) % 24);
+    const ripple = 14 + ((this.decorTime * 16) % 24);
     ctx.strokeStyle = `rgba(224, 242, 254, ${Math.max(0, 0.85 - (ripple - 14) / 28)})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -558,7 +633,7 @@ export class Park2DEngine {
     ctx.fillStyle = "#cbd5e1";
     ctx.fillRect(590, 440, 20, 20);
     ctx.fillStyle = "#bae6fd";
-    ctx.fillRect(596, 444 + Math.sin(this.time * 10) * 2, 8, 8);
+    ctx.fillRect(596, 444 + Math.sin(this.decorTime * 10) * 2, 8, 8);
   }
 
   private drawCafeKiosk(ctx: CanvasRenderingContext2D) {
@@ -569,13 +644,13 @@ export class Park2DEngine {
     ctx.fillStyle = "#78350f";
     ctx.fillRect(166, 204, 153, 20);
     for (let i = 0; i < 8; i++) {
-      ctx.fillStyle = i % 2 === 0 ? "#7c3aed" : "#e9d5ff";
+      ctx.fillStyle = i % 2 === 0 ? "#a87356" : "#f5f0e7";
       ctx.fillRect(146 + i * 24, 125, 24, 34);
     }
-    ctx.fillStyle = "#1e1b4b";
+    ctx.fillStyle = "#1c2631";
     ctx.fillRect(184, 165, 118, 24);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px Inter, sans-serif";
+    ctx.font = "bold 11px system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("☕ CAFÉ ORBIT", 243, 181);
   }
@@ -589,11 +664,11 @@ export class Park2DEngine {
     ctx.lineWidth = 2.5;
     ctx.strokeRect(872, 157, 122, 68);
     ctx.fillStyle = "#34d399";
-    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.font = "bold 10px system-ui, sans-serif";
     ctx.textAlign = "center";
     ctx.fillText("🛡️ SAÚDE & PREP", 933, 183);
     ctx.fillStyle = "#cbd5e1";
-    ctx.font = "600 9px Inter, sans-serif";
+    ctx.font = "600 9px system-ui, sans-serif";
     ctx.fillText("Guia Público SUS", 933, 202);
   }
 
@@ -628,7 +703,7 @@ export class Park2DEngine {
 
   private drawPacoca(ctx: CanvasRenderingContext2D) {
     const { x, y } = PACOCA_POSITION;
-    const bob = Math.sin(this.time * 4) * 1.2;
+    const bob = Math.sin(this.decorTime * 4) * 1.2;
     ctx.fillStyle = "rgba(0,0,0,0.25)";
     ctx.beginPath();
     ctx.ellipse(x, y + 6, 9, 4, 0, 0, Math.PI * 2);
@@ -666,7 +741,7 @@ export class Park2DEngine {
     const bot = isPlayer ? null : (ch as BotState);
 
     if (isPlayer || bot?.id === this.activeBotId) {
-      ctx.strokeStyle = isPlayer ? "#c4b5fd" : "#6ee7b7";
+      ctx.strokeStyle = isPlayer ? "#dec9a8" : "#d9e4d6";
       ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.ellipse(x, y + 6, 16, 7, 0, 0, Math.PI * 2);
@@ -693,10 +768,10 @@ export class Park2DEngine {
     ctx.fillRect(x + 2, y - 26, 2, 2);
 
     const label = look ? `${look.firstName} (Você)` : bot!.name;
-    ctx.font = "bold 10px Inter, sans-serif";
+    ctx.font = "bold 10px system-ui, sans-serif";
     const bw = ctx.measureText(label).width + 14;
     const by = y + 11;
-    ctx.fillStyle = isPlayer ? "rgba(124, 58, 237, 0.92)" : "rgba(15, 23, 42, 0.85)";
+    ctx.fillStyle = isPlayer ? "rgba(117, 75, 56, 0.95)" : "rgba(28, 38, 49, 0.9)";
     ctx.beginPath();
     ctx.roundRect(x - bw / 2, by, bw, 17, 8);
     ctx.fill();
@@ -707,13 +782,13 @@ export class Park2DEngine {
 
   private drawSpeechBubble(ctx: CanvasRenderingContext2D, x: number, y: number, text: string, isPlayer = false) {
     const display = text.length > 44 ? `${text.slice(0, 42)}…` : text;
-    ctx.font = "600 10.5px Inter, sans-serif";
+    ctx.font = "600 10.5px system-ui, sans-serif";
     const bw = Math.max(64, ctx.measureText(display).width + 18);
     const bh = 24;
     const bx = Math.round(x - bw / 2);
     const by = Math.round(y - bh);
-    ctx.fillStyle = isPlayer ? "rgba(109, 40, 217, 0.94)" : "rgba(15, 23, 42, 0.92)";
-    ctx.strokeStyle = isPlayer ? "rgba(221, 214, 254, 0.7)" : "rgba(255, 255, 255, 0.28)";
+    ctx.fillStyle = isPlayer ? "rgba(117, 75, 56, 0.96)" : "rgba(28, 38, 49, 0.94)";
+    ctx.strokeStyle = isPlayer ? "rgba(222, 201, 168, 0.8)" : "rgba(245, 240, 231, 0.3)";
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.roundRect(bx, by, bw, bh, 11);

@@ -41,11 +41,23 @@ interface EngineOptions {
   /** Vertical offset of the visual center (mobile shifts up to clear the floating nav). */
   centerOffsetY: number;
   getScale: () => number;
+  /** Read on every interaction so a change of the OS setting applies immediately. */
+  reducedMotion: () => boolean;
+}
+
+const REST_SPEED = 0.05;
+
+/** Pan that brings a node at (bx, by) close to the center; the elastic bound keeps outer rings partly off-center. */
+export function panToReveal(bx: number, by: number, maxPan: number): { x: number; y: number } {
+  const d = Math.hypot(bx, by);
+  if (d <= maxPan || d === 0) return { x: -bx, y: -by };
+  return { x: (-bx / d) * maxPan, y: (-by / d) * maxPan };
 }
 
 /**
  * Drag-to-pan radial honeycomb with inertia and an elastic bound. Owns only
  * transforms/opacity of elements React rendered; React keeps the markup.
+ * Frames are only scheduled while something moves, so an idle radar costs nothing.
  */
 export class OrbitHoneycombEngine {
   private panX = 0;
@@ -58,13 +70,20 @@ export class OrbitHoneycombEngine {
   private lastY = 0;
   private rafId: number | null = null;
   private movedResetTimer: number | null = null;
+  private readonly resizeObserver: ResizeObserver;
 
   constructor(private readonly opts: EngineOptions) {
     opts.container.addEventListener("pointerdown", this.onPointerDown);
     window.addEventListener("pointermove", this.onPointerMove);
     window.addEventListener("pointerup", this.onPointerUp);
     window.addEventListener("pointercancel", this.onPointerUp);
+    this.resizeObserver = new ResizeObserver(() => this.schedule());
+    this.resizeObserver.observe(opts.container);
     this.loop();
+  }
+
+  private get maxPan() {
+    return this.opts.isWatch ? 165 : 240;
   }
 
   /** True while/just after a drag, so bubble clicks at the end of a pan are ignored. */
@@ -73,17 +92,52 @@ export class OrbitHoneycombEngine {
   }
 
   recenter(): void {
+    if (this.opts.reducedMotion()) {
+      this.jumpTo(0, 0);
+      return;
+    }
     this.velX = -this.panX * 0.18;
     this.velY = -this.panY * 0.18;
+    this.schedule();
+  }
+
+  /** Keeps a keyboard-focused bubble fully inside the visible field. */
+  reveal(index: number): void {
+    const node = this.opts.nodes[index];
+    if (!node) return;
+    const target = panToReveal(node.bx, node.by, this.maxPan);
+    this.opts.container.scrollTop = 0;
+    this.opts.container.scrollLeft = 0;
+    this.jumpTo(target.x, target.y);
   }
 
   destroy(): void {
     if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.rafId = null;
     if (this.movedResetTimer !== null) window.clearTimeout(this.movedResetTimer);
+    this.resizeObserver.disconnect();
     this.opts.container.removeEventListener("pointerdown", this.onPointerDown);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);
     window.removeEventListener("pointercancel", this.onPointerUp);
+  }
+
+  /** Whether a frame is pending; exposed for tests and profiling. */
+  isAnimating(): boolean {
+    return this.rafId !== null;
+  }
+
+  private jumpTo(x: number, y: number) {
+    this.panX = x;
+    this.panY = y;
+    this.velX = 0;
+    this.velY = 0;
+    if (this.rafId !== null) cancelAnimationFrame(this.rafId);
+    this.loop();
+  }
+
+  private schedule() {
+    if (this.rafId === null) this.rafId = requestAnimationFrame(this.loop);
   }
 
   private onPointerDown = (e: PointerEvent) => {
@@ -93,6 +147,7 @@ export class OrbitHoneycombEngine {
     this.lastY = e.clientY;
     this.velX = 0;
     this.velY = 0;
+    this.schedule();
   };
 
   private onPointerMove = (e: PointerEvent) => {
@@ -107,34 +162,53 @@ export class OrbitHoneycombEngine {
     this.velY = dy * 0.7;
     this.lastX = e.clientX;
     this.lastY = e.clientY;
+    this.schedule();
   };
 
   private onPointerUp = () => {
     if (!this.dragging) return;
     this.dragging = false;
+    if (this.opts.reducedMotion()) {
+      this.velX = 0;
+      this.velY = 0;
+      const distPan = Math.hypot(this.panX, this.panY);
+      if (distPan > this.maxPan) {
+        this.panX = (this.panX / distPan) * this.maxPan;
+        this.panY = (this.panY / distPan) * this.maxPan;
+      }
+    }
+    this.schedule();
     this.movedResetTimer = window.setTimeout(() => {
       this.moved = false;
     }, 60);
   };
 
   private loop = () => {
+    this.rafId = null;
     const { container, centerEl, nodes, isWatch, centerOffsetY } = this.opts;
     const w = container.clientWidth || 360;
     const h = container.clientHeight || 520;
     const cx = w / 2;
     const cy = h / 2 - centerOffsetY;
+    let settling = false;
 
     if (!this.dragging) {
       this.panX += this.velX;
       this.panY += this.velY;
       this.velX *= 0.9;
       this.velY *= 0.9;
-      const maxPan = isWatch ? 165 : 240;
+      if (Math.abs(this.velX) < REST_SPEED && Math.abs(this.velY) < REST_SPEED) {
+        this.velX = 0;
+        this.velY = 0;
+      } else {
+        settling = true;
+      }
       const distPan = Math.hypot(this.panX, this.panY);
-      if (distPan > maxPan) {
-        const pull = (distPan - maxPan) * 0.12;
+      if (distPan > this.maxPan + 0.5) {
+        const pull = (distPan - this.maxPan) * 0.12;
         this.panX -= (this.panX / distPan) * pull;
         this.panY -= (this.panY / distPan) * pull;
+        settling = true;
       }
     }
 
@@ -161,6 +235,6 @@ export class OrbitHoneycombEngine {
       if (n.labelEl) n.labelEl.style.opacity = scale > 0.72 ? "1" : "0";
     }
 
-    this.rafId = requestAnimationFrame(this.loop);
+    if (this.dragging || settling) this.schedule();
   };
 }

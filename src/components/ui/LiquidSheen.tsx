@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
+import { prefersReducedMotion } from "@/lib/a11y/motion";
 
-/** Moves the specular highlight of `.lg-sheen` surfaces with the pointer. */
+/** Moves the specular highlight of `.lg-sheen` surfaces with the pointer (off with reduced motion). */
 export function LiquidSheen() {
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
+      if (prefersReducedMotion()) return;
       const target = (e.target as Element | null)?.closest?.<HTMLElement>(".lg-sheen");
       if (!target) return;
       const rect = target.getBoundingClientRect();

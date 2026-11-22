@@ -6,7 +6,7 @@ import { ToastViewport } from "@/components/ui/Toasts";
 
 export function WatchLayout() {
   return (
-    <div className="relative flex h-full w-full flex-col bg-[#060914]">
+    <div data-device-root className="relative flex h-full w-full flex-col bg-[#121921]">
       <div className="relative flex-1 overflow-hidden">
         <WatchScreen />
       </div>

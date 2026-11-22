@@ -9,7 +9,10 @@ export interface Intention {
   label: string;
   short: string;
   emoji: string;
+  /** Ring and dot color. */
   color: string;
+  /** Lighter shade for chip text: at least 4.5:1 on its tinted background. */
+  text: string;
   bg: string;
   border: string;
 }
@@ -69,6 +72,16 @@ export interface PostComment {
   author: string;
   time: string;
   text: string;
+  /** Written in this session (Modo Explorar); never published. */
+  local?: boolean;
+}
+
+/** A paragraph, or a semantic list instead of typed bullets. */
+export type ArticleBlock = string | { list: "ul" | "ol"; items: string[] };
+
+export interface ArticleSource {
+  label: string;
+  url: string;
 }
 
 export interface CommunityPost {
@@ -81,6 +94,9 @@ export interface CommunityPost {
   readTime: string;
   likes: number;
   liked: boolean;
-  content: string[];
+  content: ArticleBlock[];
+  /** Editorial review date; left empty until the team reviews the health content. */
+  reviewedAt?: string;
+  sources?: ArticleSource[];
   comments: PostComment[];
 }
