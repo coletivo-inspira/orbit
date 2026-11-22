@@ -10,6 +10,7 @@ import {
   type ReactNode,
   type WheelEvent,
 } from "react";
+import { OrbeVidro } from "@/components/ui/OrbeVidro";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import {
   cardPose,
@@ -22,6 +23,7 @@ import {
   type SpringState,
 } from "@/lib/deck";
 
+const NEUTRAL_TINT: { cor: string; online?: boolean } = { cor: "#dec9a8" };
 const DRAG_SLOP = 6;
 const WHEEL_STEP = 60;
 
@@ -34,6 +36,8 @@ interface CardDeckProps<T> {
   itemLabel: (item: T) => string;
   /** Card face, clipped to the card shape; not interactive. `front` is true for the card on top. */
   renderCard: (item: T, state: { front: boolean }) => ReactNode;
+  /** Status tint of the card's glass rim (see OrbeVidro); neutral sand when omitted. Only the front card glows. */
+  tint?: (item: T) => { cor: string; online?: boolean };
   /** Extra controls layered over the front card (e.g. a tap-back button). */
   renderActions?: (item: T) => ReactNode;
   /** Details of the front card, shown under the pile between the arrows. */
@@ -61,6 +65,7 @@ export function CardDeck<T>({
   label,
   itemLabel,
   renderCard,
+  tint,
   renderActions,
   renderCaption,
   onOpen,
@@ -229,6 +234,7 @@ export function CardDeck<T>({
     const item = items[i];
     const pose = cardPose(i, position);
     const isFront = i === index;
+    const cardTint = tint?.(item) ?? NEUTRAL_TINT;
     cards.push(
       <div
         key={getKey(item)}
@@ -246,11 +252,20 @@ export function CardDeck<T>({
           type="button"
           onClick={() => onOpen(item)}
           aria-label={`${openLabel} ${itemLabel(item)}`}
-          className="absolute inset-0 overflow-hidden rounded-[26%] border border-white/[0.14] bg-noite shadow-[0_22px_44px_-18px_rgba(0,0,0,0.75)]"
+          className="absolute inset-0 rounded-[26%]"
         >
-          {renderCard(item, { front: isFront })}
+          <OrbeVidro
+            as="span"
+            cor={cardTint.cor}
+            online={isFront && (cardTint.online ?? true)}
+            aro={compact ? 4 : 7}
+            sombra="0 22px 44px -18px rgb(0 0 0 / 75%)"
+            className="absolute inset-0 rounded-[inherit]"
+          >
+            {renderCard(item, { front: isFront })}
+          </OrbeVidro>
           <span
-            className="pointer-events-none absolute inset-0 bg-tinta"
+            className="pointer-events-none absolute inset-0 rounded-[inherit] bg-tinta"
             style={{ opacity: pose.shade }}
             aria-hidden="true"
           />

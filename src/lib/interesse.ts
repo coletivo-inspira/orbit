@@ -1,3 +1,4 @@
+import { hasTalked, type Conversation } from "@/lib/conversas";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import type { Profile } from "@/lib/types";
 
@@ -68,6 +69,18 @@ export function interestEntryLabel(e: InterestEntry): string {
   if (e.tapMinutesAgo !== undefined) parts.push("te deu um toque");
   if (e.opens > 1) parts.push(`abriu seu perfil ${e.opens} vezes`);
   return parts.join(", ");
+}
+
+/** Spoken status of a person, matching the badges on their orb in Órbita and on their Interesse card. */
+export function profileStatusLabels(profile: Profile, conversation?: Conversation): string[] {
+  const parts: string[] = [];
+  if (profile.online) parts.push("online");
+  if (profile.visitingFrom) parts.push(`de passagem, mora em ${profile.visitingFrom}`);
+  if (profile.inPark) parts.push("no Parque");
+  if (hasTalked(conversation)) {
+    parts.push(conversation.theirs ? `última fala no chat: “${conversation.theirs}”` : "conversa sem resposta ainda");
+  }
+  return parts;
 }
 
 const TAP_BY_PROFILE = new Map(RECEIVED_TAPS.map((e) => [e.profile.id, e]));

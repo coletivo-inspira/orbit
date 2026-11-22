@@ -93,7 +93,7 @@ export function MiniChat({
         className="lg-sheet orbit-scroll flex max-h-full w-full max-w-[440px] flex-col overflow-y-auto rounded-[28px] outline-none"
       >
         <div className="flex items-center gap-2.5 border-b border-white/[0.12] px-4 py-3">
-          <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} size={40} ring={2} halo={false}>
+          <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} online={p.online} size={40} halo={false}>
             {p.online && (
               <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-noite bg-emerald-400" />
             )}
@@ -150,7 +150,15 @@ export function MiniChat({
             line={conversation.theirs}
             emptyNote="Ainda não respondeu"
             delay={300}
-            avatar={<RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} size={avatarSize} ring={3} />}
+            avatar={
+              <RingedAvatar
+                cfg={p.avatar}
+                photo={p.photo}
+                color={intention.color}
+                online={p.online}
+                size={avatarSize}
+              />
+            }
           />
         </div>
 
