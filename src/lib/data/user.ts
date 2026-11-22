@@ -23,6 +23,12 @@ export const DEMO_USER: UserProfile = {
   topics: ["tecnologia", "design", "cafe", "cinema", "ativismo"],
 };
 
+/**
+ * Portrait in `public/profiles/` for the demo user's watch card. Kept out of `UserProfile` so
+ * accounts already saved in localStorage need no migration; p13 never shows up on the watch radar.
+ */
+export const DEMO_USER_PHOTO = "p13.webp";
+
 export function profileSlug(handle: string): string {
   return (handle || "lucassilva").replace("@", "");
 }

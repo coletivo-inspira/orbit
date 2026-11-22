@@ -1,4 +1,5 @@
-import { useId, useState, type CSSProperties } from "react";
+import { useId, useState } from "react";
+import { aroVidro, OrbeVidro } from "@/components/ui/OrbeVidro";
 import { avatarSvgInner } from "@/lib/avatarSvg";
 import { profilePhotoUrl } from "@/lib/publicUrl";
 import type { AvatarConfig } from "@/lib/types";
@@ -38,13 +39,14 @@ export function ProfileImage({ cfg, photo, alt = "" }: { cfg: AvatarConfig; phot
   );
 }
 
-/** Round avatar with the colored intention ring used across the app. */
+/** Round avatar in the glass orb tinted by the intention color, used across the app. */
 export function RingedAvatar({
   cfg,
   photo,
   color,
   size,
-  ring = 2.5,
+  online = true,
+  ring,
   halo = true,
   className = "",
   children,
@@ -53,21 +55,26 @@ export function RingedAvatar({
   photo?: string;
   color: string;
   size: number;
+  /** Offline profiles get frosted, less saturated glass. */
+  online?: boolean;
+  /** Minimum rim thickness in px; the rim otherwise scales with `size`. */
   ring?: number;
+  /** Soft lift shadow under the orb. */
   halo?: boolean;
   className?: string;
   children?: React.ReactNode;
 }) {
-  const style: CSSProperties = {
-    width: size,
-    height: size,
-    boxShadow: `0 0 0 ${ring}px ${color}${halo ? `, 0 0 0 ${ring * 2}px rgba(255,255,255,0.14)` : ""}`,
-  };
   return (
     <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }}>
-      <div className="h-full w-full overflow-hidden rounded-full" style={style}>
+      <OrbeVidro
+        cor={color}
+        online={online}
+        size={size}
+        aro={Math.max(ring ?? 0, aroVidro(size))}
+        sombra={halo ? "0 10px 22px -6px rgb(6 10 15 / 55%)" : undefined}
+      >
         <ProfileImage cfg={cfg} photo={photo} />
-      </div>
+      </OrbeVidro>
       {children}
     </div>
   );

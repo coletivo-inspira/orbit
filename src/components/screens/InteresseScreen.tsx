@@ -1,14 +1,22 @@
 "use client";
 
+import { InterestStamp } from "@/components/interesse/InterestStamp";
 import { TapIcon } from "@/components/interesse/TapIcon";
+import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { CardDeck } from "@/components/ui/CardDeck";
 import { ProfileImage } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
-import { formatAgo, INTEREST_FEED, type InterestEntry } from "@/lib/interesse";
+import { INTENTIONS } from "@/lib/data/intentions";
+import {
+  formatAgo,
+  INTEREST_FEED,
+  INTEREST_TAP_COUNT,
+  interestEntryLabel,
+  profileStatusLabels,
+  type InterestEntry,
+} from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
-
-const TAP_COUNT = INTEREST_FEED.filter((e) => e.tapMinutesAgo !== undefined).length;
 
 /** Everyone who viewed or tapped the user, one card per person in a single pile. Simulated data. */
 export function InteresseScreen() {
@@ -34,7 +42,7 @@ export function InteresseScreen() {
         </h1>
         <p className="mt-0.5 text-[11px] leading-snug text-slate-300">
           <span className="font-semibold text-white">
-            {INTEREST_FEED.length} pessoas · <span className="text-areia">{TAP_COUNT} toques</span>
+            {INTEREST_FEED.length} pessoas · <span className="text-areia">{INTEREST_TAP_COUNT} toques</span>
           </span>{" "}
           — quem abriu seu perfil ou te deu um toque, do mais recente. Dados simulados; distâncias aproximadas.
         </p>
@@ -50,15 +58,19 @@ export function InteresseScreen() {
           items={INTEREST_FEED}
           getKey={(e) => e.profile.id}
           label="Quem passou pela sua órbita"
-          itemLabel={entryLabel}
+          itemLabel={(e) =>
+            [interestEntryLabel(e), ...profileStatusLabels(e.profile, state.conversations[e.profile.id])].join(", ")
+          }
           stageClassName={
             isMobile ? "h-[clamp(220px,calc(100cqh-190px),400px)]" : "h-[clamp(260px,calc(100cqh-150px),520px)]"
           }
           onOpen={(e) => dispatch({ type: "openProfile", id: e.profile.id })}
+          tint={(e) => ({ cor: INTENTIONS[e.profile.primaryIntention].color, online: e.profile.online })}
           renderCard={(e, { front }) => (
             <>
               <ProfileImage cfg={e.profile.avatar} photo={e.profile.photo} />
               {e.tapMinutesAgo !== undefined && <InterestStamp animate={front} />}
+              <SelosStatus profile={e.profile} conversation={state.conversations[e.profile.id]} variant="cartao" />
             </>
           )}
           renderActions={(e) =>
@@ -74,28 +86,6 @@ export function InteresseScreen() {
         />
       </div>
     </div>
-  );
-}
-
-function entryLabel(e: InterestEntry): string {
-  const parts = [`${e.profile.name}, ${e.profile.age}`];
-  if (e.tapMinutesAgo !== undefined) parts.push("te deu um toque");
-  if (e.opens > 1) parts.push(`abriu seu perfil ${e.opens} vezes`);
-  return parts.join(", ");
-}
-
-/** Rubber stamp over a card whose person tapped the user. */
-function InterestStamp({ animate }: { animate: boolean }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`pointer-events-none absolute top-[11%] left-[9%] flex rotate-[-11deg] items-center gap-1 rounded-md border-[3px] border-areia bg-tinta/60 px-2.5 py-1 text-[15px] font-black tracking-[0.14em] text-areia uppercase shadow-[0_0_0_2px_rgba(28,38,49,0.55),inset_0_0_0_1.5px_rgba(222,201,168,0.45)] backdrop-blur-[2px] ${
-        animate ? "carimbo-entra" : ""
-      }`}
-    >
-      <TapIcon className="h-[18px] w-[18px]" filled />
-      Interessado
-    </span>
   );
 }
 

@@ -145,7 +145,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
           <span className="text-[10px] font-bold text-slate-300">📍 {p.dist}</span>
         </div>
         <div className="flex flex-col items-center text-center">
-          <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} size={56} />
+          <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} online={p.online} size={56} />
           <h2 ref={titleRef} id={titleId} tabIndex={-1} className="mt-1.5 font-sans text-sm font-extrabold text-white">
             {p.name}, {p.age}
           </h2>
@@ -191,7 +191,13 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
         <CloseButton onClose={onClose} className="absolute top-4 right-4 z-10 h-8 w-8 text-sm" />
         <div className="orbit-scroll flex-1 overflow-y-auto p-5">
           <div className="flex items-center gap-3.5 pr-10">
-            <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} size={isMobile ? 76 : 88}>
+            <RingedAvatar
+              cfg={p.avatar}
+              photo={p.photo}
+              color={primary.color}
+              online={p.online}
+              size={isMobile ? 76 : 88}
+            >
               {p.online && (
                 <span className="absolute right-1 bottom-1 h-3.5 w-3.5 rounded-full border-2 border-tinta bg-emerald-400" />
               )}

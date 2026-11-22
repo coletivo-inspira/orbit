@@ -10,6 +10,7 @@ import {
   type ReactNode,
   type WheelEvent,
 } from "react";
+import { OrbeVidro } from "@/components/ui/OrbeVidro";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import {
   cardPose,
@@ -22,6 +23,7 @@ import {
   type SpringState,
 } from "@/lib/deck";
 
+const NEUTRAL_TINT: { cor: string; online?: boolean } = { cor: "#dec9a8" };
 const DRAG_SLOP = 6;
 const WHEEL_STEP = 60;
 
@@ -34,6 +36,8 @@ interface CardDeckProps<T> {
   itemLabel: (item: T) => string;
   /** Card face, clipped to the card shape; not interactive. `front` is true for the card on top. */
   renderCard: (item: T, state: { front: boolean }) => ReactNode;
+  /** Status tint of the card's glass rim (see OrbeVidro); neutral sand when omitted. Only the front card glows. */
+  tint?: (item: T) => { cor: string; online?: boolean };
   /** Extra controls layered over the front card (e.g. a tap-back button). */
   renderActions?: (item: T) => ReactNode;
   /** Details of the front card, shown under the pile between the arrows. */
@@ -44,6 +48,8 @@ interface CardDeckProps<T> {
   openLabel?: string;
   /** Arrows, caption and counter under the pile; off for a compact embedded pile. */
   controls?: boolean;
+  /** Tighter caption row for tiny screens such as the watch; the arrows keep their 44 px targets. */
+  compact?: boolean;
   /** Sizes the pile area (the card is a square as tall as it); defaults to a medium pile. */
   stageClassName?: string;
   className?: string;
@@ -59,11 +65,13 @@ export function CardDeck<T>({
   label,
   itemLabel,
   renderCard,
+  tint,
   renderActions,
   renderCaption,
   onOpen,
   openLabel = "Abrir perfil de",
   controls = true,
+  compact = false,
   stageClassName = "h-[240px]",
   className = "",
 }: CardDeckProps<T>) {
@@ -226,6 +234,7 @@ export function CardDeck<T>({
     const item = items[i];
     const pose = cardPose(i, position);
     const isFront = i === index;
+    const cardTint = tint?.(item) ?? NEUTRAL_TINT;
     cards.push(
       <div
         key={getKey(item)}
@@ -243,11 +252,20 @@ export function CardDeck<T>({
           type="button"
           onClick={() => onOpen(item)}
           aria-label={`${openLabel} ${itemLabel(item)}`}
-          className="absolute inset-0 overflow-hidden rounded-[26%] border border-white/[0.14] bg-noite shadow-[0_22px_44px_-18px_rgba(0,0,0,0.75)]"
+          className="absolute inset-0 rounded-[26%]"
         >
-          {renderCard(item, { front: isFront })}
+          <OrbeVidro
+            as="span"
+            cor={cardTint.cor}
+            online={isFront && (cardTint.online ?? true)}
+            aro={compact ? 4 : 7}
+            sombra="0 22px 44px -18px rgb(0 0 0 / 75%)"
+            className="absolute inset-0 rounded-[inherit]"
+          >
+            {renderCard(item, { front: isFront })}
+          </OrbeVidro>
           <span
-            className="pointer-events-none absolute inset-0 bg-tinta"
+            className="pointer-events-none absolute inset-0 rounded-[inherit] bg-tinta"
             style={{ opacity: pose.shade }}
             aria-hidden="true"
           />
@@ -297,11 +315,17 @@ export function CardDeck<T>({
       </div>
 
       {controls && (
-        <div data-deck-controls className="mt-3 flex w-full max-w-[420px] items-center gap-2">
+        <div
+          data-deck-controls
+          className={`flex w-full max-w-[420px] items-center ${compact ? "mt-1.5 gap-1" : "mt-3 gap-2"}`}
+        >
           <DeckArrow direction="prev" disabled={index === 0} onClick={() => go(index - 1)} />
           <div className="min-w-0 flex-1 text-center">
             {renderCaption?.(front)}
-            <p className="mt-0.5 text-[11px] font-semibold text-slate-400 tabular-nums" aria-hidden="true">
+            <p
+              className={`font-semibold text-slate-400 tabular-nums ${compact ? "text-[10px]" : "mt-0.5 text-[11px]"}`}
+              aria-hidden="true"
+            >
               {index + 1} de {count}
             </p>
           </div>

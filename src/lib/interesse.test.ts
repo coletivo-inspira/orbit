@@ -3,7 +3,10 @@ import {
   buildInterestFeed,
   formatAgo,
   INTEREST_FEED,
+  INTEREST_TAP_COUNT,
+  interestEntryLabel,
   PROFILE_VIEWS,
+  profileStatusLabels,
   RECEIVED_TAPS,
   receivedTapFrom,
 } from "./interesse";
@@ -46,6 +49,30 @@ describe("simulated Interesse", () => {
     expect(feed[0]).toMatchObject({ minutesAgo: 10, opens: 4, tapMinutesAgo: 10 });
     expect(feed[1]).toMatchObject({ minutesAgo: 40, opens: 2 });
     expect(feed[1].tapMinutesAgo).toBeUndefined();
+  });
+
+  it("names each card for screen readers with its toque and repeat opens", () => {
+    const tapped = INTEREST_FEED.find((e) => e.tapMinutesAgo !== undefined && e.opens > 1)!;
+    expect(interestEntryLabel(tapped)).toBe(
+      `${tapped.profile.name}, ${tapped.profile.age}, te deu um toque, abriu seu perfil ${tapped.opens} vezes`,
+    );
+    const once = INTEREST_FEED.find((e) => e.tapMinutesAgo === undefined && e.opens === 1)!;
+    expect(interestEntryLabel(once)).toBe(`${once.profile.name}, ${once.profile.age}`);
+    expect(INTEREST_TAP_COUNT).toBe(RECEIVED_TAPS.length);
+  });
+
+  it("speaks the same status the orb badges show, in badge order", () => {
+    const base = INTEREST_FEED[0].profile;
+    const quiet = { ...base, online: false, inPark: false, visitingFrom: undefined };
+    expect(profileStatusLabels(quiet)).toEqual([]);
+    expect(profileStatusLabels({ ...quiet, online: true, inPark: true, visitingFrom: "Recife" })).toEqual([
+      "online",
+      "de passagem, mora em Recife",
+      "no Parque",
+    ]);
+    expect(profileStatusLabels(quiet, { mine: "Oi", theirs: "Olá!" })).toEqual(["última fala no chat: “Olá!”"]);
+    expect(profileStatusLabels(quiet, { mine: "Oi", theirs: null })).toEqual(["conversa sem resposta ainda"]);
+    expect(profileStatusLabels(quiet, { mine: null, theirs: null })).toEqual([]);
   });
 
   it("finds who tapped the user", () => {

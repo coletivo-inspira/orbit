@@ -1,13 +1,13 @@
 "use client";
 
 import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
-import { usePrivacyToggle } from "@/components/screens/PerfilScreen";
-import { AppTile } from "@/components/ui/AppBadge";
-import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
-import { activeAppIds, INTENTIONS } from "@/lib/data/intentions";
+import { InterestStamp } from "@/components/interesse/InterestStamp";
+import { PerfilRelogio } from "@/components/perfil/PerfilRelogio";
+import { Avatar, ProfileImage } from "@/components/ui/Avatar";
+import { CardDeck } from "@/components/ui/CardDeck";
 import { findCityRoom } from "@/lib/data/parkRooms";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
-import { PROFILE_VIEWS, RECEIVED_TAPS } from "@/lib/interesse";
+import { formatAgo, INTEREST_FEED, INTEREST_TAP_COUNT, interestEntryLabel, type InterestEntry } from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { OrbitState } from "@/lib/state/reducer";
@@ -29,6 +29,7 @@ function PageDots() {
   const pages: { page: OrbitState["watchPage"]; title: string; active: string }[] = [
     { page: 0, title: "Órbita", active: "bg-white" },
     { page: 1, title: "Parque 2D", active: "bg-salvia" },
+    { page: 3, title: "Interesse", active: "bg-cobre" },
     { page: 2, title: "Meu Cartão", active: "bg-areia" },
   ];
   return (
@@ -63,11 +64,10 @@ function WatchRecenterButton() {
   );
 }
 
-/** watchOS-style glanceable pages: Órbita, Parque summary and the user's card. */
+/** watchOS-style glanceable pages: Órbita, Parque summary, Interesse pile and the user's card. */
 export function WatchScreen() {
   const { state, dispatch } = useOrbit();
   const { requestDevice } = useDevice();
-  const togglePrivacy = usePrivacyToggle();
 
   if (state.watchPage === 0) {
     return (
@@ -133,50 +133,62 @@ export function WatchScreen() {
     );
   }
 
-  const u = state.user;
-  const primary = INTENTIONS[u.primaryIntention] ?? INTENTIONS.troca;
-  return (
-    <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-noite/60 to-[#121921] px-4 pt-9 pb-9">
-      <TopClock />
-      <div className="flex flex-col items-center text-center">
-        <RingedAvatar cfg={u.avatar} color={primary.color} size={56} />
-        <div className="mt-2 text-sm font-extrabold text-white">{u.firstName}</div>
-        <div className="mt-0.5 text-[10px] font-bold" style={{ color: primary.text }}>
-          {primary.emoji} {primary.label}
-        </div>
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          {activeAppIds(u.apps)
-            .slice(0, 5)
-            .map((id) => (
-              <AppTile key={id} appId={id} className="h-6 w-6 rounded-lg" iconClassName="h-3.5 w-3.5" />
-            ))}
-        </div>
-        <p className="mt-2 text-[10px] font-semibold text-slate-200">
-          {PROFILE_VIEWS.length} visualizações · {RECEIVED_TAPS.length} toques
-        </p>
-      </div>
-      <div className="flex w-full flex-col gap-1.5">
-        <button
-          type="button"
-          onClick={() => {
-            dispatch({ type: "setTab", tab: "desejos" });
+  if (state.watchPage === 3) {
+    return (
+      <div className="relative flex h-full w-full flex-col bg-linear-to-b/srgb from-cobre/25 to-[#121921] px-5 pt-8">
+        <TopClock />
+        <h2 className="text-center text-[11px] font-extrabold text-white">
+          Interesse <span className="text-areia">· {INTEREST_TAP_COUNT} toques</span>
+        </h2>
+        <CardDeck
+          compact
+          items={INTEREST_FEED}
+          getKey={(e) => e.profile.id}
+          label="Interesse: quem passou pela sua órbita"
+          itemLabel={interestEntryLabel}
+          openLabel="Abrir no celular o perfil de"
+          stageClassName="h-[166px]"
+          className="mt-0.5"
+          onOpen={(e) => {
             requestDevice("mobile");
+            dispatch({ type: "setTab", tab: "interesse" });
+            dispatch({ type: "openProfile", id: e.profile.id });
           }}
-          className="lg-pill flex w-full items-center justify-between rounded-full px-3 py-1.5 text-[11px] font-bold text-areia"
-        >
-          <span>✦ Desejos</span>
-          <span className="text-[10px] opacity-80">no celular →</span>
-        </button>
-        <button
-          type="button"
-          onClick={togglePrivacy}
-          className={`lg-pill flex w-full items-center justify-between rounded-full px-3 py-2 text-xs font-bold ${u.isPublic ? "text-salvia" : "text-amber-200"}`}
-        >
-          <span>{u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}</span>
-          <span className="text-[10px] opacity-80">Alternar</span>
-        </button>
+          renderCard={(e, { front }) => (
+            <>
+              <ProfileImage cfg={e.profile.avatar} photo={e.profile.photo} />
+              {e.tapMinutesAgo !== undefined && <InterestStamp compact animate={front} />}
+            </>
+          )}
+          renderCaption={(e) => <WatchInterestCaption entry={e} />}
+        />
+        <PageDots />
       </div>
+    );
+  }
+
+  return (
+    <PerfilRelogio>
+      <TopClock />
       <PageDots />
-    </div>
+    </PerfilRelogio>
+  );
+}
+
+function WatchInterestCaption({ entry }: { entry: InterestEntry }) {
+  const p = entry.profile;
+  return (
+    <>
+      <p className="flex items-center justify-center gap-1 truncate text-[12px] font-bold text-white">
+        <span className="truncate">
+          {p.name}, {p.age}
+        </span>
+        {p.online && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />}
+      </p>
+      <p className="truncate text-[10px] font-medium text-slate-300">
+        {formatAgo(entry.minutesAgo)}
+        {entry.opens > 1 && <span className="font-bold text-white"> · abriu {entry.opens}×</span>}
+      </p>
+    </>
   );
 }

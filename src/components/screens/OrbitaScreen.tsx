@@ -3,6 +3,7 @@
 import { useId, useRef, type KeyboardEvent } from "react";
 import { InterestGraph } from "@/components/orbita/InterestGraph";
 import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
+import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
 import { useProgressiveCount } from "@/components/orbita/useProgressiveCount";
 import { AppTile } from "@/components/ui/AppBadge";
@@ -334,10 +335,8 @@ function NearbyCard({
       className="lg-panel group flex w-full flex-col gap-2.5 rounded-[22px] p-3.5 text-left transition-colors hover:border-white/30"
     >
       <div className="flex items-center gap-2.5">
-        <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} size={48} halo={false}>
-          {p.online && (
-            <span className="absolute right-0.5 bottom-0.5 h-3 w-3 rounded-full border-2 border-noite bg-emerald-400" />
-          )}
+        <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} online={p.online} size={52} halo={false}>
+          <SelosStatus profile={p} variant="orbe" />
         </RingedAvatar>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold text-white">
