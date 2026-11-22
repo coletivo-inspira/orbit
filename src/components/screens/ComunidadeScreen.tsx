@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { CommunityTimelapse } from "@/components/comunidade/CommunityTimelapse";
 import { PostTrustBadge } from "@/components/comunidade/PostTrust";
+import { TagList } from "@/components/comunidade/TagList";
 import { RedditCommunities } from "@/components/comunidade/RedditCommunities";
 import { RegionalAlerts } from "@/components/comunidade/RegionalAlerts";
 import { VoteControl } from "@/components/comunidade/VoteControl";
-import { sortPosts, type CommunitySort } from "@/lib/community";
+import { commentCount, postTags, sortPosts, type CommunitySort } from "@/lib/community";
 import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -33,11 +36,12 @@ export function ComunidadeScreen() {
     state.communityFilter === "all" ? state.posts : state.posts.filter((p) => p.category === state.communityFilter);
   const posts = sortPosts(filtered, state.communitySort);
   const pending = state.posts.filter((p) => p.status === "em_revisao").length;
+  const [timelapse, setTimelapse] = useState(false);
 
   const feed = (
     <section aria-label="Posts da comunidade" className="min-w-0">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 rounded-full border border-white/[0.11] bg-white/[0.05] p-0.5">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex shrink-0 items-center gap-1 rounded-full border border-white/[0.11] bg-white/[0.05] p-0.5">
           {SORTS.map((s) => {
             const active = state.communitySort === s.id;
             return (
@@ -46,7 +50,7 @@ export function ComunidadeScreen() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => dispatch({ type: "setCommunitySort", sort: s.id })}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
+                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap transition ${
                   active ? "lg-active-lens text-white" : "border border-transparent text-slate-300 hover:text-white"
                 }`}
               >
@@ -55,13 +59,36 @@ export function ComunidadeScreen() {
             );
           })}
         </div>
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "openComposer", kind: "discussao" })}
-          className="lg-btn-primary shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-extrabold active:scale-95"
-        >
-          ＋ Criar post
-        </button>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setTimelapse(true)}
+            aria-haspopup="dialog"
+            title="Reveja as interações da comunidade numa animação"
+            className="lg-pill flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-white active:scale-95"
+          >
+            <svg
+              className="h-3.5 w-3.5 text-areia"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m4 20 11-11M14 4v2M18 6l-1.5 1.5M20 10h-2M10 4l.6 1.4M20 14l-1.4-.6" />
+            </svg>
+            Linha do tempo
+          </button>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "openComposer", kind: "discussao" })}
+            className="lg-btn-primary rounded-full px-3.5 py-1.5 text-[11px] font-extrabold active:scale-95"
+          >
+            ＋ Criar post
+          </button>
+        </div>
       </div>
       <div className="flex flex-col gap-3">
         {posts.map((post) => (
@@ -84,7 +111,18 @@ export function ComunidadeScreen() {
   );
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="relative flex h-full w-full flex-col">
+      {timelapse && (
+        <CommunityTimelapse
+          posts={filtered}
+          compact={isMobile}
+          onClose={() => setTimelapse(false)}
+          onOpenPost={(id) => {
+            setTimelapse(false);
+            dispatch({ type: "openArticle", id });
+          }}
+        />
+      )}
       <div className={`lg-header shrink-0 ${isMobile ? "px-4 pt-2.5 pb-3" : "px-6 pt-5 pb-3.5"}`}>
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1
@@ -171,11 +209,12 @@ function PostRow({ post }: { post: CommunityPost }) {
           </button>
         </h2>
         <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-300">{post.summary}</p>
+        <TagList tags={postTags(post)} className="mt-2" />
         <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
           <PostTrustBadge post={post} />
           <span>
             <span aria-hidden="true">💬</span>
-            <span className="sr-only">Comentários:</span> {post.comments.length}
+            <span className="sr-only">Comentários e respostas:</span> {commentCount(post)}
           </span>
           <span>· {post.readTime}</span>
         </div>
