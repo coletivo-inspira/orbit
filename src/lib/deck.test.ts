@@ -61,8 +61,10 @@ describe("card deck", () => {
   });
 
   it("settles on the nearest card, carried a few cards by a flick", () => {
-    expect(releaseTarget(2.3, 0, 10, 2)).toBe(2);
-    expect(releaseTarget(2.3, 4, 10, 2)).toBe(3);
+    expect(releaseTarget(2.2, 0, 10, 2)).toBe(2);
+    expect(releaseTarget(2.35, 0, 10, 2)).toBe(3);
+    expect(releaseTarget(1.65, 0, 10, 2)).toBe(1);
+    expect(releaseTarget(2.3, 2.5, 10, 2)).toBe(3);
     expect(releaseTarget(2.4, 60, 10, 2)).toBe(2 + DECK_BEHIND);
     expect(releaseTarget(0.2, -30, 10, 0)).toBe(0);
     expect(releaseTarget(8.9, 30, 10, 9)).toBe(9);

@@ -76,11 +76,15 @@ export function rubberBand(position: number, count: number): number {
   return position;
 }
 
+/** Fraction of a card a slow drag must cover to move on instead of springing back. */
+const COMMIT_DRAG = 0.25;
+
 /** Card the deck settles on after a release at `position` moving at `velocity` cards per second. */
 export function releaseTarget(position: number, velocity: number, count: number, from: number): number {
-  const projected = position + velocity * 0.22;
+  const projected = position + velocity * 0.35;
   const reach = Math.round(from);
-  const target = Math.round(Math.min(reach + DECK_BEHIND, Math.max(reach - DECK_BEHIND, projected)));
+  let target = Math.round(Math.min(reach + DECK_BEHIND, Math.max(reach - DECK_BEHIND, projected)));
+  if (target === reach && Math.abs(position - reach) > COMMIT_DRAG) target = reach + Math.sign(position - reach);
   return clampIndex(target, count);
 }
 

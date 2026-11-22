@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { formatAgo, PROFILE_VIEWS, RECEIVED_TAPS, receivedTapFrom } from "./interesse";
+import {
+  buildInterestFeed,
+  formatAgo,
+  INTEREST_FEED,
+  PROFILE_VIEWS,
+  RECEIVED_TAPS,
+  receivedTapFrom,
+} from "./interesse";
 
 describe("simulated Interesse", () => {
   it("lists distinct people, most recent first", () => {
@@ -10,6 +17,35 @@ describe("simulated Interesse", () => {
     }
     expect(PROFILE_VIEWS).toHaveLength(31);
     expect(RECEIVED_TAPS).toHaveLength(15);
+  });
+
+  it("merges views and toques into one pile, one card per person, most recent first", () => {
+    const ids = INTEREST_FEED.map((e) => e.profile.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const people = new Set([...PROFILE_VIEWS, ...RECEIVED_TAPS].map((e) => e.profile.id));
+    expect(ids.length).toBe(people.size);
+    const times = INTEREST_FEED.map((e) => e.minutesAgo);
+    expect(times).toEqual([...times].sort((a, b) => a - b));
+    expect(INTEREST_FEED.filter((e) => e.tapMinutesAgo !== undefined)).toHaveLength(RECEIVED_TAPS.length);
+    expect(INTEREST_FEED.filter((e) => e.opens > 0)).toHaveLength(PROFILE_VIEWS.length);
+    expect(INTEREST_FEED.some((e) => e.opens > 1)).toBe(true);
+  });
+
+  it("keeps a person's latest time and adds up their profile opens", () => {
+    const [a, b] = PROFILE_VIEWS;
+    const feed = buildInterestFeed(
+      [
+        { profile: a.profile, minutesAgo: 90 },
+        { profile: b.profile, minutesAgo: 40 },
+        { profile: a.profile, minutesAgo: 300 },
+      ],
+      [{ profile: a.profile, minutesAgo: 10 }],
+      () => 2,
+    );
+    expect(feed.map((e) => e.profile.id)).toEqual([a.profile.id, b.profile.id]);
+    expect(feed[0]).toMatchObject({ minutesAgo: 10, opens: 4, tapMinutesAgo: 10 });
+    expect(feed[1]).toMatchObject({ minutesAgo: 40, opens: 2 });
+    expect(feed[1].tapMinutesAgo).toBeUndefined();
   });
 
   it("finds who tapped the user", () => {

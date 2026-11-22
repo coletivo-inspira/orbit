@@ -32,8 +32,8 @@ interface CardDeckProps<T> {
   label: string;
   /** Short spoken name of an item, e.g. "Camila, 26". */
   itemLabel: (item: T) => string;
-  /** Card face, clipped to the card shape; not interactive. */
-  renderCard: (item: T) => ReactNode;
+  /** Card face, clipped to the card shape; not interactive. `front` is true for the card on top. */
+  renderCard: (item: T, state: { front: boolean }) => ReactNode;
   /** Extra controls layered over the front card (e.g. a tap-back button). */
   renderActions?: (item: T) => ReactNode;
   /** Details of the front card, shown under the pile between the arrows. */
@@ -245,7 +245,7 @@ export function CardDeck<T>({
           aria-label={`${openLabel} ${itemLabel(item)}`}
           className="absolute inset-0 overflow-hidden rounded-[26%] border border-white/[0.14] bg-noite shadow-[0_22px_44px_-18px_rgba(0,0,0,0.75)]"
         >
-          {renderCard(item)}
+          {renderCard(item, { front: isFront })}
           <span
             className="pointer-events-none absolute inset-0 bg-tinta"
             style={{ opacity: pose.shade }}
