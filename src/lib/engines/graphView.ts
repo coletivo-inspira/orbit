@@ -97,7 +97,13 @@ const HOT_ALPHA = 0.6;
 const TICK_BUDGET_MS = 6;
 /** Keeps neighbours moving while something is dragged. */
 const DRAG_ALPHA = 0.3;
-export const HIGHLIGHT = "#a78bfa";
+/* Brandbook v2: highlights are areia; purple stays reserved for the "Troca de Ideia" intention. */
+export const HIGHLIGHT = "#dec9a8";
+/* Hover/focus halo is stronger than the timelapse's "fresh" halo so the two stay distinguishable. */
+const HOVER_HALO = "rgba(222, 201, 168, 0.5)";
+const FRESH_HALO = "rgba(222, 201, 168, 0.26)";
+/* Search matches use the same areia, fainter than the hovered node's links. */
+const SEARCH_EDGE_ALPHA = 0.6;
 const LABEL_FONT_PX = 11;
 const ARROW_MIN_ZOOM = 0.55;
 
@@ -759,7 +765,7 @@ export class GraphViewEngine<E extends ViewEdge = ViewEdge> {
       if (lit?.shared) stroke((i, e) => styleOf(e) === key && lit.shared!.has(i), s.color, 0.3 * boost, base, s.dash);
     }
     if (emphasized) {
-      stroke((i) => emphasized.has(i), lit ? HIGHLIGHT : "#dec9a8", 0.95, 1.8 * linkWidth * dpr, [], arrows);
+      stroke((i) => emphasized.has(i), HIGHLIGHT, lit ? 0.95 : SEARCH_EDGE_ALPHA, 1.8 * linkWidth * dpr, [], arrows);
     }
     ctx.globalAlpha = 1;
     ctx.setLineDash([]);
@@ -830,7 +836,7 @@ export class GraphViewEngine<E extends ViewEdge = ViewEdge> {
     if (highlighted || this.fresh?.has(i)) {
       ctx.beginPath();
       ctx.arc(x, y, outer + 5 * dpr, 0, TAU);
-      ctx.fillStyle = highlighted ? "rgba(167, 139, 250, 0.38)" : "rgba(222, 201, 168, 0.3)";
+      ctx.fillStyle = highlighted ? HOVER_HALO : FRESH_HALO;
       ctx.fill();
     }
     const sprite =
