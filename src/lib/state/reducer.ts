@@ -11,7 +11,7 @@ import { ORBIT_PLUS } from "@/lib/molduras/config";
 import { aplicarConquistas, ESTADO_MOLDURAS_INICIAL, type EstadoMolduras } from "@/lib/molduras/estado";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
 import { TOPIC_IDS } from "@/lib/data/profileOptions";
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { ORBIT_PROFILES } from "@/lib/data/profiles";
 import { DEFAULT_REGION, isRegionId } from "@/lib/data/regions";
 import { DEMO_USER } from "@/lib/data/user";
 import type { InteresseTab } from "@/lib/interesse";
@@ -192,7 +192,7 @@ function isIntention(value: unknown): value is IntentionId {
   return typeof value === "string" && Object.hasOwn(INTENTIONS, value);
 }
 
-const PROFILE_IDS = new Set(SIMULATED_PROFILES.map((p) => p.id));
+const PROFILE_IDS = new Set(ORBIT_PROFILES.map((p) => p.id));
 
 function isTopic(value: unknown): value is TopicId {
   return typeof value === "string" && TOPIC_IDS.has(value);

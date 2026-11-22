@@ -1,19 +1,44 @@
 import { describe, expect, it } from "vitest";
 import { OBSTACLES, PARK_BOTS, PLAYER_SPAWN } from "@/lib/data/park";
-import { fisheye, hexRingPositions, panToReveal } from "./orbitHoneycomb";
+import { cullIndices, fisheye, frontierFor, hexRingPositions, panToReveal, VIEW_CELL, viewFor } from "./orbitHoneycomb";
 import { clampZoom, fitTransform, MAX_ZOOM, MIN_ZOOM } from "./graphView";
 import { proximityOf } from "./park2d";
-import { generateRadarMap } from "./radarMap";
+import { generateRadarMap, RADAR_TILE, radarMapSvg } from "./radarMap";
 import { collidesAt } from "./scenes/centralPark";
 
 describe("generateRadarMap", () => {
-  it("is deterministic and has streets, a river and parks", () => {
+  it("is a deterministic tile with avenues on its edges, so it wraps without seams", () => {
     const map = generateRadarMap();
     expect(generateRadarMap()).toEqual(map);
     expect(map.minor.length).toBeGreaterThan(10);
-    expect(map.major.length).toBeGreaterThan(3);
-    expect(map.river.startsWith("M")).toBe(true);
-    expect(map.parks).toHaveLength(4);
+    expect(map.major).toContain(`M0 0V${RADAR_TILE}`);
+    expect(map.parks).toHaveLength(3);
+    expect(radarMapSvg(map)).toContain(`width="${RADAR_TILE}"`);
+  });
+});
+
+describe("radar virtualization", () => {
+  const positions = hexRingPositions(1248, 94);
+
+  it("renders only the bubbles around the view", () => {
+    const view = viewFor(0, 0, 390, 600);
+    const visible = cullIndices(positions, view.x, view.y, view.radius);
+    expect(visible.length).toBeGreaterThan(20);
+    expect(visible.length).toBeLessThan(260);
+    expect(visible[0]).toBe(0);
+  });
+
+  it("snaps the view to a grid so small pans don't re-render", () => {
+    expect(viewFor(-10, 20, 390, 600)).toEqual(viewFor(0, 0, 390, 600));
+    expect(viewFor(-200, 0, 390, 600).x).toBe(VIEW_CELL);
+  });
+
+  it("puts a frontier inside the outer rings for big crowds only", () => {
+    expect(frontierFor(hexRingPositions(48, 94), 94)).toBeNull();
+    const frontier = frontierFor(positions, 94)!;
+    const outer = Math.max(...positions.map((p) => Math.hypot(p.x, p.y)));
+    expect(frontier).toBeLessThan(outer);
+    expect(positions.some((p) => Math.hypot(p.x, p.y) > frontier)).toBe(true);
   });
 });
 

@@ -128,7 +128,13 @@ const ALPHA_MIN = 0.002;
 const ALPHA_DECAY = 1 - Math.pow(ALPHA_MIN, 1 / 300);
 const VELOCITY_DECAY = 0.6;
 const LINK_DISTANCE = 64;
-const MAX_REPULSION_DIST2 = 520 * 520;
+const REPULSION_CUTOFF = 380;
+const NEIGHBOR_OFFSETS: readonly (readonly [number, number])[] = [
+  [1, 0],
+  [-1, 1],
+  [0, 1],
+  [1, 1],
+];
 
 /**
  * Deterministic force layout (d3-force style: many-body repulsion, springs, gravity).
@@ -193,21 +199,41 @@ export class ForceLayout {
     const n = x.length;
     const alpha = this.alpha;
 
+    const repel = (i: number, j: number) => {
+      let dx = x[j] - x[i];
+      let dy = y[j] - y[i];
+      let d2 = dx * dx + dy * dy;
+      if (d2 > REPULSION_CUTOFF * REPULSION_CUTOFF) return;
+      if (d2 < 1) {
+        dx = ((i * 7 + j * 13) % 11) / 11 - 0.5 || 0.3;
+        dy = ((i * 5 + j * 3) % 7) / 7 - 0.5 || -0.3;
+        d2 = dx * dx + dy * dy;
+      }
+      vx[i] += (dx * charge[j] * alpha) / d2;
+      vy[i] += (dy * charge[j] * alpha) / d2;
+      vx[j] -= (dx * charge[i] * alpha) / d2;
+      vy[j] -= (dy * charge[i] * alpha) / d2;
+    };
+
+    // Uniform grid with cutoff-sized cells: each pair is checked once, against its own and 4 neighbor cells.
+    const cells = new Map<number, number[]>();
+    const key = (cx: number, cy: number) => cx * 73856093 + cy;
     for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        let dx = x[j] - x[i];
-        let dy = y[j] - y[i];
-        let d2 = dx * dx + dy * dy;
-        if (d2 > MAX_REPULSION_DIST2) continue;
-        if (d2 < 1) {
-          dx = ((i * 7 + j * 13) % 11) / 11 - 0.5 || 0.3;
-          dy = ((i * 5 + j * 3) % 7) / 7 - 0.5 || -0.3;
-          d2 = dx * dx + dy * dy;
-        }
-        vx[i] += (dx * charge[j] * alpha) / d2;
-        vy[i] += (dy * charge[j] * alpha) / d2;
-        vx[j] -= (dx * charge[i] * alpha) / d2;
-        vy[j] -= (dy * charge[i] * alpha) / d2;
+      const k = key(Math.floor(x[i] / REPULSION_CUTOFF), Math.floor(y[i] / REPULSION_CUTOFF));
+      const cell = cells.get(k);
+      if (cell) cell.push(i);
+      else cells.set(k, [i]);
+    }
+    for (const members of cells.values()) {
+      const cx = Math.floor(x[members[0]] / REPULSION_CUTOFF);
+      const cy = Math.floor(y[members[0]] / REPULSION_CUTOFF);
+      for (let a = 0; a < members.length; a++) {
+        for (let b = a + 1; b < members.length; b++) repel(members[a], members[b]);
+      }
+      for (const [ox, oy] of NEIGHBOR_OFFSETS) {
+        const other = cells.get(key(cx + ox, cy + oy));
+        if (!other) continue;
+        for (const i of members) for (const j of other) repel(i, j);
       }
     }
 

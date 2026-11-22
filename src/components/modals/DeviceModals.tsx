@@ -37,7 +37,7 @@ import {
   TRIBES,
 } from "@/lib/data/profileOptions";
 import { getPost } from "@/lib/data/posts";
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { profileById } from "@/lib/data/profiles";
 import { formatAgo, receivedTapFrom } from "@/lib/interesse";
 import { monthsBetween, sharedTopics } from "@/lib/orbitaFilters";
 import { articleRoute, publicUrl } from "@/lib/publicUrl";
@@ -59,10 +59,8 @@ export function DeviceModals() {
     state.selectedProfileId || state.selectedArticleId || composerKind || showFilters || miniChat || desejo,
   );
 
-  const profile = state.selectedProfileId
-    ? SIMULATED_PROFILES.find((p) => p.id === state.selectedProfileId)
-    : undefined;
-  const chatProfile = miniChat ? SIMULATED_PROFILES.find((p) => p.id === miniChat.profileId) : undefined;
+  const profile = state.selectedProfileId ? profileById(state.selectedProfileId) : undefined;
+  const chatProfile = miniChat ? profileById(miniChat.profileId) : undefined;
   const post = state.selectedArticleId ? state.posts.find((p) => p.id === state.selectedArticleId) : undefined;
 
   return (

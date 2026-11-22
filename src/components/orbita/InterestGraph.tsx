@@ -25,6 +25,8 @@ import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
 
 const SPOTIFY_GREEN = "#1db954";
+const GRAPH_BATCH = 150;
+const GRAPH_MAX = 450;
 
 const SOURCE_CHIPS: { id: keyof GraphSources; label: string; swatch: React.ReactNode }[] = [
   { id: "perfil", label: "Perfil", swatch: <span className="h-0.5 w-4 rounded bg-marfim/70" /> },
@@ -73,24 +75,28 @@ export function InterestGraph({
   const { getScale } = useDevice();
   const [sources, setSources] = useState<GraphSources>({ perfil: true, comunidade: true, musica: true });
   const [focus, setFocus] = useState<number | null>(null);
+  const [limit, setLimit] = useState(GRAPH_BATCH);
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const lineRefs = useRef<(SVGLineElement | null)[]>([]);
   const engineRef = useRef<GraphViewEngine | null>(null);
 
+  // The nearest people (in the current sort) only: a graph of 1000+ nodes is neither readable nor light on a phone.
+  const shownPeople = Math.min(limit, profiles.length, GRAPH_MAX);
+  const people = useMemo(() => profiles.slice(0, shownPeople), [profiles, shownPeople]);
   const community = useMemo(() => communityTopics(state.posts), [state.posts]);
   const graph = useMemo(
     () =>
       buildInterestGraph({
-        profiles,
+        profiles: people,
         userTopics: state.user.topics,
         userGenres: userGenres(state.user),
         genresOf: profileGenres,
         community,
         sources,
       }),
-    [profiles, state.user, community, sources],
+    [people, state.user, community, sources],
   );
 
   // A new graph invalidates the focused index; resetting during render avoids a stale highlight frame.
@@ -103,12 +109,13 @@ export function InterestGraph({
   useEffect(() => {
     const container = containerRef.current;
     const world = worldRef.current;
-    if (!container || !world) return;
+    const canvas = canvasRef.current;
+    if (!container || !world || !canvas) return;
     const engine = new GraphViewEngine({
       container,
       world,
+      canvas,
       nodeEls: nodeRefs.current.slice(0, graph.nodes.length),
-      lineEls: lineRefs.current.slice(0, graph.edges.length),
       edges: graph.edges,
       layout: new ForceLayout(graph),
       getScale,
@@ -128,6 +135,9 @@ export function InterestGraph({
     focus !== null && graph.nodes[focus]?.kind === "person"
       ? INTENTIONS[(graph.nodes[focus] as Extract<GraphNode, { kind: "person" }>).profile.primaryIntention].color
       : "#dec9a8";
+  useEffect(() => {
+    engineRef.current?.setHighlight(lit ? { direct: lit.direct, shared: lit.shared, color: focusColor } : null);
+  }, [lit, focusColor, graph]);
   const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
 
   const hubsOf = (i: number) =>
@@ -152,34 +162,24 @@ export function InterestGraph({
       className={`group/graph relative cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing ${className}`}
       style={style}
     >
-      <div ref={worldRef} className="absolute top-0 left-0 origin-top-left will-change-transform">
-        <svg
-          className="pointer-events-none absolute top-0 left-0 overflow-visible"
-          width="1"
-          height="1"
-          aria-hidden="true"
-        >
-          {graph.edges.map((e, i) => {
-            const direct = lit?.direct.has(i);
-            const shared = lit?.shared.has(i);
-            const base =
-              e.origin === "musica" ? SPOTIFY_GREEN : e.origin === "comunidade" ? "#dec9a8" : "rgb(245 240 231)";
-            return (
-              <line
-                key={`${e.source}-${e.target}`}
-                ref={(el) => {
-                  lineRefs.current[i] = el;
-                }}
-                stroke={direct ? focusColor : base}
-                strokeOpacity={lit ? (direct ? 0.95 : shared ? 0.4 : 0.05) : e.origin === "perfil" ? 0.2 : 0.45}
-                strokeWidth={direct ? 2.2 : 1}
-                strokeDasharray={e.origin === "comunidade" ? "5 4" : undefined}
-                vectorEffect="non-scaling-stroke"
-              />
-            );
-          })}
-        </svg>
-
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none absolute inset-0 h-full w-full group-data-[settling=true]/graph:invisible"
+        aria-hidden="true"
+      />
+      <div
+        role="status"
+        className="pointer-events-none absolute inset-0 hidden items-center justify-center group-data-[settling=true]/graph:flex"
+      >
+        <span className="lg-bar flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold text-white">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-areia" aria-hidden="true" />
+          Organizando conexões…
+        </span>
+      </div>
+      <div
+        ref={worldRef}
+        className="absolute top-0 left-0 origin-top-left will-change-transform group-data-[settling=true]/graph:invisible"
+      >
         {graph.nodes.map((node, i) => {
           const dim = lit && !lit.nodes.has(i);
           const selected = focus === i;
@@ -191,7 +191,7 @@ export function InterestGraph({
                 nodeRefs.current[i] = el;
               }}
               data-node-index={i}
-              className="absolute top-0 left-0 transition-opacity duration-200"
+              className="absolute top-0 left-0 transition-opacity duration-200 will-change-transform"
               style={{ opacity: dim ? 0.22 : 1, zIndex: selected ? 3 : node.kind === "me" ? 2 : 1 }}
             >
               <button
@@ -252,6 +252,28 @@ export function InterestGraph({
           </ToggleChip>
         ))}
       </div>
+
+      {profiles.length > GRAPH_BATCH && (
+        <div
+          data-graph-control
+          className="lg-bar absolute top-12 left-2.5 z-20 flex max-w-[calc(100%-20px)] items-center gap-2 rounded-full py-1 pr-1 pl-3 text-[11px] text-white"
+        >
+          <span role="status">
+            {shownPeople} de {profiles.length} pessoas, as mais próximas
+          </span>
+          {shownPeople < Math.min(profiles.length, GRAPH_MAX) ? (
+            <button
+              type="button"
+              onClick={() => setLimit((l) => l + GRAPH_BATCH)}
+              className="lg-pill shrink-0 rounded-full px-2.5 py-1 font-bold"
+            >
+              Mostrar mais
+            </button>
+          ) : (
+            shownPeople < profiles.length && <span className="pr-2 text-slate-300">Use os filtros para ver outras</span>
+          )}
+        </div>
+      )}
 
       {focus !== null && graph.nodes[focus] && (
         <FocusCard

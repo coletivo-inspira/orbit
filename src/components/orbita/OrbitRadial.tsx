@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
 import { RadarMapBackdrop } from "@/components/orbita/RadarMapBackdrop";
@@ -8,7 +8,15 @@ import { Avatar, ProfileImage } from "@/components/ui/Avatar";
 import { hasTalked } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
-import { hexRingPositions, maxPanFor, OrbitHoneycombEngine } from "@/lib/engines/orbitHoneycomb";
+import {
+  cullIndices,
+  frontierFor,
+  hexRingPositions,
+  maxPanFor,
+  OrbitHoneycombEngine,
+  type OrbitNode,
+  type OrbitView,
+} from "@/lib/engines/orbitHoneycomb";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
@@ -49,14 +57,39 @@ export function OrbitRadial({
   const centerRef = useRef<HTMLButtonElement>(null);
   const bubbleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const engineRef = useRef<OrbitHoneycombEngine | null>(null);
-  const backdropRef = useRef<SVGSVGElement>(null);
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const frontierRef = useRef<HTMLDivElement>(null);
 
   const crowded = profiles.length > 24;
   const baseRadius = isWatch ? 24 : crowded ? 32 : 36;
   const spacing = isWatch ? 64 : crowded ? 94 : 104;
   const positions = useMemo(() => hexRingPositions(profiles.length, spacing), [profiles.length, spacing]);
   const maxPan = maxPanFor(positions, isWatch);
+  const frontier = isWatch ? null : frontierFor(positions, spacing);
   const profileKey = profiles.map((p) => p.id).join(",");
+
+  // Only bubbles near the visible field are mounted; the engine reports when the view moves to another cell.
+  const [view, setView] = useState<OrbitView>({ x: 0, y: 0, radius: 900 });
+  const visible = useMemo(() => cullIndices(positions, view.x, view.y, view.radius), [positions, view]);
+  const visibleRef = useRef(visible);
+  const collectNodes = useCallback(
+    (): OrbitNode[] =>
+      visibleRef.current.flatMap((i) => {
+        const el = bubbleRefs.current[i];
+        return el && positions[i]
+          ? [
+              {
+                el,
+                labelEl: el.querySelector<HTMLElement>("[data-label]"),
+                bx: positions[i].x,
+                by: positions[i].y,
+                index: i,
+              },
+            ]
+          : [];
+      }),
+    [positions],
+  );
 
   useEffect(() => {
     const field = fieldRef.current;
@@ -71,20 +104,22 @@ export function OrbitRadial({
       getScale,
       reducedMotion: prefersReducedMotion,
       backdropEl: backdropRef.current,
-      nodes: bubbleRefs.current
-        .slice(0, positions.length)
-        .flatMap((el, i) =>
-          el
-            ? [{ el, labelEl: el.querySelector<HTMLElement>("[data-label]"), bx: positions[i].x, by: positions[i].y }]
-            : [],
-        ),
+      frontier,
+      frontierEl: frontierRef.current,
+      onViewChange: setView,
+      nodes: collectNodes(),
     });
     engineRef.current = engine;
     return () => {
       engine.destroy();
       engineRef.current = null;
     };
-  }, [profileKey, positions, maxPan, isWatch, centerOffsetY, getScale]);
+  }, [profileKey, positions, maxPan, frontier, isWatch, centerOffsetY, getScale, collectNodes]);
+
+  useLayoutEffect(() => {
+    visibleRef.current = visible;
+    engineRef.current?.setNodes(collectNodes());
+  }, [visible, collectNodes]);
 
   const centerSize = baseRadius * 2.15;
   const diameter = baseRadius * 2;
@@ -110,6 +145,14 @@ export function OrbitRadial({
       )}
 
       <div className="absolute inset-0">
+        {frontier && (
+          <div
+            ref={frontierRef}
+            className="pointer-events-none absolute top-1/2 left-1/2 rounded-full border-2 border-dashed border-areia/35"
+            style={{ width: frontier * 2, height: frontier * 2, transform: "translate(-50%, -50%)" }}
+            aria-hidden="true"
+          />
+        )}
         <button
           ref={centerRef}
           type="button"
@@ -127,7 +170,8 @@ export function OrbitRadial({
           </div>
         </button>
 
-        {profiles.map((p, idx) => {
+        {visible.map((idx) => {
+          const p = profiles[idx];
           const intention = INTENTIONS[p.primaryIntention];
           const shared = affinity?.get(p.id) ?? 0;
           const conversation = state.conversations[p.id];

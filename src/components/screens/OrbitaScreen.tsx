@@ -4,6 +4,7 @@ import { useId, useRef, type KeyboardEvent } from "react";
 import { InterestGraph } from "@/components/orbita/InterestGraph";
 import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
 import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
+import { useProgressiveCount } from "@/components/orbita/useProgressiveCount";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { ToggleChip } from "@/components/ui/ToggleChip";
@@ -200,23 +201,7 @@ export function OrbitaScreen() {
             style={{ background: "radial-gradient(circle at center, #2a3644 0%, rgb(28 38 49 / 0) 75%)" }}
           />
         ) : (
-          <div className={`orbit-scroll @container flex-1 overflow-y-auto ${isMobile ? "p-3.5 pb-24" : "p-5"}`}>
-            <ul
-              className={`grid gap-3 ${isMobile ? "grid-cols-1 @min-[360px]:grid-cols-2" : "grid-cols-2 gap-3.5 @min-[720px]:grid-cols-3 @min-[960px]:grid-cols-4"}`}
-              aria-label="Pessoas por perto"
-            >
-              {profiles.map((p) => (
-                <li key={p.id} className="flex">
-                  <NearbyCard
-                    profile={p}
-                    userTopics={state.user.topics}
-                    compact={isMobile}
-                    onOpen={() => dispatch({ type: "openProfile", id: p.id })}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
+          <NearbyList profiles={profiles} compact={isMobile} />
         )}
       </div>
     </div>
@@ -283,6 +268,47 @@ function EmptyState({ compact, onClear, onAdjust }: { compact: boolean; onClear:
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** Mounts cards in batches as the user scrolls; off-screen cards also skip rendering via content-visibility. */
+function NearbyList({ profiles, compact }: { profiles: Profile[]; compact: boolean }) {
+  const { state, dispatch } = useOrbit();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const resetKey = `${profiles.length}:${profiles[0]?.id}:${profiles.at(-1)?.id}`;
+  const { shown, sentinelRef, more } = useProgressiveCount(profiles.length, scrollRef, resetKey);
+  return (
+    <div
+      ref={scrollRef}
+      className={`orbit-scroll @container flex-1 overflow-y-auto ${compact ? "p-3.5 pb-24" : "p-5"}`}
+    >
+      <ul
+        className={`grid gap-3 ${compact ? "grid-cols-1 @min-[360px]:grid-cols-2" : "grid-cols-2 gap-3.5 @min-[720px]:grid-cols-3 @min-[960px]:grid-cols-4"}`}
+        aria-label="Pessoas por perto"
+      >
+        {profiles.slice(0, shown).map((p) => (
+          <li key={p.id} className="flex [contain-intrinsic-size:auto_190px] [content-visibility:auto]">
+            <NearbyCard
+              profile={p}
+              userTopics={state.user.topics}
+              compact={compact}
+              onOpen={() => dispatch({ type: "openProfile", id: p.id })}
+            />
+          </li>
+        ))}
+        {shown < profiles.length && (
+          <li ref={sentinelRef} className="col-span-full flex justify-center py-2">
+            <button
+              type="button"
+              onClick={more}
+              className="lg-pill rounded-full px-4 py-2 text-xs font-bold text-white"
+            >
+              Mostrar mais ({shown} de {profiles.length})
+            </button>
+          </li>
+        )}
+      </ul>
     </div>
   );
 }

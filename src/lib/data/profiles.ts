@@ -1,3 +1,4 @@
+import { generateProfiles } from "@/lib/data/generatedProfiles";
 import { formatDistance } from "@/lib/data/profileOptions";
 import type { AppId, AppPresence, AvatarConfig, Profile } from "@/lib/types";
 
@@ -1433,3 +1434,12 @@ export const SIMULATED_PROFILES: Profile[] = [
     topics: ["mpb", "teatro", "arte", "pop"],
   }),
 ];
+
+/** Everyone in the Órbita: the 48 curated portraits first, then the generated illustrated crowd. */
+export const ORBIT_PROFILES: Profile[] = [...SIMULATED_PROFILES, ...generateProfiles()];
+
+const BY_ID = new Map(ORBIT_PROFILES.map((p) => [p.id, p]));
+
+export function profileById(id: string): Profile | undefined {
+  return BY_ID.get(id);
+}

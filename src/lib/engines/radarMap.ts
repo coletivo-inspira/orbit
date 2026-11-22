@@ -1,10 +1,10 @@
-/** Side of the square backdrop, larger than any pan so its edges never show. */
-export const RADAR_MAP_SIZE = 1800;
+/** Side of the repeating map tile; streets are spaced so the tile wraps without seams. */
+export const RADAR_TILE = 1200;
+const STREET_GAP = 75;
 
 export interface RadarMap {
   minor: string[];
   major: string[];
-  river: string;
   parks: { cx: number; cy: number; rx: number; ry: number }[];
 }
 
@@ -20,54 +20,53 @@ function mulberry32(seed: number) {
 }
 
 /**
- * Stylized, deterministic street map behind the radar: a slightly irregular grid with
- * broken side streets, a few curving avenues, a river and parks. Coordinates are centered on (0, 0).
+ * Stylized street map behind the radar, as one deterministic tile that repeats forever:
+ * avenues every fourth street, broken side streets and a few parks. Coordinates are in [0, RADAR_TILE).
  */
 export function generateRadarMap(seed = 2026): RadarMap {
   const rand = mulberry32(seed);
-  const half = RADAR_MAP_SIZE / 2;
   const minor: string[] = [];
   const major: string[] = [];
 
-  for (let v = -half; v <= half; v += 75) {
-    const isMajor = Math.round((v + half) / 75) % 4 === 0;
-    const wobble = (rand() - 0.5) * 18;
+  for (let v = 0; v < RADAR_TILE; v += STREET_GAP) {
+    const isMajor = (v / STREET_GAP) % 4 === 0;
     for (const vertical of [true, false]) {
       if (isMajor) {
-        major.push(vertical ? `M${v + wobble} ${-half}V${half}` : `M${-half} ${v + wobble}H${half}`);
+        major.push(vertical ? `M${v} 0V${RADAR_TILE}` : `M0 ${v}H${RADAR_TILE}`);
         continue;
       }
-      let pos = -half;
+      let pos = 0;
       let d = "";
-      while (pos < half) {
-        const len = 90 + rand() * 260;
-        const end = Math.min(half, pos + len);
-        if (rand() > 0.22) d += vertical ? `M${v + wobble} ${pos}V${end}` : `M${pos} ${v + wobble}H${end}`;
+      while (pos < RADAR_TILE) {
+        const end = Math.min(RADAR_TILE, pos + 90 + rand() * 260);
+        if (rand() > 0.22) {
+          d += vertical ? `M${v} ${pos.toFixed(0)}V${end.toFixed(0)}` : `M${pos.toFixed(0)} ${v}H${end.toFixed(0)}`;
+        }
         pos = end + 20 + rand() * 60;
       }
       if (d) minor.push(d);
     }
   }
 
-  for (let i = 0; i < 3; i++) {
-    const y0 = -half + rand() * RADAR_MAP_SIZE;
-    const y1 = -half + rand() * RADAR_MAP_SIZE;
-    const c1 = (rand() - 0.5) * RADAR_MAP_SIZE;
-    const c2 = (rand() - 0.5) * RADAR_MAP_SIZE;
-    major.push(
-      `M${-half} ${y0.toFixed(0)}C${-half / 3} ${c1.toFixed(0)} ${half / 3} ${c2.toFixed(0)} ${half} ${y1.toFixed(0)}`,
-    );
-  }
-
-  const rx = (rand() - 0.5) * 500;
-  const river = `M${(-half + 120 + rx).toFixed(0)} ${-half}C${(rx - 260).toFixed(0)} ${-half / 3} ${(rx + 380).toFixed(0)} ${half / 4} ${(rx - 60).toFixed(0)} ${half}`;
-
-  const parks = Array.from({ length: 4 }, () => ({
-    cx: Math.round((rand() - 0.5) * RADAR_MAP_SIZE * 0.8),
-    cy: Math.round((rand() - 0.5) * RADAR_MAP_SIZE * 0.8),
-    rx: Math.round(50 + rand() * 90),
-    ry: Math.round(40 + rand() * 70),
+  const parks = Array.from({ length: 3 }, () => ({
+    cx: Math.round(120 + rand() * (RADAR_TILE - 240)),
+    cy: Math.round(120 + rand() * (RADAR_TILE - 240)),
+    rx: Math.round(50 + rand() * 70),
+    ry: Math.round(40 + rand() * 50),
   }));
 
-  return { minor, major, river, parks };
+  return { minor, major, parks };
+}
+
+export function radarMapSvg(map: RadarMap): string {
+  const parks = map.parks
+    .map((p) => `<ellipse cx="${p.cx}" cy="${p.cy}" rx="${p.rx}" ry="${p.ry}" fill="rgb(217 228 214 / 6%)"/>`)
+    .join("");
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${RADAR_TILE}" height="${RADAR_TILE}" viewBox="0 0 ${RADAR_TILE} ${RADAR_TILE}">` +
+    parks +
+    `<path d="${map.minor.join("")}" fill="none" stroke="rgb(245 240 231 / 6%)" stroke-width="2"/>` +
+    `<path d="${map.major.join("")}" fill="none" stroke="rgb(245 240 231 / 10%)" stroke-width="5"/>` +
+    `</svg>`
+  );
 }

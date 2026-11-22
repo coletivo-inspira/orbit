@@ -1,11 +1,24 @@
-import type { ForceLayout, GraphEdge } from "./interestGraph";
+import type { ForceLayout, GraphEdge, LinkOrigin } from "./interestGraph";
+
+export interface EdgeHighlight {
+  direct: ReadonlySet<number>;
+  shared: ReadonlySet<number>;
+  color: string;
+}
+
+const ORIGIN_STYLE: Record<LinkOrigin, { color: string; alpha: number; dash: number[] }> = {
+  perfil: { color: "rgb(245 240 231)", alpha: 0.2, dash: [] },
+  comunidade: { color: "#dec9a8", alpha: 0.45, dash: [5, 4] },
+  musica: { color: "#1db954", alpha: 0.45, dash: [] },
+};
 
 interface GraphViewOptions {
   container: HTMLElement;
-  /** Element holding nodes and lines in graph coordinates; receives the pan/zoom transform. */
+  /** Element holding the nodes in graph coordinates; receives the pan/zoom transform. */
   world: HTMLElement;
+  /** Lines are drawn here: thousands of SVG lines would mean thousands of DOM writes per frame. */
+  canvas: HTMLCanvasElement;
   nodeEls: (HTMLElement | null)[];
-  lineEls: (SVGLineElement | null)[];
   edges: GraphEdge[];
   layout: ForceLayout;
   getScale: () => number;
@@ -17,6 +30,9 @@ interface GraphViewOptions {
 
 export const MIN_ZOOM = 0.3;
 export const MAX_ZOOM = 2.4;
+/** Above this many nodes, moving every node per frame costs more than the layout itself. */
+export const BATCH_SETTLE_NODES = 120;
+const BATCH_BUDGET_MS = 8;
 
 export function clampZoom(z: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
@@ -36,7 +52,7 @@ export function fitTransform(
 
 /**
  * Obsidian-like graph viewport: runs the force layout while it moves, drags nodes,
- * pans, zooms (wheel and pinch). Owns transforms and line coordinates only; React keeps the markup.
+ * pans, zooms (wheel and pinch). Owns node transforms and the line canvas; React keeps the markup.
  */
 export class GraphViewEngine {
   private panX = 0;
@@ -47,6 +63,8 @@ export class GraphViewEngine {
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private mode: "idle" | "pan" | "node" | "pinch" = "idle";
   private dragNode = -1;
+  private downOnNode = false;
+  private dirtyNode = -1;
   private moved = false;
   private startX = 0;
   private startY = 0;
@@ -54,10 +72,21 @@ export class GraphViewEngine {
   private pinchZoom = 1;
   private movedResetTimer: number | null = null;
   private readonly resizeObserver: ResizeObserver;
+  private highlight: EdgeHighlight | null = null;
+  /** Big graphs settle in time-boxed batches instead of animating every node every frame. */
+  private readonly batch: boolean;
+  /** Initial batch settle: nodes stay hidden (`data-settling`) until the layout rests. */
+  private settling = false;
 
   constructor(private readonly opts: GraphViewOptions) {
+    this.batch = opts.nodeEls.length > BATCH_SETTLE_NODES && !opts.reducedMotion();
     if (opts.reducedMotion()) opts.layout.settle();
-    else for (let i = 0; i < 80; i++) opts.layout.tick();
+    else if (this.batch) this.settling = true;
+    else {
+      // Pre-settle off-screen so the first frame isn't a burst.
+      for (let i = 0; i < 80; i++) opts.layout.tick();
+    }
+    opts.container.dataset.settling = String(this.settling);
     opts.container.addEventListener("pointerdown", this.onPointerDown);
     opts.container.addEventListener("wheel", this.onWheel, { passive: false });
     window.addEventListener("pointermove", this.onPointerMove);
@@ -86,12 +115,16 @@ export class GraphViewEngine {
   }
 
   fit(): void {
+    this.applyFit();
+    this.schedule();
+  }
+
+  private applyFit() {
     const { container, layout } = this.opts;
     const t = fitTransform(layout.bounds(), container.clientWidth || 360, container.clientHeight || 520);
     this.zoom = t.zoom;
     this.panX = t.panX;
     this.panY = t.panY;
-    this.schedule();
   }
 
   zoomBy(factor: number): void {
@@ -163,8 +196,11 @@ export class GraphViewEngine {
       return;
     }
     const nodeEl = (e.target as Element).closest<HTMLElement>("[data-node-index]");
-    this.mode = nodeEl ? "node" : "pan";
-    this.dragNode = nodeEl ? Number(nodeEl.dataset.nodeIndex) : -1;
+    const index = nodeEl ? Number(nodeEl.dataset.nodeIndex) : -1;
+    // The user's own node is anchored: dragging it pans instead of reheating the whole layout.
+    this.mode = index > 0 ? "node" : "pan";
+    this.dragNode = index;
+    this.downOnNode = index >= 0;
     this.moved = false;
     this.startX = e.clientX;
     this.startY = e.clientY;
@@ -187,9 +223,13 @@ export class GraphViewEngine {
 
     if (this.mode === "node" && this.dragNode >= 0) {
       const p = this.toGraph(e.clientX, e.clientY);
-      if (this.dragNode !== 0) this.opts.layout.pin(this.dragNode, p.x, p.y);
-      this.opts.layout.reheat(0.25);
-      this.layoutDirty = true;
+      this.opts.layout.pin(this.dragNode, p.x, p.y);
+      // Big graphs move only the dragged node: reheating would move every node on every frame.
+      if (this.batch) this.dirtyNode = this.dragNode;
+      else {
+        this.opts.layout.reheat(0.25);
+        this.layoutDirty = true;
+      }
     } else if (this.mode === "pan") {
       this.panX += (e.clientX - prev.x) / scale;
       this.panY += (e.clientY - prev.y) / scale;
@@ -200,7 +240,7 @@ export class GraphViewEngine {
   private onPointerUp = (e: PointerEvent) => {
     if (!this.pointers.delete(e.pointerId)) return;
     if (this.pointers.size > 0) return;
-    if (this.mode === "pan" && !this.moved) this.opts.onBackgroundTap();
+    if (this.mode === "pan" && !this.moved && !this.downOnNode) this.opts.onBackgroundTap();
     this.releaseNode();
     this.mode = "idle";
     if (this.movedResetTimer !== null) window.clearTimeout(this.movedResetTimer);
@@ -212,40 +252,105 @@ export class GraphViewEngine {
     this.dragNode = -1;
   }
 
+  /** Restyles the lines for the focused node (or clears the focus). */
+  setHighlight(highlight: EdgeHighlight | null): void {
+    this.highlight = highlight;
+    this.schedule();
+  }
+
   private loop = () => {
     this.rafId = null;
-    const { world, nodeEls, lineEls, edges, layout, reducedMotion } = this.opts;
-    const animate = !layout.settled && !reducedMotion();
-    if (animate) {
-      layout.tick();
+    const { container, world, nodeEls, layout, reducedMotion } = this.opts;
+    let running = false;
+    if (!layout.settled) {
+      if (reducedMotion()) layout.settle();
+      else if (this.batch) {
+        const deadline = performance.now() + BATCH_BUDGET_MS;
+        do layout.tick();
+        while (!layout.settled && performance.now() < deadline);
+        running = !layout.settled;
+      } else {
+        layout.tick();
+        running = true;
+      }
       this.layoutDirty = true;
-    } else if (!layout.settled) {
-      layout.settle();
-      this.layoutDirty = true;
+    }
+    if (this.settling && layout.settled) {
+      this.settling = false;
+      container.dataset.settling = "false";
+      this.applyFit();
     }
 
     const { cx, cy } = this.center();
     world.style.transform = `translate(${(cx + this.panX).toFixed(1)}px, ${(cy + this.panY).toFixed(1)}px) scale(${this.zoom.toFixed(3)})`;
-    this.opts.container.dataset.zoom = this.zoom < 0.62 ? "far" : "near";
+    container.dataset.zoom = this.zoom < 0.62 ? "far" : "near";
 
+    if (this.settling) {
+      this.schedule();
+      return;
+    }
     if (this.layoutDirty) {
       this.layoutDirty = false;
-      const { x, y } = layout;
-      for (let i = 0; i < nodeEls.length; i++) {
-        const el = nodeEls[i];
-        if (el) el.style.transform = `translate(${x[i].toFixed(1)}px, ${y[i].toFixed(1)}px) translate(-50%, -50%)`;
-      }
-      for (let i = 0; i < lineEls.length; i++) {
-        const line = lineEls[i];
-        const e = edges[i];
-        if (!line || !e) continue;
-        line.setAttribute("x1", x[e.source].toFixed(1));
-        line.setAttribute("y1", y[e.source].toFixed(1));
-        line.setAttribute("x2", x[e.target].toFixed(1));
-        line.setAttribute("y2", y[e.target].toFixed(1));
-      }
-    }
+      for (let i = 0; i < nodeEls.length; i++) this.placeNode(i);
+    } else if (this.dirtyNode >= 0) this.placeNode(this.dirtyNode);
+    this.dirtyNode = -1;
+    this.drawEdges(cx, cy);
 
-    if (animate || this.mode === "node") this.schedule();
+    if (running || (this.mode === "node" && !this.batch)) this.schedule();
   };
+
+  private placeNode(i: number) {
+    const el = this.opts.nodeEls[i];
+    const { x, y } = this.opts.layout;
+    if (el) el.style.transform = `translate(${x[i].toFixed(1)}px, ${y[i].toFixed(1)}px) translate(-50%, -50%)`;
+  }
+
+  private drawEdges(cx: number, cy: number) {
+    const { canvas, container, edges, layout } = this.opts;
+    const w = container.clientWidth || 360;
+    const h = container.clientHeight || 520;
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const z = this.zoom;
+    ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cx + this.panX), dpr * (cy + this.panY));
+
+    const { x, y } = layout;
+    const hl = this.highlight;
+    // One path per style keeps state changes (and the cost) flat no matter how many lines there are.
+    const stroke = (
+      pick: (i: number, e: GraphEdge) => boolean,
+      color: string,
+      alpha: number,
+      width: number,
+      dash: number[],
+    ) => {
+      ctx.beginPath();
+      for (let i = 0; i < edges.length; i++) {
+        const e = edges[i];
+        if (!pick(i, e)) continue;
+        ctx.moveTo(x[e.source], y[e.source]);
+        ctx.lineTo(x[e.target], y[e.target]);
+      }
+      ctx.strokeStyle = color;
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = width / z;
+      ctx.setLineDash(dash.map((d) => d / z));
+      ctx.stroke();
+    };
+    for (const origin of Object.keys(ORIGIN_STYLE) as LinkOrigin[]) {
+      const s = ORIGIN_STYLE[origin];
+      const rest = (i: number, e: GraphEdge) => e.origin === origin && !hl?.direct.has(i) && !hl?.shared.has(i);
+      stroke(rest, s.color, hl ? 0.05 : s.alpha, 1, s.dash);
+      if (hl) stroke((i, e) => e.origin === origin && hl.shared.has(i), s.color, 0.4, 1, s.dash);
+    }
+    if (hl) stroke((i) => hl.direct.has(i), hl.color, 0.95, 2.2, []);
+    ctx.globalAlpha = 1;
+  }
 }
