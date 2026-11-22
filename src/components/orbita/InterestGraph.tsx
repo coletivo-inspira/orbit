@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
 import { ToggleChip } from "@/components/ui/ToggleChip";
@@ -127,7 +128,6 @@ export function InterestGraph({
     focus !== null && graph.nodes[focus]?.kind === "person"
       ? INTENTIONS[(graph.nodes[focus] as Extract<GraphNode, { kind: "person" }>).profile.primaryIntention].color
       : "#dec9a8";
-  const userIntention = INTENTIONS[state.user.primaryIntention];
   const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
 
   const hubsOf = (i: number) =>
@@ -207,12 +207,7 @@ export function InterestGraph({
                 }}
                 className="relative block cursor-pointer rounded-full"
               >
-                <NodeDot
-                  node={node}
-                  selected={selected}
-                  userColor={userIntention.color}
-                  userAvatar={state.user.avatar}
-                />
+                <NodeDot node={node} selected={selected} userAvatar={state.user.avatar} />
                 <span
                   className={`pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 whitespace-nowrap ${
                     node.kind === "person" || node.kind === "me"
@@ -303,23 +298,17 @@ export function InterestGraph({
 function NodeDot({
   node,
   selected,
-  userColor,
   userAvatar,
 }: {
   node: GraphNode;
   selected: boolean;
-  userColor: string;
   userAvatar: Profile["avatar"];
 }) {
   if (node.kind === "me") {
     return (
-      <span
-        className="block h-14 w-14 overflow-hidden rounded-full"
-        style={{ boxShadow: `0 0 0 3px ${userColor}, 0 0 0 6px rgba(255,255,255,0.14), 0 10px 24px rgba(0,0,0,0.5)` }}
-        aria-hidden="true"
-      >
+      <MolduraDoUsuario size={56} sombra="0 10px 24px rgba(0,0,0,0.5)">
         <Avatar cfg={userAvatar} />
-      </span>
+      </MolduraDoUsuario>
     );
   }
   if (node.kind === "person") {

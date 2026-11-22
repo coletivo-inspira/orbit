@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { DesktopLayout } from "@/components/app/DesktopLayout";
 import { MobileLayout } from "@/components/app/MobileLayout";
+import { AvisoMolduras } from "@/components/molduras/AvisoMolduras";
 import { ToastProvider } from "@/components/ui/Toasts";
 import { DeviceProvider } from "@/lib/state/device";
 import { OrbitProvider } from "@/lib/state/OrbitProvider";
@@ -30,6 +31,7 @@ export function ResponsiveApp() {
   return (
     <OrbitProvider>
       <ToastProvider>
+        <AvisoMolduras />
         <DeviceProvider value={{ device, getScale, requestDevice }}>
           <div className="fixed inset-0">
             {isDesktop ? (

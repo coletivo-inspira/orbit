@@ -1,7 +1,9 @@
 import type { Ref } from "react";
 import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
 import { AppTile } from "@/components/ui/AppBadge";
-import { RingedAvatar } from "@/components/ui/Avatar";
+import { MolduraAvatar } from "@/components/molduras/MolduraAvatar";
+import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
+import type { MolduraId } from "@/lib/molduras/catalogo";
 import { activeAppIds, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
 import type { DesejoPublico } from "@/lib/desejos/perfis";
@@ -13,8 +15,11 @@ export function HubPreviewCard({
   headingRef,
   headingId,
   desejos = [],
+  moldura,
 }: {
   user: UserProfile;
+  /** Collectible frame around the avatar; the plain intention ring when absent. */
+  moldura?: MolduraId;
   /** Desires the person opted to show; none by default. */
   desejos?: DesejoPublico[];
   headingRef?: Ref<HTMLHeadingElement>;
@@ -43,7 +48,13 @@ export function HubPreviewCard({
       </div>
 
       <div className="relative flex items-center gap-3.5">
-        <RingedAvatar cfg={u.avatar} color={primary.color} size={64} />
+        {moldura ? (
+          <MolduraAvatar molduraId={moldura} cor={primary.color} size={64}>
+            <Avatar cfg={u.avatar} />
+          </MolduraAvatar>
+        ) : (
+          <RingedAvatar cfg={u.avatar} color={primary.color} size={64} />
+        )}
         <div className="min-w-0">
           <div className="truncate text-base font-extrabold text-white">
             {u.name}, {u.age}
