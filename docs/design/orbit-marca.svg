@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 144" fill="none" role="img" aria-labelledby="titulo">
+  <title id="titulo">Orbit, símbolo de Saturno</title>
+  <defs>
+    <mask id="folga-do-anel" maskUnits="userSpaceOnUse" x="0" y="0" width="144" height="144" style="mask-type:luminance">
+      <rect width="144" height="144" fill="#fff"/>
+      <path d="M14 72a58 19 0 0 0 116 0" transform="rotate(-27 72 72)" stroke="#000" stroke-width="25"/>
+    </mask>
+  </defs>
+  <ellipse cx="72" cy="72" rx="58" ry="19" transform="rotate(-27 72 72)" stroke="#A87356" stroke-width="12"/>
+  <circle cx="72" cy="72" r="35" fill="#DEC9A8" mask="url(#folga-do-anel)"/>
+  <path d="M14 72a58 19 0 0 0 116 0" transform="rotate(-27 72 72)" stroke="#A87356" stroke-width="12"/>
+</svg>
