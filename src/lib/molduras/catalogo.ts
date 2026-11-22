@@ -56,7 +56,7 @@ export const MOLDURAS: Moldura[] = [
   {
     id: "classica",
     nome: "Clássica",
-    descricao: "O anel na cor da sua intenção principal.",
+    descricao: "Anel de vidro iridescente na cor da sua intenção principal.",
     raridade: "comum",
     desbloqueio: { tipo: "inicial" },
     visual: { anel: "var(--cor)", largura: 3 },

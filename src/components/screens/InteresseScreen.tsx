@@ -2,10 +2,19 @@
 
 import { InterestStamp } from "@/components/interesse/InterestStamp";
 import { TapIcon } from "@/components/interesse/TapIcon";
+import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { CardDeck } from "@/components/ui/CardDeck";
 import { ProfileImage } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
-import { formatAgo, INTEREST_FEED, INTEREST_TAP_COUNT, interestEntryLabel, type InterestEntry } from "@/lib/interesse";
+import { INTENTIONS } from "@/lib/data/intentions";
+import {
+  formatAgo,
+  INTEREST_FEED,
+  INTEREST_TAP_COUNT,
+  interestEntryLabel,
+  profileStatusLabels,
+  type InterestEntry,
+} from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
@@ -49,15 +58,19 @@ export function InteresseScreen() {
           items={INTEREST_FEED}
           getKey={(e) => e.profile.id}
           label="Quem passou pela sua órbita"
-          itemLabel={interestEntryLabel}
+          itemLabel={(e) =>
+            [interestEntryLabel(e), ...profileStatusLabels(e.profile, state.conversations[e.profile.id])].join(", ")
+          }
           stageClassName={
             isMobile ? "h-[clamp(220px,calc(100cqh-190px),400px)]" : "h-[clamp(260px,calc(100cqh-150px),520px)]"
           }
           onOpen={(e) => dispatch({ type: "openProfile", id: e.profile.id })}
+          tint={(e) => ({ cor: INTENTIONS[e.profile.primaryIntention].color, online: e.profile.online })}
           renderCard={(e, { front }) => (
             <>
               <ProfileImage cfg={e.profile.avatar} photo={e.profile.photo} />
               {e.tapMinutesAgo !== undefined && <InterestStamp animate={front} />}
+              <SelosStatus profile={e.profile} conversation={state.conversations[e.profile.id]} variant="cartao" />
             </>
           )}
           renderActions={(e) =>
