@@ -106,6 +106,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
   const cardRef = useRef<HTMLDivElement>(null);
   const continueRef = useRef<HTMLButtonElement>(null);
   const peopleToggleRef = useRef<HTMLButtonElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const cardHadFocus = useRef(false);
   const pendingFocusBot = useRef<string | null>(null);
   const [activeBot, setActiveBot] = useState<ActiveBotInfo | null>(null);
@@ -140,6 +141,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
       },
     });
     engineRef.current = engine;
+    if (!document.activeElement || document.activeElement === document.body) headingRef.current?.focus();
     return () => {
       engine.destroy();
       engineRef.current = null;
@@ -211,6 +213,7 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
                 <span aria-hidden="true">🌍</span>
               </button>
               <h1
+                ref={headingRef}
                 tabIndex={-1}
                 data-focus-fallback
                 className={`${isMobile ? "text-[12px]" : "text-sm"} min-w-0 truncate font-bold tracking-tight text-white`}

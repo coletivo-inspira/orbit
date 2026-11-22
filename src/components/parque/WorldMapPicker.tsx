@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
+import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { PARK_BOTS } from "@/lib/data/park";
 import { CENTRAL_PARK_ID, CITY_ROOMS, type ParkRoomDefinition } from "@/lib/data/parkRooms";
 import WORLD_LAND from "@/lib/data/worldLand.json";
@@ -23,7 +24,7 @@ const LandDots = memo(function LandDots() {
     }
   });
   return (
-    <g fill="rgba(196, 181, 253, 0.34)">
+    <g fill="rgb(222 201 168 / 30%)">
       {dots.map((d) => (
         <circle key={`${d.x},${d.y}`} cx={d.x} cy={d.y} r={0.95} />
       ))}
@@ -38,20 +39,38 @@ export function WorldMapPicker() {
   const isMobile = device === "mobile";
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = CITY_ROOMS.find((r) => r.id === selectedId) ?? null;
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const mapRef = useRef<HTMLDivElement>(null);
+
+  // Coming back from a room, the button that was focused is gone: land on the heading instead of <body>.
+  useEffect(() => {
+    if (!document.activeElement || document.activeElement === document.body) headingRef.current?.focus();
+  }, []);
 
   const focus = selected ? project(selected.center.lat, selected.center.lon) : null;
   const k = focus ? ZOOM : 1;
   const tx = focus ? Math.max(MAP_W - MAP_W * k, Math.min(0, MAP_W / 2 - focus.x * k)) : 0;
   const ty = focus ? Math.max(MAP_H - MAP_H * k, Math.min(0, MAP_H / 2 - focus.y * k)) : 0;
   const enter = (id: string) => dispatch({ type: "enterParkRoom", id });
+  const select = (id: string, fromList: boolean) => {
+    setSelectedId(id);
+    if (fromList && isMobile) {
+      mapRef.current?.scrollIntoView({ block: "start", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    }
+  };
 
   return (
-    <div className="flex h-full w-full flex-col bg-[#0b101d]">
+    <div className="flex h-full w-full flex-col">
       <div className={`lg-header shrink-0 ${isMobile ? "px-4 pt-2.5 pb-3" : "px-6 pt-5 pb-3.5"}`}>
-        <h1 className={`${isMobile ? "text-base" : "text-xl"} font-extrabold tracking-tight text-white`}>
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          data-focus-fallback
+          className={`${isMobile ? "text-base" : "text-xl"} font-extrabold tracking-tight text-white`}
+        >
           Parque pelo mundo
         </h1>
-        <p className="mt-0.5 text-xs text-slate-300/80">
+        <p className="mt-0.5 text-xs text-slate-300">
           Escolha um ponto no mapa-múndi: cada sala é uma miniatura de massinha feita com as ruas reais da região.
         </p>
       </div>
@@ -60,13 +79,12 @@ export function WorldMapPicker() {
         <div
           className={`mx-auto grid max-w-5xl gap-4 ${isMobile ? "grid-cols-1" : "grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]"}`}
         >
-          <div className="lg-panel relative overflow-hidden rounded-[26px] p-2">
-            <svg
-              viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-              className="block h-auto w-full"
-              role="img"
-              aria-label="Mapa-múndi com as salas do Parque"
-            >
+          <div
+            ref={mapRef}
+            className={`lg-panel relative scroll-mt-3 self-start overflow-hidden rounded-[26px] p-2 ${isMobile ? "" : "sticky top-0"}`}
+          >
+            {/* Pointer shortcut only: the room list below is the accessible way to pick a room. */}
+            <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="block h-auto w-full" aria-hidden="true">
               <g style={{ transform: `translate(${tx}px, ${ty}px) scale(${k})`, transition: "transform 700ms ease" }}>
                 <LandDots />
                 {CITY_ROOMS.map((room) => {
@@ -75,32 +93,37 @@ export function WorldMapPicker() {
                   return (
                     <g
                       key={room.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${room.name}, ${room.city}`}
-                      onClick={() => setSelectedId(room.id)}
-                      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelectedId(room.id)}
-                      className="cursor-pointer outline-none"
+                      onClick={() => select(room.id, false)}
+                      className="cursor-pointer"
                       style={{
                         transform: `translate(${p.x}px, ${p.y}px) scale(${1 / k})`,
                         transition: "transform 700ms ease",
                       }}
                     >
-                      <circle r={9} fill="transparent" />
+                      <circle r={5} fill="transparent" />
                       <circle
                         r={active ? 6.5 : 5}
                         className="animate-ping"
-                        fill="rgba(244, 114, 182, 0.25)"
+                        fill="rgb(222 201 168 / 28%)"
                         style={{ transformBox: "fill-box", transformOrigin: "center" }}
                       />
                       <circle
                         r={active ? 4.2 : 3.2}
-                        fill={active ? "#f472b6" : "#c4b5fd"}
-                        stroke="#fff"
+                        fill={active ? "#a87356" : "#dec9a8"}
+                        stroke="#f5f0e7"
                         strokeWidth={1.2}
                       />
                       {active && (
-                        <text y={-9} textAnchor="middle" fontSize={7} fontWeight={800} fill="#fff">
+                        <text
+                          y={-9}
+                          textAnchor="middle"
+                          fontSize={7}
+                          fontWeight={800}
+                          fill="#f5f0e7"
+                          stroke="#1c2631"
+                          strokeWidth={2}
+                          paintOrder="stroke"
+                        >
                           {room.flag} {room.city}
                         </text>
                       )}
@@ -113,7 +136,7 @@ export function WorldMapPicker() {
               <button
                 type="button"
                 onClick={() => setSelectedId(null)}
-                className="lg-pill absolute top-3 right-3 rounded-full px-3 py-1 text-[11px] font-bold text-white"
+                className="lg-pill absolute top-3 right-3 rounded-full bg-tinta px-3 py-1 text-[11px] font-bold text-white"
               >
                 Ver o mundo
               </button>
@@ -124,12 +147,16 @@ export function WorldMapPicker() {
             {selected ? (
               <SelectedRoom room={selected} onEnter={() => enter(selected.id)} />
             ) : (
-              <div className="lg-panel rounded-[24px] p-4 text-xs leading-relaxed text-slate-200/90">
+              <div className="lg-panel rounded-[24px] p-4 text-xs leading-relaxed text-slate-200">
                 <span className="font-bold text-white">Toque num ponto do mapa</span> ou escolha uma sala na lista. Você
                 entra no lugar de verdade: as quadras, ruas, praças e árvores num raio de 100 m vêm do OpenStreetMap.
               </div>
             )}
+            <p role="status" aria-live="polite" className="sr-only">
+              {selected ? `${selected.name}, ${selected.city}, selecionada. Use o botão Entrar na sala.` : ""}
+            </p>
 
+            <h2 className="sr-only">Salas</h2>
             <ul className="flex flex-col gap-2">
               <li>
                 <RoomRow
@@ -148,7 +175,7 @@ export function WorldMapPicker() {
                     subtitle={`${room.city}, ${room.country}`}
                     online={room.botCount}
                     active={room.id === selectedId}
-                    onClick={() => setSelectedId(room.id)}
+                    onClick={() => select(room.id, true)}
                   />
                 </li>
               ))}
@@ -162,38 +189,39 @@ export function WorldMapPicker() {
 
 function SelectedRoom({ room, onEnter }: { room: ParkRoomDefinition; onEnter: () => void }) {
   return (
-    <div className="lg-sheet rounded-[24px] p-4">
+    <section aria-label={`Sala ${room.name}`} className="lg-sheet rounded-[24px] p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold text-violet-200/90">
-            {room.flag} {room.city}, {room.country}
+          <div className="text-[11px] font-semibold text-areia">
+            <span aria-hidden="true">{room.flag} </span>
+            {room.city}, {room.country}
           </div>
           <h2 className="mt-0.5 text-base font-extrabold text-white">{room.name}</h2>
         </div>
-        <span className="shrink-0 rounded-full border border-emerald-300/30 bg-emerald-400/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-200">
-          ● {room.botCount} online
+        <span className="presenca-chip shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold">
+          {room.botCount} online
         </span>
       </div>
-      <p className="mt-1.5 text-xs leading-snug text-slate-200/90">{room.blurb}</p>
+      <p className="mt-1.5 text-xs leading-snug text-slate-200">{room.blurb}</p>
       <button
         type="button"
         onClick={onEnter}
-        className="lg-btn-primary mt-3 w-full rounded-full py-2.5 text-xs font-extrabold text-white active:scale-[0.98]"
+        className="lg-btn-primary mt-3 w-full rounded-full py-2.5 text-xs font-extrabold active:scale-[0.98]"
       >
         Entrar na sala →
       </button>
-      <p className="mt-2 text-center text-[10px] text-slate-400">
+      <p className="mt-2 text-center text-[11px] text-slate-300">
         Mapa real de 200 × 200 m · ©{" "}
         <a
           href="https://www.openstreetmap.org/copyright"
           target="_blank"
           rel="noopener noreferrer"
-          className="underline"
+          className="font-semibold text-areia underline"
         >
-          OpenStreetMap
+          OpenStreetMap<span className="sr-only"> (abre em nova aba)</span>
         </a>
       </p>
-    </div>
+    </section>
   );
 }
 
@@ -202,13 +230,14 @@ function RoomRow({
   title,
   subtitle,
   online,
-  active = false,
+  active,
   onClick,
 }: {
   emoji: string;
   title: string;
   subtitle: string;
   online: number;
+  /** Omitted for rows that enter right away instead of selecting. */
   active?: boolean;
   onClick: () => void;
 }) {
@@ -218,15 +247,23 @@ function RoomRow({
       onClick={onClick}
       aria-pressed={active}
       className={`flex w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left transition ${
-        active ? "lg-active-lens" : "border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.1]"
+        active ? "lg-active-lens" : "border border-white/[0.14] bg-white/[0.06] hover:bg-white/[0.12]"
       }`}
     >
-      <span className="lg-pill flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-lg">{emoji}</span>
+      <span
+        className="lg-pill flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-lg"
+        aria-hidden="true"
+      >
+        {emoji}
+      </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-bold text-white">{title}</span>
-        <span className="block truncate text-[11px] text-slate-300/80">{subtitle}</span>
+        <span className="block truncate text-[11px] text-slate-300">{subtitle}</span>
       </span>
-      <span className="shrink-0 text-[10px] font-semibold text-emerald-200">● {online}</span>
+      <span className="shrink-0 text-[11px] font-semibold text-salvia">
+        {online}
+        <span className="sr-only"> pessoas online</span>
+      </span>
     </button>
   );
 }
