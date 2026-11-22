@@ -110,6 +110,7 @@ export function buildPost(draft: PostDraft, id: string, authorName: string): Com
   const base = {
     id,
     category: draft.category,
+    authorProfileId: "me",
     title: draft.title.trim(),
     summary,
     date: "Agora",
