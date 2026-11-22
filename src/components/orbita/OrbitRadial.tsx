@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
 import { Avatar } from "@/components/ui/Avatar";
 import { INTENTIONS } from "@/lib/data/intentions";
+import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { hexRingPositions, OrbitHoneycombEngine } from "@/lib/engines/orbitHoneycomb";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -56,6 +57,7 @@ export function OrbitRadial({
       isWatch,
       centerOffsetY,
       getScale,
+      reducedMotion: prefersReducedMotion,
       nodes: bubbleRefs.current
         .slice(0, positions.length)
         .flatMap((el, i) =>
@@ -86,7 +88,7 @@ export function OrbitRadial({
       {!isWatch && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-30">
           <div className="h-[210px] w-[210px] rounded-full border border-white/25" />
-          <div className="absolute h-[390px] w-[390px] rounded-full border border-dashed border-cyan-200/25" />
+          <div className="absolute h-[390px] w-[390px] rounded-full border border-dashed border-areia/25" />
           <div className="absolute h-[580px] w-[580px] rounded-full border border-white/10" />
         </div>
       )}
@@ -95,9 +97,9 @@ export function OrbitRadial({
         <button
           ref={centerRef}
           type="button"
-          aria-label="Abrir meu perfil"
           onClick={() => !ignoreIfDragged() && onCenterClick()}
-          className="absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center focus:outline-none"
+          onFocus={(e) => e.currentTarget.matches(":focus-visible") && recenter()}
+          className="absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center rounded-full"
         >
           <div className="relative flex flex-col items-center">
             <div
@@ -107,11 +109,12 @@ export function OrbitRadial({
                 height: centerSize,
                 boxShadow: `0 0 0 3px ${userIntention.color}, 0 0 0 6px rgba(255,255,255,0.14), 0 12px 28px rgba(0,0,0,0.55)`,
               }}
+              aria-hidden="true"
             >
               <Avatar cfg={state.user.avatar} />
             </div>
-            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-slate-900/75 px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.35)] backdrop-blur-xl">
-              Você
+            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+              Você<span className="sr-only">, abrir meu perfil</span>
             </span>
           </div>
         </button>
@@ -125,14 +128,14 @@ export function OrbitRadial({
                 bubbleRefs.current[idx] = el;
               }}
               type="button"
-              aria-label={`Ver perfil de ${p.name}`}
+              onFocus={(e) => e.currentTarget.matches(":focus-visible") && engineRef.current?.reveal(idx)}
               onClick={(e) => {
                 e.stopPropagation();
                 if (!ignoreIfDragged()) dispatch({ type: "openProfile", id: p.id });
               }}
-              className="absolute top-0 left-0 flex cursor-pointer flex-col items-center opacity-0 will-change-transform focus:outline-none"
+              className="absolute top-0 left-0 flex cursor-pointer flex-col items-center rounded-2xl opacity-0 will-change-transform"
             >
-              <div className="relative">
+              <div className="relative" aria-hidden="true">
                 <div
                   className="overflow-hidden rounded-full"
                   style={{
@@ -145,13 +148,13 @@ export function OrbitRadial({
                 </div>
                 {p.online && (
                   <span
-                    className={`absolute right-0.5 bottom-0.5 ${isWatch ? "h-2.5 w-2.5" : "h-3 w-3"} rounded-full border-2 border-slate-950 bg-emerald-400`}
+                    className={`absolute right-0.5 bottom-0.5 ${isWatch ? "h-2.5 w-2.5" : "h-3 w-3"} rounded-full border-2 border-tinta bg-emerald-400`}
                   />
                 )}
                 {p.inPark && !isWatch && (
                   <span
                     title="Está no Parque 2D"
-                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-emerald-400/90 text-[10px] shadow backdrop-blur-md"
+                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-salvia text-[10px] shadow"
                   >
                     🌳
                   </span>
@@ -159,10 +162,15 @@ export function OrbitRadial({
               </div>
               <div
                 data-label
-                className={`mt-1.5 rounded-full border border-white/20 bg-slate-950/65 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.22)] backdrop-blur-xl`}
+                className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white`}
               >
-                {p.name} <span className="font-normal text-slate-300/80">{p.dist}</span>
+                {p.name} <span className="font-normal text-slate-300">{p.dist}</span>
               </div>
+              <span className="sr-only">
+                , {intention.label}
+                {p.online ? ", online" : ""}
+                {p.inPark ? ", no Parque" : ""}. Ver perfil
+              </span>
             </button>
           );
         })}

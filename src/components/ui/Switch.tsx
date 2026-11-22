@@ -3,7 +3,7 @@ export function Switch({
   onChange,
   label,
   size = "md",
-  onClass = "bg-emerald-400/75",
+  onClass = "bg-cobre",
 }: {
   checked: boolean;
   onChange: () => void;

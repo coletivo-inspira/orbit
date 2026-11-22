@@ -14,9 +14,14 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
     liked: false,
     content: [
       "Manter a carteira de vacinação em dia é uma das formas mais simples e eficazes de autocuidado. Muitas pessoas ainda não sabem que o SUS oferece proteção gratuita para várias infecções relevantes para adultos sexualmente ativos.",
-      "• Hepatite B: esquema de 3 doses disponível gratuitamente em qualquer UBS para todas as faixas etárias.",
-      "• Hepatite A e HPV (quadrivalente): disponíveis em centros de referência (CRIE) para grupos prioritários, incluindo usuários de PrEP e pessoas vivendo com HIV.",
-      "• Mpox: fique atento às janelas de campanha municipal para públicos prioritários. Leve sempre seu cartão do SUS ou CPF e documento com foto.",
+      {
+        list: "ul",
+        items: [
+          "Hepatite B: esquema de 3 doses disponível gratuitamente em qualquer UBS para todas as faixas etárias.",
+          "Hepatite A e HPV (quadrivalente): disponíveis em centros de referência (CRIE) para grupos prioritários, incluindo usuários de PrEP e pessoas vivendo com HIV.",
+          "Mpox: fique atento às janelas de campanha municipal para públicos prioritários. Leve sempre seu cartão do SUS ou CPF e documento com foto.",
+        ],
+      },
     ],
     comments: [
       {
@@ -44,8 +49,13 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
     liked: true,
     content: [
       "A Profilaxia Pré-Exposição (PrEP) revolucionou a prevenção combinada. Hoje existem dois modelos principais acompanhados gratuitamente pelo SUS:",
-      "1. PrEP Diária: 1 comprimido todos os dias no mesmo horário. Indicada para qualquer pessoa com vida sexual ativa que prefere previsibilidade e proteção contínua.",
-      "2. PrEP Sob Demanda (2+1+1): voltada especificamente para homens cis e pessoas designadas do sexo masculino ao nascer que têm relações menos frequentes (2 comprimidos entre 2h e 24h antes da relação, 1 comprimido 24h depois e outro 48h depois).",
+      {
+        list: "ol",
+        items: [
+          "PrEP Diária: 1 comprimido todos os dias no mesmo horário. Indicada para qualquer pessoa com vida sexual ativa que prefere previsibilidade e proteção contínua.",
+          "PrEP Sob Demanda (2+1+1): voltada especificamente para homens cis e pessoas designadas do sexo masculino ao nascer que têm relações menos frequentes (2 comprimidos entre 2h e 24h antes da relação, 1 comprimido 24h depois e outro 48h depois).",
+        ],
+      },
       "Importante: a PrEP previne o HIV, mas não outras ISTs — por isso a testagem regular trimestral e o diálogo aberto continuam essenciais.",
     ],
     comments: [

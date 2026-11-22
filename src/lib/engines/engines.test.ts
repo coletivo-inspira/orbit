@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { OBSTACLES, PARK_BOTS, PLAYER_SPAWN } from "@/lib/data/park";
-import { fisheye, hexRingPositions } from "./orbitHoneycomb";
-import { collidesAt } from "./park2d";
+import { fisheye, hexRingPositions, panToReveal } from "./orbitHoneycomb";
+import { collidesAt, proximityOf } from "./park2d";
+
+describe("panToReveal", () => {
+  it("centers inner bubbles", () => {
+    expect(panToReveal(104, 0, 240)).toEqual({ x: -104, y: -0 });
+  });
+
+  it("stays within the elastic bound for outer rings", () => {
+    const outer = hexRingPositions(19, 104)[18];
+    const pan = panToReveal(outer.x, outer.y, 240);
+    expect(Math.hypot(pan.x, pan.y)).toBeCloseTo(240, 5);
+    expect(Math.hypot(outer.x + pan.x, outer.y + pan.y)).toBeLessThan(Math.hypot(outer.x, outer.y));
+  });
+});
+
+describe("proximityOf", () => {
+  it("buckets distances for the people list", () => {
+    expect(proximityOf(40)).toBe("perto");
+    expect(proximityOf(200)).toBe("caminho");
+    expect(proximityOf(900)).toBe("longe");
+  });
+});
 
 describe("hexRingPositions", () => {
   it("fills the first ring with 6 slots at the given spacing", () => {

@@ -17,14 +17,13 @@ import { OrbitLogo } from "@/components/ui/OrbitLogo";
 import { ToastProvider } from "@/components/ui/Toasts";
 import { PARK_BOTS } from "@/lib/data/park";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
-import { profileSlug } from "@/lib/data/user";
 import { DeviceProvider } from "@/lib/state/device";
 import { OrbitProvider, useOrbit } from "@/lib/state/OrbitProvider";
 import type { DeviceKind, TabId } from "@/lib/types";
 
 const HINTS: Record<DeviceKind, string> = {
   desktop: "Dica: arraste a Órbita, use WASD/clique no Parque 2D e edite seus selos no Meu Hub.",
-  mobile: "Dica: navegue pela cápsula flutuante Liquid Glass abaixo e use o D-Pad ou toque no chão do Parque 2D.",
+  mobile: "Dica: navegue pela cápsula flutuante abaixo e use o direcional ou toque no chão do Parque 2D.",
   watch: "Dica: arraste a colmeia radial no relógio, toque em uma bolha para acenar ou use os pontos abaixo.",
 };
 
@@ -85,7 +84,7 @@ export function Studio() {
 }
 
 function StudioContent() {
-  const { state, dispatch } = useOrbit();
+  const { dispatch } = useOrbit();
   const [device, setDevice] = useState<DeviceKind>("mobile");
   const stageRef = useRef<HTMLElement>(null);
   const scaleRef = useRef(1);
@@ -133,36 +132,39 @@ function StudioContent() {
 
   return (
     <div className="studio-bg flex h-dvh w-screen overflow-hidden select-none">
-      <aside className="z-30 flex h-full w-16 shrink-0 flex-col items-center justify-between border-r border-white/[0.12] bg-white/[0.03] py-4 shadow-[inset_-1px_0_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:w-[78px]">
+      <aside className="lg-bar z-30 flex h-full w-16 shrink-0 flex-col items-center justify-between rounded-none border-y-0 border-l-0 py-4 sm:w-[78px]">
         <div className="flex flex-col items-center gap-1.5">
           <button
             type="button"
             onClick={() => dispatch({ type: "resetHome" })}
+            aria-label="Orbit — voltar ao início"
             title="Orbit — Início"
-            className="lg-pill lg-sheen group relative h-11 w-11 rounded-2xl p-[1.5px] transition-transform active:scale-95"
+            className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl transition-transform active:scale-95"
           >
-            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-linear-to-br/srgb from-violet-500/30 via-indigo-500/20 to-cyan-400/25">
-              <OrbitLogo className="h-6 w-6 text-violet-200" />
-            </div>
+            <OrbitLogo className="h-8 w-8 text-areia" />
           </button>
-          <span className="text-[10px] font-bold tracking-[0.18em] text-slate-300/80 uppercase">Orbit</span>
+          <span className="font-display text-[11px] font-bold tracking-wide text-marfim">Orbit</span>
         </div>
 
-        <div className="flex flex-col items-center gap-3" role="radiogroup" aria-label="Dispositivo">
+        <fieldset className="flex flex-col items-center gap-3">
+          <legend className="sr-only">Dispositivo</legend>
           {DOCK.map((d) => {
             const active = d.id === device;
             return (
-              <div key={d.id} className="flex flex-col items-center gap-1">
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={active}
-                  onClick={() => switchDevice(d.id)}
-                  title={d.title}
-                  className={`lg-sheen relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${
+              <label key={d.id} title={d.title} className="flex cursor-pointer flex-col items-center gap-1">
+                <input
+                  type="radio"
+                  name="studio-device"
+                  value={d.id}
+                  checked={active}
+                  onChange={() => switchDevice(d.id)}
+                  className="peer sr-only"
+                />
+                <span
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all peer-focus-visible:outline-3 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-marfim ${
                     active
                       ? "lg-active-lens text-white"
-                      : "border border-white/[0.11] bg-white/[0.04] text-slate-300 hover:bg-white/[0.10] hover:text-white"
+                      : "border border-white/[0.14] bg-white/[0.04] text-slate-300 hover:bg-white/[0.10] hover:text-white"
                   }`}
                 >
                   <svg
@@ -177,34 +179,39 @@ function StudioContent() {
                   >
                     {d.icon}
                   </svg>
-                </button>
-                <span className="text-[9px] font-semibold tracking-wider text-slate-400 uppercase">{d.label}</span>
-              </div>
+                </span>
+                <span className="text-[9px] font-semibold tracking-wider text-slate-300 uppercase">{d.label}</span>
+              </label>
             );
           })}
-        </div>
+        </fieldset>
 
         <div className="flex flex-col items-center gap-1">
-          <span className="rounded-full border border-emerald-300/30 bg-emerald-400/15 px-2 py-0.5 text-[9px] font-bold text-emerald-300">
-            MVP
-          </span>
-          <span className="text-[9px] text-slate-400">v0.1</span>
+          <span className="presenca-chip rounded-full px-2 py-0.5 text-[9px] font-bold">MVP</span>
+          <span className="text-[9px] text-slate-300">v0.1</span>
         </div>
       </aside>
 
       <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden">
         <header className="z-20 flex shrink-0 items-center justify-between px-4 pt-3 pb-1 sm:px-6">
-          <div className="lg-pill flex items-center gap-2.5 rounded-full px-3.5 py-1.5">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-violet-300 shadow-[0_0_8px_rgba(196,181,253,0.8)]" />
+          <div className="lg-bar flex items-center gap-2.5 rounded-full px-3.5 py-1.5">
+            <span className="h-2 w-2 rounded-full bg-areia" aria-hidden="true" />
             <span className="text-xs font-semibold text-white">{DEVICE_SPECS[device].label}</span>
-            <span className="hidden text-white/20 md:inline">|</span>
-            <span className="hidden text-xs text-slate-300/85 md:inline">
-              Liquid Glass UI · <strong className="font-semibold text-white">{state.user.name}</strong>
+            <span className="hidden text-white/30 md:inline" aria-hidden="true">
+              |
+            </span>
+            <span className="hidden text-xs text-slate-300 md:inline">
+              Moldura em {Math.round(scale * 100)}% · alvos e gestos diferem do aparelho real
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="lg-pill hidden items-center gap-1 rounded-full px-2 py-1 sm:flex">
-              <span className="pr-1 pl-2 text-[11px] text-slate-300/80">Ir direto:</span>
+            <nav
+              aria-label="Ir direto para"
+              className="lg-bar hidden items-center gap-1 rounded-full px-2 py-1 sm:flex"
+            >
+              <span className="pr-1 pl-2 text-[11px] text-slate-300" aria-hidden="true">
+                Ir direto:
+              </span>
               {QUICK_NAV.map((q) => (
                 <button
                   key={q.tab}
@@ -215,11 +222,8 @@ function StudioContent() {
                   {q.label}
                 </button>
               ))}
-            </div>
-            <Link
-              href="/"
-              className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-semibold text-slate-100 hover:text-white"
-            >
+            </nav>
+            <Link href="/" className="lg-bar rounded-full px-3 py-1.5 text-[11px] font-semibold text-white">
               Abrir app →
             </Link>
           </div>
@@ -231,13 +235,7 @@ function StudioContent() {
               {device === "desktop" && (
                 <LaptopFrame>
                   <DesktopLayout
-                    topBar={
-                      <BrowserBar
-                        handle={profileSlug(state.user.handle)}
-                        peopleCount={SIMULATED_PROFILES.length}
-                        parkCount={PARK_BOTS.length}
-                      />
-                    }
+                    topBar={<BrowserBar peopleCount={SIMULATED_PROFILES.length} parkCount={PARK_BOTS.length} />}
                   />
                 </LaptopFrame>
               )}
@@ -256,7 +254,7 @@ function StudioContent() {
         </section>
 
         <footer className="z-20 flex shrink-0 items-center justify-center px-4 pt-0.5 pb-2.5">
-          <p className="lg-pill rounded-full px-4 py-1.5 text-center text-[11px] text-slate-200/90">{HINTS[device]}</p>
+          <p className="lg-bar rounded-full px-4 py-1.5 text-center text-[11px] text-white">{HINTS[device]}</p>
         </footer>
       </div>
     </div>

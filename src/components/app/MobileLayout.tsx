@@ -11,7 +11,7 @@ import { useOrbit } from "@/lib/state/OrbitProvider";
 export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?: ReactNode; homeIndicator?: boolean }) {
   const { state, dispatch } = useOrbit();
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#0b101d]">
+    <div data-device-root className="relative flex h-full w-full flex-col overflow-hidden bg-tinta">
       <AmbientOrbs />
       {statusBar}
       <main className="relative z-10 min-h-0 flex-1 overflow-hidden">
@@ -32,14 +32,15 @@ export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?:
                 aria-current={active ? "page" : undefined}
                 onClick={() => dispatch({ type: "setTab", tab: item.id })}
                 className={`relative flex h-[46px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[22px] transition-all ${
-                  active ? "lg-active-lens text-white" : "text-slate-300/75 hover:text-white"
+                  active ? "lg-active-lens text-white" : "border border-transparent text-slate-300 hover:text-white"
                 }`}
               >
                 {item.icon}
-                <span className="text-[10px] font-semibold tracking-tight">{item.short}</span>
+                <span className="text-[11px] font-semibold tracking-tight">{item.short}</span>
                 {item.badge && (
-                  <span className="absolute top-1 right-4 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 text-[9px] font-extrabold text-slate-950 shadow">
+                  <span className="presenca-chip absolute top-1 right-4 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-extrabold">
                     {item.badge}
+                    <span className="sr-only"> online</span>
                   </span>
                 )}
               </button>

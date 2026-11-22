@@ -20,15 +20,7 @@ export function LaptopFrame({ children }: { children: ReactNode }) {
   );
 }
 
-export function BrowserBar({
-  handle,
-  peopleCount,
-  parkCount,
-}: {
-  handle: string;
-  peopleCount: number;
-  parkCount: number;
-}) {
+export function BrowserBar({ peopleCount, parkCount }: { peopleCount: number; parkCount: number }) {
   return (
     <div className="relative z-20 flex h-10 shrink-0 items-center justify-between border-b border-white/[0.11] bg-white/[0.04] px-4 backdrop-blur-2xl">
       <div className="flex items-center gap-2">
@@ -36,7 +28,7 @@ export function BrowserBar({
         <span className="h-2.5 w-2.5 rounded-full bg-amber-300/85 shadow-inner" />
         <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/85 shadow-inner" />
         <div className="ml-3 flex items-center gap-1.5 rounded-full border border-white/[0.13] bg-white/[0.07] px-3.5 py-1 text-[11px] text-slate-200/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]">
-          <span className="text-emerald-300">🔒</span> orbit.app/{handle}
+          Orbit · Modo Explorar (demonstração)
         </div>
       </div>
       <div className="flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.05] px-3 py-1 text-[11px] text-slate-200/80">
@@ -65,7 +57,7 @@ export function PhoneStatusBar() {
     <div className="relative z-20 flex h-11 shrink-0 items-center justify-between bg-transparent px-6 pt-2">
       <span className="text-xs font-bold tracking-tight text-white/95">16:36</span>
       <div className="flex h-[26px] w-[104px] items-center justify-end rounded-full border border-white/15 bg-black/95 pr-2.5 shadow-lg">
-        <span className="h-2.5 w-2.5 rounded-full border border-indigo-400/40 bg-indigo-950" />
+        <span className="h-2.5 w-2.5 rounded-full border border-white/20 bg-tinta" />
       </div>
       <div className="flex items-center gap-1.5 text-white/95">
         <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

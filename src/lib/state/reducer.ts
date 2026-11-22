@@ -188,7 +188,7 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
         ...state,
         posts: state.posts.map((p) =>
           p.id === action.id
-            ? { ...p, comments: [...p.comments, { author: state.user.name, time: "agora", text }] }
+            ? { ...p, comments: [...p.comments, { author: state.user.name, time: "agora", text, local: true }] }
             : p,
         ),
       };

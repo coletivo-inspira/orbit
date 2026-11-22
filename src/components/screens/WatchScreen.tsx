@@ -16,7 +16,7 @@ const IN_PARK = SIMULATED_PROFILES.filter((p) => p.inPark);
 function TopClock() {
   return (
     <div className="pointer-events-none absolute top-2.5 right-4 left-4 z-30 flex items-center justify-between text-[11px] font-bold text-white/95">
-      <span className="tracking-tight text-violet-200">Orbit</span>
+      <span className="font-display tracking-tight text-areia">Orbit</span>
       <span>16:36</span>
     </div>
   );
@@ -26,8 +26,8 @@ function PageDots() {
   const { state, dispatch } = useOrbit();
   const pages: { page: OrbitState["watchPage"]; title: string; active: string }[] = [
     { page: 0, title: "Órbita", active: "bg-white" },
-    { page: 1, title: "Parque 2D", active: "bg-emerald-300" },
-    { page: 2, title: "Meu Cartão", active: "bg-cyan-300" },
+    { page: 1, title: "Parque 2D", active: "bg-salvia" },
+    { page: 2, title: "Meu Cartão", active: "bg-areia" },
   ];
   return (
     <div className="lg-pill pointer-events-auto absolute bottom-2.5 left-1/2 z-30 flex -translate-x-1/2 items-center justify-center gap-2 rounded-full px-2.5 py-1">
@@ -88,13 +88,13 @@ export function WatchScreen() {
 
   if (state.watchPage === 1) {
     return (
-      <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-emerald-950/35 to-[#060a14] px-4 pt-9 pb-9">
+      <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-presenca/40 to-[#121921] px-4 pt-9 pb-9">
         <TopClock />
         <div className="mt-1 flex flex-col items-center text-center">
           <div className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl text-2xl">🌳</div>
           <div className="mt-2 text-sm font-extrabold text-white">Parque Central</div>
-          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-emerald-200">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
+          <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-salvia">
+            <span className="h-1.5 w-1.5 rounded-full bg-salvia" />
             {IN_PARK.length} pessoas andando agora
           </div>
           <div className="mt-3 flex items-center justify-center -space-x-2">
@@ -116,7 +116,7 @@ export function WatchScreen() {
             dispatch({ type: "setTab", tab: "parque" });
             requestDevice("mobile");
           }}
-          className="lg-pill w-full rounded-full border-emerald-300/40 bg-emerald-400/25 py-2.5 text-xs font-extrabold text-emerald-100 active:scale-95"
+          className="presenca-chip w-full rounded-full py-2.5 text-xs font-extrabold active:scale-95"
         >
           Entrar no Celular →
         </button>
@@ -128,7 +128,7 @@ export function WatchScreen() {
   const u = state.user;
   const primary = INTENTIONS[u.primaryIntention] ?? INTENTIONS.troca;
   return (
-    <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-indigo-950/35 to-[#060914] px-4 pt-9 pb-9">
+    <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-noite/60 to-[#121921] px-4 pt-9 pb-9">
       <TopClock />
       <div className="flex flex-col items-center text-center">
         <RingedAvatar cfg={u.avatar} color={primary.color} size={56} />
@@ -147,9 +147,9 @@ export function WatchScreen() {
       <button
         type="button"
         onClick={togglePrivacy}
-        className={`lg-pill flex w-full items-center justify-between rounded-full px-3 py-2 text-xs font-bold ${u.isPublic ? "border-emerald-300/35 text-emerald-200" : "border-amber-300/35 text-amber-200"}`}
+        className={`lg-pill flex w-full items-center justify-between rounded-full px-3 py-2 text-xs font-bold ${u.isPublic ? "text-salvia" : "text-amber-200"}`}
       >
-        <span>{u.isPublic ? "🌐 Público" : "🔒 Privado"}</span>
+        <span>{u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}</span>
         <span className="text-[10px] opacity-80">Alternar</span>
       </button>
       <PageDots />
