@@ -63,6 +63,8 @@ export class GraphViewEngine {
   private readonly pointers = new Map<number, { x: number; y: number }>();
   private mode: "idle" | "pan" | "node" | "pinch" = "idle";
   private dragNode = -1;
+  private downOnNode = false;
+  private dirtyNode = -1;
   private moved = false;
   private startX = 0;
   private startY = 0;
@@ -194,8 +196,11 @@ export class GraphViewEngine {
       return;
     }
     const nodeEl = (e.target as Element).closest<HTMLElement>("[data-node-index]");
-    this.mode = nodeEl ? "node" : "pan";
-    this.dragNode = nodeEl ? Number(nodeEl.dataset.nodeIndex) : -1;
+    const index = nodeEl ? Number(nodeEl.dataset.nodeIndex) : -1;
+    // The user's own node is anchored: dragging it pans instead of reheating the whole layout.
+    this.mode = index > 0 ? "node" : "pan";
+    this.dragNode = index;
+    this.downOnNode = index >= 0;
     this.moved = false;
     this.startX = e.clientX;
     this.startY = e.clientY;
@@ -218,9 +223,13 @@ export class GraphViewEngine {
 
     if (this.mode === "node" && this.dragNode >= 0) {
       const p = this.toGraph(e.clientX, e.clientY);
-      if (this.dragNode !== 0) this.opts.layout.pin(this.dragNode, p.x, p.y);
-      this.opts.layout.reheat(0.25);
-      this.layoutDirty = true;
+      this.opts.layout.pin(this.dragNode, p.x, p.y);
+      // Big graphs move only the dragged node: reheating would move every node on every frame.
+      if (this.batch) this.dirtyNode = this.dragNode;
+      else {
+        this.opts.layout.reheat(0.25);
+        this.layoutDirty = true;
+      }
     } else if (this.mode === "pan") {
       this.panX += (e.clientX - prev.x) / scale;
       this.panY += (e.clientY - prev.y) / scale;
@@ -231,7 +240,7 @@ export class GraphViewEngine {
   private onPointerUp = (e: PointerEvent) => {
     if (!this.pointers.delete(e.pointerId)) return;
     if (this.pointers.size > 0) return;
-    if (this.mode === "pan" && !this.moved) this.opts.onBackgroundTap();
+    if (this.mode === "pan" && !this.moved && !this.downOnNode) this.opts.onBackgroundTap();
     this.releaseNode();
     this.mode = "idle";
     if (this.movedResetTimer !== null) window.clearTimeout(this.movedResetTimer);
@@ -255,7 +264,7 @@ export class GraphViewEngine {
     let running = false;
     if (!layout.settled) {
       if (reducedMotion()) layout.settle();
-      else if (this.batch && this.mode !== "node") {
+      else if (this.batch) {
         const deadline = performance.now() + BATCH_BUDGET_MS;
         do layout.tick();
         while (!layout.settled && performance.now() < deadline);
@@ -282,16 +291,19 @@ export class GraphViewEngine {
     }
     if (this.layoutDirty) {
       this.layoutDirty = false;
-      const { x, y } = layout;
-      for (let i = 0; i < nodeEls.length; i++) {
-        const el = nodeEls[i];
-        if (el) el.style.transform = `translate(${x[i].toFixed(1)}px, ${y[i].toFixed(1)}px) translate(-50%, -50%)`;
-      }
-    }
+      for (let i = 0; i < nodeEls.length; i++) this.placeNode(i);
+    } else if (this.dirtyNode >= 0) this.placeNode(this.dirtyNode);
+    this.dirtyNode = -1;
     this.drawEdges(cx, cy);
 
-    if (running || this.mode === "node") this.schedule();
+    if (running || (this.mode === "node" && !this.batch)) this.schedule();
   };
+
+  private placeNode(i: number) {
+    const el = this.opts.nodeEls[i];
+    const { x, y } = this.opts.layout;
+    if (el) el.style.transform = `translate(${x[i].toFixed(1)}px, ${y[i].toFixed(1)}px) translate(-50%, -50%)`;
+  }
 
   private drawEdges(cx: number, cy: number) {
     const { canvas, container, edges, layout } = this.opts;
