@@ -1,4 +1,4 @@
-import type { ForceLayout, GraphEdge, LinkOrigin } from "./interestGraph";
+import type { ForceLayout, LayoutForces } from "./forceLayout";
 
 export interface EdgeHighlight {
   direct: ReadonlySet<number>;
@@ -6,26 +6,53 @@ export interface EdgeHighlight {
   color: string;
 }
 
-const ORIGIN_STYLE: Record<LinkOrigin, { color: string; alpha: number; dash: number[] }> = {
-  perfil: { color: "rgb(245 240 231)", alpha: 0.2, dash: [] },
-  comunidade: { color: "#dec9a8", alpha: 0.45, dash: [5, 4] },
-  musica: { color: "#1db954", alpha: 0.45, dash: [] },
-};
+export interface EdgeStyle {
+  color: string;
+  alpha: number;
+  dash: number[];
+}
 
-interface GraphViewOptions {
+export interface ViewEdge {
+  source: number;
+  target: number;
+}
+
+/** Display settings the engine draws with (the rest of the panel is applied by React or the layout). */
+export interface GraphViewDisplay {
+  /** Line width multiplier (1 = default). */
+  linkWidth: number;
+  arrows: boolean;
+  /** Below this zoom, secondary labels hide (`data-zoom="far"`). */
+  labelZoom: number;
+}
+
+export interface GraphViewState {
+  zoom: number;
+  panX: number;
+  panY: number;
+  /** The user panned or zoomed: later rebuilds keep the camera instead of refitting. */
+  userMoved: boolean;
+}
+
+interface GraphViewOptions<E extends ViewEdge> {
   container: HTMLElement;
   /** Element holding the nodes in graph coordinates; receives the pan/zoom transform. */
   world: HTMLElement;
   /** Lines are drawn here: thousands of SVG lines would mean thousands of DOM writes per frame. */
   canvas: HTMLCanvasElement;
   nodeEls: (HTMLElement | null)[];
-  edges: GraphEdge[];
+  edges: E[];
+  edgeStyles: Record<string, EdgeStyle>;
+  styleOf: (edge: E) => string;
   layout: ForceLayout;
   getScale: () => number;
   reducedMotion: () => boolean;
   /** Vertical offset of the visual center (mobile shifts up to clear the floating nav). */
   centerOffsetY: number;
   onBackgroundTap: () => void;
+  display?: GraphViewDisplay;
+  /** Camera of the previous engine on the same view, so a rebuild doesn't throw the user's zoom away. */
+  initialView?: GraphViewState | null;
 }
 
 export const MIN_ZOOM = 0.3;
@@ -33,6 +60,9 @@ export const MAX_ZOOM = 2.4;
 /** Above this many nodes, moving every node per frame costs more than the layout itself. */
 export const BATCH_SETTLE_NODES = 120;
 const BATCH_BUDGET_MS = 8;
+const EDGE_GROW_MS = 420;
+const FOLLOW_EASE = 0.12;
+export const DEFAULT_VIEW_DISPLAY: GraphViewDisplay = { linkWidth: 1, arrows: false, labelZoom: 0.62 };
 
 export function clampZoom(z: number): number {
   return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
@@ -50,14 +80,22 @@ export function fitTransform(
   return { zoom, panX: (-(b.minX + b.maxX) / 2) * zoom, panY: (-(b.minY + b.maxY) / 2) * zoom };
 }
 
+/** Fraction of a newly revealed line already drawn, `elapsed` ms after it appeared. */
+export function edgeGrowth(elapsed: number): number {
+  if (elapsed >= EDGE_GROW_MS) return 1;
+  const t = Math.max(0, elapsed / EDGE_GROW_MS);
+  return 1 - Math.pow(1 - t, 3);
+}
+
 /**
  * Obsidian-like graph viewport: runs the force layout while it moves, drags nodes,
  * pans, zooms (wheel and pinch). Owns node transforms and the line canvas; React keeps the markup.
  */
-export class GraphViewEngine {
+export class GraphViewEngine<E extends ViewEdge = ViewEdge> {
   private panX = 0;
   private panY = 0;
   private zoom = 1;
+  private userMoved = false;
   private rafId: number | null = null;
   private layoutDirty = true;
   private readonly pointers = new Map<number, { x: number; y: number }>();
@@ -73,16 +111,22 @@ export class GraphViewEngine {
   private movedResetTimer: number | null = null;
   private readonly resizeObserver: ResizeObserver;
   private highlight: EdgeHighlight | null = null;
+  private display: GraphViewDisplay;
+  /** When each line was revealed (timelapse); 0 = shown from the start. */
+  private readonly edgeBorn: Float64Array;
   /** Big graphs settle in time-boxed batches instead of animating every node every frame. */
   private readonly batch: boolean;
   /** Initial batch settle: nodes stay hidden (`data-settling`) until the layout rests. */
   private settling = false;
 
-  constructor(private readonly opts: GraphViewOptions) {
+  constructor(private readonly opts: GraphViewOptions<E>) {
+    this.display = opts.display ?? DEFAULT_VIEW_DISPLAY;
+    this.edgeBorn = new Float64Array(opts.edges.length);
     this.batch = opts.nodeEls.length > BATCH_SETTLE_NODES && !opts.reducedMotion();
+    const warm = opts.layout.alpha < 1;
     if (opts.reducedMotion()) opts.layout.settle();
-    else if (this.batch) this.settling = true;
-    else {
+    else if (this.batch && !warm) this.settling = true;
+    else if (!warm) {
       // Pre-settle off-screen so the first frame isn't a burst.
       for (let i = 0; i < 80; i++) opts.layout.tick();
     }
@@ -92,9 +136,19 @@ export class GraphViewEngine {
     window.addEventListener("pointermove", this.onPointerMove);
     window.addEventListener("pointerup", this.onPointerUp);
     window.addEventListener("pointercancel", this.onPointerUp);
-    this.resizeObserver = new ResizeObserver(() => this.schedule());
+    this.resizeObserver = new ResizeObserver(() => {
+      if (!this.userMoved && !this.settling) this.applyFit();
+      this.schedule();
+    });
     this.resizeObserver.observe(opts.container);
-    this.fit();
+    const view = opts.initialView;
+    if (view?.userMoved) {
+      this.zoom = view.zoom;
+      this.panX = view.panX;
+      this.panY = view.panY;
+      this.userMoved = true;
+      this.schedule();
+    } else this.fit();
   }
 
   destroy(): void {
@@ -109,12 +163,19 @@ export class GraphViewEngine {
     window.removeEventListener("pointercancel", this.onPointerUp);
   }
 
+  /** Camera to hand to the next engine when the graph is rebuilt. */
+  view(): GraphViewState {
+    return { zoom: this.zoom, panX: this.panX, panY: this.panY, userMoved: this.userMoved };
+  }
+
   /** True while/just after a drag, so clicks at the end of a gesture are ignored. */
   wasDragged(): boolean {
     return this.moved;
   }
 
+  /** "Ajustar": fits the graph and lets the camera follow the layout again. */
   fit(): void {
+    this.userMoved = false;
     this.applyFit();
     this.schedule();
   }
@@ -132,6 +193,7 @@ export class GraphViewEngine {
     this.panX *= next / this.zoom;
     this.panY *= next / this.zoom;
     this.zoom = next;
+    this.userMoved = true;
     this.schedule();
   }
 
@@ -140,8 +202,62 @@ export class GraphViewEngine {
     const { layout } = this.opts;
     this.panX = -layout.x[index] * this.zoom;
     this.panY = -layout.y[index] * this.zoom;
+    this.userMoved = true;
     this.opts.container.scrollTop = 0;
     this.opts.container.scrollLeft = 0;
+    this.schedule();
+  }
+
+  setDisplay(display: GraphViewDisplay): void {
+    this.display = display;
+    this.schedule();
+  }
+
+  /** New force multipliers: the layout reheats so the change is visible. */
+  setForces(forces: LayoutForces, radiusScale: number): void {
+    const { layout } = this.opts;
+    const changed =
+      radiusScale !== layout.radiusScale ||
+      (Object.keys(forces) as (keyof LayoutForces)[]).some((k) => forces[k] !== layout.forces[k]);
+    if (!changed) return;
+    layout.forces = { ...forces };
+    layout.radiusScale = radiusScale;
+    if (this.opts.reducedMotion()) layout.settle();
+    else layout.reheat(0.5);
+    this.layoutDirty = true;
+    this.schedule();
+  }
+
+  /** Replays the layout from its initial spiral, with the camera following it ("Animar"). */
+  replay(): void {
+    const { layout } = this.opts;
+    layout.reset();
+    if (this.opts.reducedMotion()) layout.settle();
+    this.userMoved = false;
+    this.settling = false;
+    this.opts.container.dataset.settling = "false";
+    this.layoutDirty = true;
+    this.schedule();
+  }
+
+  /** Timelapse: only these nodes take part; newly active ones grow out of `near[i]` with their lines. */
+  setActive(active: ArrayLike<number>, near: ArrayLike<number>): void {
+    const { layout, edges } = this.opts;
+    const now = performance.now();
+    const born: number[] = [];
+    for (let i = 0; i < layout.active.length; i++) {
+      const next = active[i] ? 1 : 0;
+      if (next && !layout.active[i]) born.push(i);
+      layout.active[i] = next;
+    }
+    for (const i of born) if (near[i] >= 0 && i !== 0) layout.placeNear(i, near[i]);
+    const isBorn = new Set(born);
+    for (let e = 0; e < edges.length; e++) {
+      if (isBorn.has(edges[e].source) || isBorn.has(edges[e].target)) this.edgeBorn[e] = now;
+    }
+    if (this.opts.reducedMotion()) layout.settle();
+    else if (born.length) layout.reheat(0.3);
+    this.layoutDirty = true;
     this.schedule();
   }
 
@@ -175,6 +291,7 @@ export class GraphViewEngine {
     this.zoom = z;
     this.panX = local.x - cx - gx * z;
     this.panY = local.y - cy - gy * z;
+    this.userMoved = true;
     this.schedule();
   }
 
@@ -197,7 +314,7 @@ export class GraphViewEngine {
     }
     const nodeEl = (e.target as Element).closest<HTMLElement>("[data-node-index]");
     const index = nodeEl ? Number(nodeEl.dataset.nodeIndex) : -1;
-    // The user's own node is anchored: dragging it pans instead of reheating the whole layout.
+    // The anchored center node pans instead of reheating the whole layout.
     this.mode = index > 0 ? "node" : "pan";
     this.dragNode = index;
     this.downOnNode = index >= 0;
@@ -224,6 +341,7 @@ export class GraphViewEngine {
     if (this.mode === "node" && this.dragNode >= 0) {
       const p = this.toGraph(e.clientX, e.clientY);
       this.opts.layout.pin(this.dragNode, p.x, p.y);
+      this.userMoved = true;
       // Big graphs move only the dragged node: reheating would move every node on every frame.
       if (this.batch) this.dirtyNode = this.dragNode;
       else {
@@ -233,6 +351,7 @@ export class GraphViewEngine {
     } else if (this.mode === "pan") {
       this.panX += (e.clientX - prev.x) / scale;
       this.panY += (e.clientY - prev.y) / scale;
+      this.userMoved = true;
     }
     this.schedule();
   };
@@ -278,12 +397,25 @@ export class GraphViewEngine {
     if (this.settling && layout.settled) {
       this.settling = false;
       container.dataset.settling = "false";
-      this.applyFit();
+      if (!this.userMoved) this.applyFit();
+    }
+    // The camera follows the layout as it grows until the user takes over, and keeps easing until it catches up.
+    let following = false;
+    if (!this.settling && !this.userMoved) {
+      const t = fitTransform(layout.bounds(), container.clientWidth || 360, container.clientHeight || 520);
+      const dz = t.zoom - this.zoom;
+      const dx = t.panX - this.panX;
+      const dy = t.panY - this.panY;
+      following = Math.abs(dz) > 0.002 || Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5;
+      const ease = reducedMotion() ? 1 : FOLLOW_EASE;
+      this.zoom += dz * ease;
+      this.panX += dx * ease;
+      this.panY += dy * ease;
     }
 
     const { cx, cy } = this.center();
     world.style.transform = `translate(${(cx + this.panX).toFixed(1)}px, ${(cy + this.panY).toFixed(1)}px) scale(${this.zoom.toFixed(3)})`;
-    container.dataset.zoom = this.zoom < 0.62 ? "far" : "near";
+    container.dataset.zoom = this.zoom < this.display.labelZoom ? "far" : "near";
 
     if (this.settling) {
       this.schedule();
@@ -294,9 +426,9 @@ export class GraphViewEngine {
       for (let i = 0; i < nodeEls.length; i++) this.placeNode(i);
     } else if (this.dirtyNode >= 0) this.placeNode(this.dirtyNode);
     this.dirtyNode = -1;
-    this.drawEdges(cx, cy);
+    const growing = this.drawEdges(cx, cy);
 
-    if (running || (this.mode === "node" && !this.batch)) this.schedule();
+    if (running || growing || following || (this.mode === "node" && !this.batch)) this.schedule();
   };
 
   private placeNode(i: number) {
@@ -305,8 +437,9 @@ export class GraphViewEngine {
     if (el) el.style.transform = `translate(${x[i].toFixed(1)}px, ${y[i].toFixed(1)}px) translate(-50%, -50%)`;
   }
 
-  private drawEdges(cx: number, cy: number) {
-    const { canvas, container, edges, layout } = this.opts;
+  /** Returns whether some line is still growing (another frame is needed). */
+  private drawEdges(cx: number, cy: number): boolean {
+    const { canvas, container, edges, layout, edgeStyles, styleOf } = this.opts;
     const w = container.clientWidth || 360;
     const h = container.clientHeight || 520;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
@@ -315,42 +448,79 @@ export class GraphViewEngine {
       canvas.height = Math.round(h * dpr);
     }
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) return false;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     const z = this.zoom;
     ctx.setTransform(dpr * z, 0, 0, dpr * z, dpr * (cx + this.panX), dpr * (cy + this.panY));
 
-    const { x, y } = layout;
+    const { x, y, active } = layout;
     const hl = this.highlight;
+    const { linkWidth, arrows } = this.display;
+    const now = performance.now();
+    let growing = false;
+    const growth = (i: number) => {
+      const born = this.edgeBorn[i];
+      if (!born) return 1;
+      const g = edgeGrowth(now - born);
+      if (g < 1) growing = true;
+      return g;
+    };
     // One path per style keeps state changes (and the cost) flat no matter how many lines there are.
     const stroke = (
-      pick: (i: number, e: GraphEdge) => boolean,
+      pick: (i: number, e: E) => boolean,
       color: string,
       alpha: number,
       width: number,
       dash: number[],
     ) => {
       ctx.beginPath();
+      const heads: number[] = [];
       for (let i = 0; i < edges.length; i++) {
         const e = edges[i];
-        if (!pick(i, e)) continue;
+        if (!active[e.source] || !active[e.target] || !pick(i, e)) continue;
+        const g = growth(i);
+        const tx = x[e.source] + (x[e.target] - x[e.source]) * g;
+        const ty = y[e.source] + (y[e.target] - y[e.source]) * g;
         ctx.moveTo(x[e.source], y[e.source]);
-        ctx.lineTo(x[e.target], y[e.target]);
+        ctx.lineTo(tx, ty);
+        if (arrows && g === 1) heads.push(i);
       }
       ctx.strokeStyle = color;
       ctx.globalAlpha = alpha;
-      ctx.lineWidth = width / z;
+      ctx.lineWidth = (width * linkWidth) / z;
       ctx.setLineDash(dash.map((d) => d / z));
       ctx.stroke();
+      if (!heads.length) return;
+      // Arrowheads stop at the target's edge, so they stay visible on top of avatars.
+      ctx.beginPath();
+      const size = (4 + 2 * linkWidth) / Math.max(z, 0.5);
+      for (const i of heads) {
+        const e = edges[i];
+        const dx = x[e.target] - x[e.source];
+        const dy = y[e.target] - y[e.source];
+        const len = Math.hypot(dx, dy);
+        const r = layout.radiusOf(e.target) + 2;
+        if (len <= r + size) continue;
+        const ux = dx / len;
+        const uy = dy / len;
+        const tipX = x[e.target] - ux * r;
+        const tipY = y[e.target] - uy * r;
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(tipX - ux * size - uy * size * 0.55, tipY - uy * size + ux * size * 0.55);
+        ctx.lineTo(tipX - ux * size + uy * size * 0.55, tipY - uy * size - ux * size * 0.55);
+        ctx.closePath();
+      }
+      ctx.fillStyle = color;
+      ctx.fill();
     };
-    for (const origin of Object.keys(ORIGIN_STYLE) as LinkOrigin[]) {
-      const s = ORIGIN_STYLE[origin];
-      const rest = (i: number, e: GraphEdge) => e.origin === origin && !hl?.direct.has(i) && !hl?.shared.has(i);
+    for (const [key, s] of Object.entries(edgeStyles)) {
+      const rest = (i: number, e: E) => styleOf(e) === key && !hl?.direct.has(i) && !hl?.shared.has(i);
       stroke(rest, s.color, hl ? 0.05 : s.alpha, 1, s.dash);
-      if (hl) stroke((i, e) => e.origin === origin && hl.shared.has(i), s.color, 0.4, 1, s.dash);
+      if (hl) stroke((i, e) => styleOf(e) === key && hl.shared.has(i), s.color, 0.4, 1, s.dash);
     }
     if (hl) stroke((i) => hl.direct.has(i), hl.color, 0.95, 2.2, []);
     ctx.globalAlpha = 1;
+    return growing;
   }
 }
