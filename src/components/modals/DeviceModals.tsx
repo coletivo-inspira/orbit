@@ -12,8 +12,12 @@ import { ComposerSheet } from "@/components/modals/ComposerSheet";
 import { TapIcon } from "@/components/interesse/TapIcon";
 import { MiniChat } from "@/components/orbita/MiniChat";
 import { OrbitaFiltersSheet } from "@/components/orbita/OrbitaFiltersSheet";
+import { AppSeal, appSealClass, IntentionPill, MetricLine, OnlineMetric } from "@/components/perfil/ProfileCard";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
+import { Button, buttonClass, CloseButton } from "@/components/ui/Button";
+import { PresenceDot } from "@/components/ui/PresenceDot";
+import { SectionLabel, Sheet, SheetBody, SheetFooter, SheetHeader } from "@/components/ui/Sheet";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { postTags } from "@/lib/community";
@@ -79,19 +83,6 @@ export function DeviceModals() {
   );
 }
 
-function CloseButton({ onClose, className }: { onClose: () => void; className: string }) {
-  return (
-    <button
-      type="button"
-      onClick={onClose}
-      aria-label="Fechar"
-      className={`lg-pill flex items-center justify-center rounded-full text-white ${className}`}
-    >
-      ✕
-    </button>
-  );
-}
-
 function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () => void }) {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
@@ -141,23 +132,23 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
         className="lg-sheet absolute inset-0 z-50 flex flex-col justify-between p-4"
       >
         <div className="flex items-center justify-between">
-          <CloseButton onClose={onClose} className="h-6 w-6 text-xs" />
-          <span className="text-[10px] font-bold text-slate-300">📍 {p.dist}</span>
+          <CloseButton onClose={onClose} size="compacto" />
+          <span className="text-xs font-bold text-marfim-suave">📍 {p.dist}</span>
         </div>
         <div className="flex flex-col items-center text-center">
           <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} online={p.online} size={56} />
-          <h2 ref={titleRef} id={titleId} tabIndex={-1} className="mt-1.5 font-sans text-sm font-extrabold text-white">
+          <h2 ref={titleRef} id={titleId} tabIndex={-1} className="mt-1.5 text-sm font-extrabold text-white">
             {p.name}, {p.age}
           </h2>
           <span
-            className="mt-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold"
+            className="mt-1 rounded-full px-2.5 py-0.5 text-xs font-bold"
             style={{ background: primary.bg, color: primary.text }}
           >
             {primary.emoji} {primary.label}
           </span>
           <div className="mt-2.5 flex items-center justify-center gap-1.5">
             {apps.map((id) => (
-              <AppTile key={id} appId={id} className="h-6 w-6 rounded-lg" iconClassName="h-3.5 w-3.5" />
+              <AppTile key={id} appId={id} className="h-6 w-6" iconClassName="h-3.5 w-3.5" />
             ))}
           </div>
         </div>
@@ -174,224 +165,164 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
 
   const isMobile = device === "mobile";
   return (
-    <div
-      onClick={onClose}
-      className={`absolute inset-0 z-50 flex bg-tinta/75 ${isMobile ? "items-end p-2.5 pb-4" : "items-center justify-center p-6"}`}
-    >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        onKeyDown={onKeyDown}
-        onClick={(e) => e.stopPropagation()}
-        className={`lg-sheet relative flex w-full flex-col overflow-hidden outline-none ${isMobile ? "max-h-[94%] rounded-[32px]" : "max-h-[92%] max-w-[460px] rounded-[30px]"}`}
-      >
-        <CloseButton onClose={onClose} className="absolute top-4 right-4 z-10 h-8 w-8 text-sm" />
-        <div className="orbit-scroll flex-1 overflow-y-auto p-5">
-          <div className="flex items-center gap-3.5 pr-10">
-            <RingedAvatar
-              cfg={p.avatar}
-              photo={p.photo}
-              color={primary.color}
-              online={p.online}
-              size={isMobile ? 76 : 88}
-            >
-              {p.online && (
-                <span className="absolute right-1 bottom-1 h-3.5 w-3.5 rounded-full border-2 border-tinta bg-emerald-400" />
-              )}
-            </RingedAvatar>
-            <div className="min-w-0">
-              <h2
-                ref={titleRef}
-                id={titleId}
-                tabIndex={-1}
-                className="font-sans text-lg leading-tight font-extrabold text-white"
-              >
-                {p.name}, {p.age}
-              </h2>
-              <p className="text-xs text-slate-300">
-                {PRONOUNS[p.pronouns]} · {p.city}
-              </p>
-              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
-                <span>📍 {p.dist} (aprox.)</span>
-                <span aria-hidden="true">·</span>
-                <span className={p.online ? "font-semibold text-salvia" : "text-slate-300"}>
-                  {p.online ? "Online agora" : "Visto há pouco"}
-                </span>
-              </div>
-              {p.visitingFrom && (
-                <p className="mt-0.5 text-xs font-semibold text-areia">
-                  <span aria-hidden="true">✈️ </span>De passagem por aqui · mora em {p.visitingFrom}
-                </p>
-              )}
-            </div>
-          </div>
-          {p.photo && (
-            <p className="mt-2 text-[10px] leading-snug text-slate-300">
-              Foto ilustrativa gerada por IA — perfil simulado
+    <Sheet labelledBy={titleId} initialFocusRef={titleRef} onClose={onClose} placement={isMobile ? "baixo" : "centro"}>
+      <SheetHeader className="items-start">
+        <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} online={p.online} size={isMobile ? 60 : 72}>
+          {p.online && <PresenceDot className="absolute right-0.5 bottom-0.5 h-3 w-3" />}
+        </RingedAvatar>
+        <div className="min-w-0 flex-1 self-center">
+          <h2 ref={titleRef} id={titleId} tabIndex={-1} className="text-xl leading-tight font-extrabold text-white">
+            {p.name}, {p.age}
+          </h2>
+          <p className="text-xs text-marfim-suave">
+            {PRONOUNS[p.pronouns]} · {p.city}
+          </p>
+          <MetricLine
+            className="mt-0.5"
+            items={[<span key="dist">📍 {p.dist} (aprox.)</span>, <OnlineMetric key="online" online={p.online} />]}
+          />
+          {p.visitingFrom && (
+            <p className="mt-0.5 text-xs font-semibold text-areia">
+              <span aria-hidden="true">✈️ </span>De passagem por aqui · mora em {p.visitingFrom}
             </p>
           )}
+        </div>
+        <CloseButton onClose={onClose} />
+      </SheetHeader>
+      <SheetBody className="pt-3">
+        {p.photo && (
+          <p className="mt-2 text-xs leading-snug text-marfim-suave">
+            Foto ilustrativa gerada por IA — perfil simulado
+          </p>
+        )}
 
-          {tappedYou && (
-            <p className="mt-3 flex items-center gap-2 rounded-2xl border border-white/[0.14] bg-white/[0.06] px-3 py-2 text-xs text-white">
-              <TapIcon className="h-4 w-4 shrink-0 text-areia" />
-              {p.name} te deu um toque {formatAgo(tappedYou.minutesAgo)}.
-            </p>
-          )}
+        {tappedYou && (
+          <p className="lg-glass-tint mt-3 flex items-center gap-2 rounded-cartao px-3.5 py-2 text-xs text-white">
+            <TapIcon className="h-4 w-4 shrink-0 text-areia" />
+            {p.name} te deu um toque {formatAgo(tappedYou.minutesAgo)}.
+          </p>
+        )}
 
-          <p className="mt-3 text-sm leading-relaxed text-white">{p.bio}</p>
+        <p className="mt-3 text-sm leading-relaxed text-white">{p.bio}</p>
 
-          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Intenções">
-            {p.intentions.map((id) => {
-              const it = INTENTIONS[id];
+        <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Intenções">
+          {p.intentions.map((id) => (
+            <li key={id}>
+              <IntentionPill id={id} principal={id === p.primaryIntention} />
+            </li>
+          ))}
+        </ul>
+
+        {shared.length > 0 && (
+          <p className="mt-3 rounded-cartao border border-areia/40 bg-areia/10 px-3.5 py-2 text-xs text-areia">
+            <span className="font-bold">✦ Em comum:</span> {shared.map((id) => labelOf(TOPICS, id)).join(", ")}
+          </p>
+        )}
+
+        <SheetSection title="Sobre">
+          <FactList
+            facts={[
+              ["Gênero", labelOf(GENDERS, p.gender)],
+              ["Orientação", labelOf(ORIENTATIONS, p.orientation)],
+              ["Altura", p.heightCm && `${p.heightCm} cm`],
+              ["Peso", p.weightKg && `${p.weightKg} kg`],
+              ["Tipo de corpo", p.bodyType && labelOf(BODY_TYPES, p.bodyType)],
+              ["Relacionamento", p.relationship && relationshipLabel(p.relationship, p.pronouns)],
+              ["Tribos", p.tribes.length ? p.tribes.map((id) => labelOf(TRIBES, id)).join(", ") : "Sem tribo"],
+              ["Esportes", p.sports.map((id) => labelOf(SPORTS, id)).join(", ")],
+            ]}
+          />
+        </SheetSection>
+
+        <SheetSection title="Busca">
+          <FactList
+            facts={[
+              ["Procura", p.lookingFor.map((id) => labelOf(LOOKING_FOR, id)).join(", ")],
+              ["Posição", p.position && labelOf(POSITIONS, p.position)],
+              ["Fotos NSFW", p.acceptsNsfw === undefined ? undefined : p.acceptsNsfw ? "Aceita" : "Não aceita"],
+            ]}
+          />
+        </SheetSection>
+
+        <SheetSection title="Encontro">
+          <FactList facts={[["Prefere", p.meetAt.map((id) => labelOf(MEET_PLACES, id)).join(", ")]]} />
+        </SheetSection>
+
+        <SheetSection title="Saúde sexual">
+          <p className="mb-2 text-xs leading-snug text-marfim-suave">
+            Autodeclarado e opcional. Dados de saúde e sexualidade são sensíveis (LGPD): só aparecem quando a pessoa
+            escolhe contar.
+          </p>
+          <FactList
+            empty="Não informado."
+            facts={[
+              ["PrEP", p.health.prep === undefined ? undefined : p.health.prep ? "Usa" : "Não usa"],
+              ["Preservativo", p.health.condom && labelOf(CONDOM_USE, p.health.condom)],
+              ["Última testagem", p.health.lastTest && testLabel(p.health.lastTest)],
+              ["Status", p.health.status && HIV_STATUS[p.health.status]],
+            ]}
+          />
+        </SheetSection>
+
+        <SheetSection title="Assuntos">
+          <ul className="flex flex-wrap gap-1.5" aria-label="Assuntos para trocar ideia">
+            {p.topics.map((id) => {
+              const isShared = shared.includes(id);
               return (
                 <li
                   key={id}
-                  className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-                  style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
+                  className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${isShared ? "border-areia/60 bg-areia/15 text-areia" : "border-white/[0.14] bg-white/[0.06] text-marfim-suave"}`}
                 >
-                  {it.emoji} {it.label}
-                  {id === p.primaryIntention && " · principal"}
+                  {isShared && <span aria-hidden="true">✦ </span>}
+                  {labelOf(TOPICS, id)}
+                  {isShared && <span className="sr-only"> (em comum)</span>}
                 </li>
               );
             })}
           </ul>
+        </SheetSection>
 
-          {shared.length > 0 && (
-            <p className="mt-3 rounded-2xl border border-areia/40 bg-areia/10 px-3 py-2 text-xs text-areia">
-              <span className="font-bold">✦ Em comum:</span> {shared.map((id) => labelOf(TOPICS, id)).join(", ")}
+        {desejos.length > 0 && (
+          <SheetSection title="Desejos">
+            <p className="mb-2 text-xs leading-snug text-marfim-suave">
+              {p.name} escolheu mostrar estes temas do quiz Desejos. São curiosidades de um dia, não rótulos.
             </p>
-          )}
-
-          <SheetSection title="Sobre">
-            <FactList
-              facts={[
-                ["Gênero", labelOf(GENDERS, p.gender)],
-                ["Orientação", labelOf(ORIENTATIONS, p.orientation)],
-                ["Altura", p.heightCm && `${p.heightCm} cm`],
-                ["Peso", p.weightKg && `${p.weightKg} kg`],
-                ["Tipo de corpo", p.bodyType && labelOf(BODY_TYPES, p.bodyType)],
-                ["Relacionamento", p.relationship && relationshipLabel(p.relationship, p.pronouns)],
-                ["Tribos", p.tribes.length ? p.tribes.map((id) => labelOf(TRIBES, id)).join(", ") : "Sem tribo"],
-                ["Esportes", p.sports.map((id) => labelOf(SPORTS, id)).join(", ")],
-              ]}
-            />
+            <BarrasDesejos desejos={desejos} />
           </SheetSection>
+        )}
 
-          <SheetSection title="Busca">
-            <FactList
-              facts={[
-                ["Procura", p.lookingFor.map((id) => labelOf(LOOKING_FOR, id)).join(", ")],
-                ["Posição", p.position && labelOf(POSITIONS, p.position)],
-                ["Fotos NSFW", p.acceptsNsfw === undefined ? undefined : p.acceptsNsfw ? "Aceita" : "Não aceita"],
-              ]}
-            />
-          </SheetSection>
+        <SheetSection title="Presença em outros aplicativos">
+          <p className="mb-2 text-xs text-marfim-suave">
+            Autodeclarada. “Presença” indica conta ativa; um @ pode ser copiado para abrir no app.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {apps.map((id) => {
+              const handle = p.apps[id]?.handle ?? "";
+              return (
+                <button key={id} type="button" onClick={() => onBadge(id)} className={`${appSealClass} text-left`}>
+                  <AppSeal appId={id} handle={handle} action="copiar" />
+                </button>
+              );
+            })}
+          </div>
+        </SheetSection>
+      </SheetBody>
 
-          <SheetSection title="Encontro">
-            <FactList facts={[["Prefere", p.meetAt.map((id) => labelOf(MEET_PLACES, id)).join(", ")]]} />
-          </SheetSection>
-
-          <SheetSection title="Saúde sexual">
-            <p className="mb-2 text-[11px] leading-snug text-slate-300">
-              Autodeclarado e opcional. Dados de saúde e sexualidade são sensíveis (LGPD): só aparecem quando a pessoa
-              escolhe contar.
-            </p>
-            <FactList
-              empty="Não informado."
-              facts={[
-                ["PrEP", p.health.prep === undefined ? undefined : p.health.prep ? "Usa" : "Não usa"],
-                ["Preservativo", p.health.condom && labelOf(CONDOM_USE, p.health.condom)],
-                ["Última testagem", p.health.lastTest && testLabel(p.health.lastTest)],
-                ["Status", p.health.status && HIV_STATUS[p.health.status]],
-              ]}
-            />
-          </SheetSection>
-
-          <SheetSection title="Assuntos">
-            <ul className="flex flex-wrap gap-1.5" aria-label="Assuntos para trocar ideia">
-              {p.topics.map((id) => {
-                const isShared = shared.includes(id);
-                return (
-                  <li
-                    key={id}
-                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${isShared ? "border-areia/60 bg-areia/15 text-areia" : "border-white/[0.14] bg-white/[0.06] text-slate-300"}`}
-                  >
-                    {isShared && <span aria-hidden="true">✦ </span>}
-                    {labelOf(TOPICS, id)}
-                    {isShared && <span className="sr-only"> (em comum)</span>}
-                  </li>
-                );
-              })}
-            </ul>
-          </SheetSection>
-
-          {desejos.length > 0 && (
-            <SheetSection title="Desejos">
-              <p className="mb-2 text-[11px] leading-snug text-slate-300">
-                {p.name} escolheu mostrar estes temas do quiz Desejos. São curiosidades de um dia, não rótulos.
-              </p>
-              <BarrasDesejos desejos={desejos} />
-            </SheetSection>
-          )}
-
-          <SheetSection title="Presença em outros aplicativos">
-            <p className="mb-2 text-[11px] text-slate-300">
-              Autodeclarada. “Presença” indica conta ativa; um @ pode ser copiado para abrir no app.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {apps.map((id) => {
-                const handle = p.apps[id]?.handle ?? "";
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => onBadge(id)}
-                    className="lg-pill inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-left"
-                  >
-                    <AppTile appId={id} className="h-5 w-5 rounded-md" />
-                    <span className="text-[11px] font-bold text-white">{EXTERNAL_APPS[id].name}</span>
-                    <span className={`text-[11px] ${handle ? "text-areia" : "text-salvia"}`}>
-                      {handle ? `${handle} · copiar` : "Presença"}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </SheetSection>
-        </div>
-
-        <div className="flex shrink-0 gap-2.5 border-t border-white/[0.12] bg-tinta px-5 py-3.5">
-          <button
-            type="button"
-            onClick={tap}
-            aria-disabled={tapped}
-            className={`lg-pill flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold active:scale-95 aria-disabled:cursor-default aria-disabled:active:scale-100 ${tapped ? "text-areia" : "text-white"}`}
-          >
-            <TapIcon className="h-4 w-4" filled={tapped} />
-            {tapped ? "Tocado" : tappedYou ? "Tocar de volta" : "Tocar"}
-          </button>
-          <button
-            type="button"
-            onClick={wave}
-            className="lg-btn-primary flex-1 rounded-full px-4 py-2.5 text-xs font-extrabold active:scale-95"
-          >
-            Mandar um oi 👋
-          </button>
-          {p.inPark && (
-            <button
-              type="button"
-              onClick={() => dispatch({ type: "setTab", tab: "parque" })}
-              className="lg-pill flex-1 rounded-full px-4 py-2.5 text-xs font-extrabold text-white active:scale-95"
-            >
-              🌳 Ir pro Parque
-            </button>
-          )}
-        </div>
-      </div>
-    </div>
+      <SheetFooter>
+        <Button size="compacto" onClick={tap} aria-disabled={tapped} className={tapped ? "text-areia" : ""}>
+          <TapIcon className="h-4 w-4" filled={tapped} />
+          {tapped ? "Tocado" : tappedYou ? "Tocar de volta" : "Tocar"}
+        </Button>
+        <Button variant="primario" size="compacto" block onClick={wave} className="flex-1">
+          Mandar um oi 👋
+        </Button>
+        {p.inPark && (
+          <Button size="compacto" block className="flex-1" onClick={() => dispatch({ type: "setTab", tab: "parque" })}>
+            🌳 Ir pro Parque
+          </Button>
+        )}
+      </SheetFooter>
+    </Sheet>
   );
 }
 
@@ -403,8 +334,8 @@ function testLabel(ym: string): string {
 
 function SheetSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-4 border-t border-white/[0.12] pt-3.5">
-      <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">{title}</h3>
+    <section className="mt-4 border-t border-marfim/10 pt-3.5">
+      <SectionLabel className="mb-2">{title}</SectionLabel>
       {children}
     </section>
   );
@@ -413,12 +344,12 @@ function SheetSection({ title, children }: { title: string; children: React.Reac
 /** Label/value pairs; blank optional fields are skipped instead of shown as empty. */
 function FactList({ facts, empty }: { facts: [string, string | number | undefined | 0][]; empty?: string }) {
   const filled = facts.filter((f): f is [string, string] => Boolean(f[1]));
-  if (!filled.length) return empty ? <p className="text-xs text-slate-300">{empty}</p> : null;
+  if (!filled.length) return empty ? <p className="text-xs text-marfim-suave">{empty}</p> : null;
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
       {filled.map(([label, value]) => (
         <div key={label} className="contents">
-          <dt className="text-slate-300">{label}</dt>
+          <dt className="text-marfim-suave">{label}</dt>
           <dd className="font-semibold text-white">{value}</dd>
         </div>
       ))}
@@ -432,13 +363,11 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
   const showToast = useToast();
   const [comment, setComment] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const commentInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const commentsId = useId();
   const replyAuthor = replyTo !== null ? post.comments[replyTo]?.author : undefined;
-  const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
   const isMobile = device === "mobile";
   const category = COMMUNITY_CATEGORIES[post.category];
   const route = articleRoute(post.id);
@@ -468,112 +397,94 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
   };
 
   return (
-    <div
-      onClick={onClose}
-      className={`absolute inset-0 z-50 flex items-center justify-center bg-tinta/75 ${isMobile ? "p-2.5" : "p-6"}`}
+    <Sheet
+      labelledBy={titleId}
+      initialFocusRef={titleRef}
+      onClose={onClose}
+      placement={isMobile ? "baixo" : "centro"}
+      maxWidth="max-w-[620px]"
     >
-      <div
-        ref={dialogRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        tabIndex={-1}
-        onKeyDown={onKeyDown}
-        onClick={(e) => e.stopPropagation()}
-        className={`lg-sheet flex w-full flex-col overflow-hidden rounded-[30px] outline-none ${isMobile ? "max-h-[92%]" : "max-h-[88%] max-w-[620px]"}`}
-      >
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.12] px-5 py-4">
-          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-            <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${category.badge}`}>
-              c/{category.slug}
-            </span>
-            <PostTrustBadge post={post} />
-          </div>
-          <CloseButton onClose={onClose} className="h-8 w-8 text-sm" />
+      <SheetHeader className="justify-between">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+          <span className={`rounded-full border px-2.5 py-0.5 text-xs font-bold ${category.badge}`}>
+            c/{category.slug}
+          </span>
+          <PostTrustBadge post={post} />
         </div>
-
-        <div className="orbit-scroll flex-1 overflow-y-auto p-5">
-          <h2
-            ref={titleRef}
-            id={titleId}
-            tabIndex={-1}
-            className={`${isMobile ? "text-lg" : "text-2xl"} leading-snug font-bold tracking-tight text-white`}
-          >
-            {post.title}
-          </h2>
-          <TagList tags={postTags(post)} className="mt-2.5" />
-          <div className="mt-3 mb-4">
-            <ArticleProvenance post={post} tone="dark" />
-          </div>
-          {pending && (
-            <div className="mb-4 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3.5 text-xs leading-relaxed text-amber-50">
-              <strong className="font-extrabold">Em revisão · só você vê este artigo.</strong> Na versão real, a equipe
-              confere o registro na consulta pública do conselho profissional e revisa o texto antes de publicar.
-              <button
-                type="button"
-                onClick={() => {
-                  dispatch({ type: "approveArticle", id: post.id });
-                  showToast("Artigo aprovado e publicado com selo de verificado! ✅", "success");
-                }}
-                className="lg-pill mt-2.5 block rounded-full px-3.5 py-1.5 text-xs font-extrabold text-white"
-              >
-                ✅ Aprovar (simular moderação)
-              </button>
-            </div>
-          )}
-          <ArticleBody blocks={post.content} className="text-[15px] leading-[1.62] text-white" />
-
-          <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-white/[0.12] pt-4">
-            <VoteControl post={post} horizontal />
-            {isPublicPage && (
-              <>
-                <Link
-                  href={route}
-                  className="lg-btn-primary rounded-full px-3.5 py-1.5 text-xs font-bold"
-                  onClick={() => dispatch({ type: "closeModals" })}
-                >
-                  Ler artigo público ↗
-                </Link>
-                <button
-                  type="button"
-                  onClick={share}
-                  className="lg-pill rounded-full px-3.5 py-1.5 text-xs font-semibold text-white"
-                >
-                  🔗 Copiar link público
-                </button>
-              </>
-            )}
-          </div>
-
-          <div className="mt-5">
-            <CommentList
-              comments={post.comments}
-              tone="dark"
-              headingId={commentsId}
-              replyingTo={replyTo}
-              onReply={(i) => {
-                setReplyTo(i);
-                commentInputRef.current?.focus();
+        <CloseButton onClose={onClose} />
+      </SheetHeader>
+      <SheetBody>
+        <h2
+          ref={titleRef}
+          id={titleId}
+          tabIndex={-1}
+          className={`${isMobile ? "text-lg" : "text-2xl"} leading-snug font-bold tracking-tight text-white`}
+        >
+          {post.title}
+        </h2>
+        <TagList tags={postTags(post)} className="mt-2.5" />
+        <div className="mt-3 mb-4">
+          <ArticleProvenance post={post} tone="dark" />
+        </div>
+        {pending && (
+          <div className="mb-4 rounded-cartao border border-areia/40 bg-areia/10 p-3.5 text-xs leading-relaxed text-areia">
+            <strong className="font-extrabold">Em revisão · só você vê este artigo.</strong> Na versão real, a equipe
+            confere o registro na consulta pública do conselho profissional e revisa o texto antes de publicar.
+            <button
+              type="button"
+              onClick={() => {
+                dispatch({ type: "approveArticle", id: post.id });
+                showToast("Artigo aprovado e publicado com selo de verificado! ✅", "success");
               }}
-              note="Comentários fictícios do Modo Explorar. O que você escrever aqui fica só nesta sessão e não aparece na página pública."
-            />
+              className={buttonClass({ size: "compacto", className: "mt-2.5" })}
+            >
+              ✅ Aprovar (simular moderação)
+            </button>
           </div>
+        )}
+        <ArticleBody blocks={post.content} className="text-[15px] leading-[1.62] text-white" />
+
+        <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-white/[0.12] pt-4">
+          <VoteControl post={post} horizontal />
+          {isPublicPage && (
+            <>
+              <Link
+                href={route}
+                className={buttonClass({ variant: "primario", size: "compacto" })}
+                onClick={() => dispatch({ type: "closeModals" })}
+              >
+                Ler artigo público ↗
+              </Link>
+              <Button size="compacto" onClick={share}>
+                🔗 Copiar link público
+              </Button>
+            </>
+          )}
         </div>
 
-        <form onSubmit={submit} className="flex shrink-0 flex-col gap-2 border-t border-white/[0.12] bg-tinta p-3.5">
+        <div className="mt-5">
+          <CommentList
+            comments={post.comments}
+            tone="dark"
+            headingId={commentsId}
+            replyingTo={replyTo}
+            onReply={(i) => {
+              setReplyTo(i);
+              commentInputRef.current?.focus();
+            }}
+            note="Comentários fictícios do Modo Explorar. O que você escrever aqui fica só nesta sessão e não aparece na página pública."
+          />
+        </div>
+      </SheetBody>
+
+      <SheetFooter className="p-0">
+        <form onSubmit={submit} className="flex w-full flex-col gap-2 p-3.5">
           {replyAuthor && (
-            <div className="flex items-center justify-between gap-2 text-[11px] text-slate-300">
+            <div className="flex items-center justify-between gap-2 text-xs text-marfim-suave">
               <span>
                 ↩ Respondendo a <strong className="text-areia">{replyAuthor}</strong>
               </span>
-              <button
-                type="button"
-                onClick={() => setReplyTo(null)}
-                aria-label="Cancelar resposta"
-                className="lg-pill flex h-6 w-6 items-center justify-center rounded-full text-[10px] text-white"
-              >
-                ✕
-              </button>
+              <CloseButton onClose={() => setReplyTo(null)} label="Cancelar resposta" size="compacto" />
             </div>
           )}
           <div className="flex items-center gap-2">
@@ -589,14 +500,14 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
                   ? `Resposta simulada para ${replyAuthor} (fica só nesta sessão)`
                   : "Novo comentário simulado (fica só nesta sessão)"
               }
-              className="min-w-0 flex-1 rounded-full border border-white/20 bg-noite px-4 py-2 text-sm text-white placeholder-slate-300"
+              className="min-h-11 min-w-0 flex-1 rounded-full border border-marfim/25 bg-tinta px-4 text-sm text-white placeholder-marfim-apagado"
             />
-            <button type="submit" className="lg-btn-primary shrink-0 rounded-full px-4 py-2 text-xs font-bold">
+            <Button type="submit" variant="primario">
               {replyAuthor ? "Responder" : "Publicar"}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
-    </div>
+      </SheetFooter>
+    </Sheet>
   );
 }
