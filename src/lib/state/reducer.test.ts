@@ -57,6 +57,20 @@ describe("orbitReducer", () => {
     orbitReducer(a, { type: "toggleApp", id: "bumble" });
     expect(createInitialState().user.apps.bumble.active).toBe(false);
   });
+
+  it("starts on the world map and enters and leaves park rooms", () => {
+    const initial = createInitialState();
+    expect(initial.parkRoomId).toBeNull();
+    const inParis = orbitReducer(initial, { type: "enterParkRoom", id: "paris-torre-eiffel" });
+    expect(inParis.parkRoomId).toBe("paris-torre-eiffel");
+    expect(orbitReducer(inParis, { type: "leaveParkRoom" }).parkRoomId).toBeNull();
+  });
+
+  it("keeps the current room when switching tabs", () => {
+    const inRio = orbitReducer(createInitialState(), { type: "enterParkRoom", id: "rio-pao-de-acucar" });
+    const away = orbitReducer(inRio, { type: "setTab", tab: "orbita" });
+    expect(orbitReducer(away, { type: "setTab", tab: "parque" }).parkRoomId).toBe("rio-pao-de-acucar");
+  });
 });
 
 describe("sanitizeStoredUser", () => {
