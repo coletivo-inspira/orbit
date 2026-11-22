@@ -2,6 +2,7 @@
 
 import { useId, useRef, type ReactNode } from "react";
 import { Ilustracao } from "@/components/desejos/Ilustracao";
+import { MolduraPicker } from "@/components/molduras/MolduraPicker";
 import { HubPreviewCard } from "@/components/perfil/HubPreviewCard";
 import { AppBadgeIcon } from "@/components/ui/AppBadge";
 import { Switch } from "@/components/ui/Switch";
@@ -93,6 +94,7 @@ export function PerfilScreen() {
   const sections = [
     { id: "cartao", label: "Seu cartão" },
     { id: "intencoes", label: "Intenções e selos" },
+    { id: "molduras", label: "Molduras" },
     { id: "assuntos", label: "Assuntos" },
     { id: "desejos", label: "Desejos" },
     { id: "visibilidade", label: "Visibilidade" },
@@ -161,7 +163,13 @@ export function PerfilScreen() {
             className={`${isMobile ? "" : "sticky top-0 col-span-5"} flex flex-col gap-3`}
           >
             {sectionHeading("cartao", "Seu cartão")}
-            <HubPreviewCard user={u} headingRef={previewRef} headingId={`${ids}-preview`} desejos={desejosNoCartao} />
+            <HubPreviewCard
+              user={u}
+              headingRef={previewRef}
+              headingId={`${ids}-preview`}
+              desejos={desejosNoCartao}
+              moldura={state.molduras.ativa}
+            />
             <Panel>
               <label htmlFor={`${ids}-bio`} className="text-sm font-bold text-white">
                 Sua bio no cartão
@@ -299,6 +307,14 @@ export function PerfilScreen() {
                     );
                   })}
                 </ul>
+              </Panel>
+              {backToPreview}
+            </section>
+
+            <section aria-labelledby={`${ids}-molduras`} className="flex flex-col gap-3">
+              {sectionHeading("molduras", "Molduras da órbita")}
+              <Panel>
+                <MolduraPicker compact={isMobile} />
               </Panel>
               {backToPreview}
             </section>

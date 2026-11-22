@@ -116,6 +116,19 @@ O mapa-múndi (`src/lib/data/worldLand.json`) é a terra do Natural Earth 1:110m
 - **Comunidade**: assuntos das threads em que a pessoa postou ou comentou, **só na categoria Discussões** (`INTEREST_CATEGORIES` em `src/lib/community.ts`). Vacinas, Prevenção e Saúde Mental nunca viram ligação: comentar num post sobre PrEP não pode virar uma tag pública (dado sensível de saúde).
 - **Spotify**: gêneros musicais de quem tem o selo do Spotify ativo (`src/lib/data/music.ts`, simulados). A integração real leria os artistas mais ouvidos (escopo `user-top-read`) no servidor e guardaria só os gêneros; antes disso, confira os limites atuais da API do Spotify para apps novos (o modo de desenvolvimento limita o número de usuários).
 
+## Molduras da órbita
+
+O anel do seu avatar (centro do radar, nó "Você" nas Conexões, mini chat e cartão) pode receber uma moldura colecionável, escolhida em **Meu Hub → Molduras**. Duas vêm liberadas; as outras são ganhas com atividade no app (dar toques, marcar assuntos, achar o Paçoca, trocar falas, comentar na Comunidade, entrar numa sala do Parque pelo mundo, concluir o quiz de Desejos). Um aviso aparece quando uma moldura é desbloqueada.
+
+- Catálogo e visual de cada moldura: `src/lib/molduras/catalogo.ts`. Metas das conquistas: `src/lib/molduras/conquistas.ts`. O desenho fica isolado em `src/components/molduras/MolduraAvatar.tsx`.
+- Molduras escolhida e desbloqueadas ficam no `localStorage` (`orbit:molduras:v1`), sanitizadas como as outras chaves: só ids conhecidos, sem repetição, as iniciais sempre presentes, e a moldura em uso precisa estar desbloqueada.
+- **Monetização em aberto.** `ORBIT_PLUS.modo` em `src/lib/molduras/config.ts` decide o que acontece com as molduras marcadas como Orbit+:
+  - `"simulado"` (padrão): aparecem com o selo Orbit+ e um botão "Desbloquear (simulação)", sem cobrança e sem servidor.
+  - `"conquista"`: tudo é grátis, e cada Orbit+ é ganha por uma conquista alternativa (colecionar outras molduras).
+  - `"desligado"`: as Orbit+ somem do app.
+
+  Numa versão paga de verdade, o direito de usar uma Orbit+ precisa ser confirmado pelo backend; o `localStorage` só serve para a demonstração.
+
 ## PWA, Modo Explorar e matriz de dispositivos
 
 O Modo Explorar **precisa de conexão**: ainda não há service worker, então a recarga offline não funciona. O manifesto declara ícones PNG 192/512, um ícone `maskable` e o SVG; o `apple-touch-icon` tem 180 px.

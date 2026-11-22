@@ -6,6 +6,9 @@ import { applyVote, buildPost, MODERATION_TEAM, validateDraft, type CommunitySor
 import { hasTalked, recordLine, SEED_CONVERSATIONS, type Conversations, type Speaker } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
 import type { Point } from "@/lib/data/park";
+import { getMoldura, isMolduraId, type MolduraId } from "@/lib/molduras/catalogo";
+import { ORBIT_PLUS } from "@/lib/molduras/config";
+import { aplicarConquistas, ESTADO_MOLDURAS_INICIAL, type EstadoMolduras } from "@/lib/molduras/estado";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
 import { TOPIC_IDS } from "@/lib/data/profileOptions";
 import { ORBIT_PROFILES } from "@/lib/data/profiles";
@@ -68,6 +71,10 @@ export interface OrbitState {
   desejosTela: "intro" | "quiz" | "resultado";
   /** Category whose explanation sheet is open. */
   desejoAberto: CategoriaId | null;
+  /** Frame around the user's own avatar ring; unlocked frames grow with activity. */
+  molduras: EstadoMolduras;
+  /** Frames earned by the last action, for the unlock toast; never persisted. */
+  moldurasNovas: MolduraId[];
 }
 
 export type DesejosTela = OrbitState["desejosTela"];
@@ -119,14 +126,17 @@ export type OrbitAction =
   | { type: "refazerDesejos" }
   | { type: "apagarDesejos" }
   | { type: "toggleDesejoPublico"; id: CategoriaId }
-  | { type: "abrirDesejo"; id: CategoriaId };
+  | { type: "abrirDesejo"; id: CategoriaId }
+  | { type: "usarMoldura"; id: MolduraId }
+  | { type: "desbloquearOrbitPlus"; id: MolduraId }
+  | { type: "hydrateMolduras"; estado: EstadoMolduras };
 
 export const BIO_MAX_LENGTH = 160;
 export const COMMENT_MAX_LENGTH = 500;
 export const TOPICS_MAX = 8;
 
 export function createInitialState(): OrbitState {
-  return {
+  return comConquistas({
     user: structuredClone(DEMO_USER),
     posts: structuredClone(COMMUNITY_POSTS),
     foundPacoca: false,
@@ -153,7 +163,29 @@ export function createInitialState(): OrbitState {
     desejosPublicos: [],
     desejosTela: "intro",
     desejoAberto: null,
-  };
+    molduras: ESTADO_MOLDURAS_INICIAL,
+    moldurasNovas: [],
+  });
+}
+
+/** Unlocks the frames the user's activity has earned, after every action. */
+function comConquistas(state: OrbitState): OrbitState {
+  const molduras = aplicarConquistas(state.molduras, {
+    foundPacoca: state.foundPacoca,
+    conversations: state.conversations,
+    posts: state.posts,
+    desejosConcluido: state.desejos.concluido,
+    sentTaps: state.sentTaps,
+    topicos: state.user.topics.length,
+    parkRoomId: state.parkRoomId,
+  });
+  if (molduras === state.molduras) return state;
+  return { ...state, molduras, moldurasNovas: molduras.desbloqueadas.slice(state.molduras.desbloqueadas.length) };
+}
+
+export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState {
+  const next = baseReducer(state, action);
+  return next === state ? state : comConquistas(next);
 }
 
 function isIntention(value: unknown): value is IntentionId {
@@ -218,7 +250,7 @@ const closed = {
   desejoAberto: null,
 } as const;
 
-export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState {
+function baseReducer(state: OrbitState, action: OrbitAction): OrbitState {
   switch (action.type) {
     case "hydrateUser":
       return { ...state, user: action.user };
@@ -410,6 +442,22 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
     }
     case "abrirDesejo":
       return isCategoriaId(action.id) ? { ...state, ...closed, desejoAberto: action.id } : state;
+    case "usarMoldura": {
+      const { molduras } = state;
+      if (!molduras.desbloqueadas.includes(action.id) || molduras.ativa === action.id) return state;
+      return { ...state, molduras: { ...molduras, ativa: action.id } };
+    }
+    case "desbloquearOrbitPlus": {
+      const { molduras } = state;
+      if (!isMolduraId(action.id) || molduras.desbloqueadas.includes(action.id)) return state;
+      if (ORBIT_PLUS.modo !== "simulado" || getMoldura(action.id).desbloqueio.tipo !== "orbitPlus") return state;
+      return { ...state, molduras: { ativa: action.id, desbloqueadas: [...molduras.desbloqueadas, action.id] } };
+    }
+    case "hydrateMolduras": {
+      const desbloqueadas = [...new Set([...state.molduras.desbloqueadas, ...action.estado.desbloqueadas])];
+      const ativa = desbloqueadas.includes(action.estado.ativa) ? action.estado.ativa : state.molduras.ativa;
+      return { ...state, molduras: { ativa, desbloqueadas } };
+    }
     default:
       return state;
   }

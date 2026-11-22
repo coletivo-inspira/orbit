@@ -5,6 +5,7 @@ import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { DesktopLayout } from "@/components/app/DesktopLayout";
 import { MobileLayout } from "@/components/app/MobileLayout";
 import { WatchLayout } from "@/components/app/WatchLayout";
+import { AvisoMolduras } from "@/components/molduras/AvisoMolduras";
 import {
   BrowserBar,
   DEVICE_SPECS,
@@ -79,6 +80,7 @@ export function Studio() {
   return (
     <OrbitProvider>
       <ToastProvider>
+        <AvisoMolduras />
         <StudioContent />
       </ToastProvider>
     </OrbitProvider>
