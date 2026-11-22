@@ -1,8 +1,10 @@
 import type { Ref } from "react";
+import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { activeAppIds, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
+import type { DesejoPublico } from "@/lib/desejos/perfis";
 import type { UserProfile } from "@/lib/types";
 
 /** The "Cartão Orbit": a live, local preview of what others would see once real profiles exist. */
@@ -10,8 +12,11 @@ export function HubPreviewCard({
   user: u,
   headingRef,
   headingId,
+  desejos = [],
 }: {
   user: UserProfile;
+  /** Desires the person opted to show; none by default. */
+  desejos?: DesejoPublico[];
   headingRef?: Ref<HTMLHeadingElement>;
   headingId?: string;
 }) {
@@ -109,6 +114,13 @@ export function HubPreviewCard({
           <p className="text-[11px] text-slate-300">Nenhum selo ativado no momento.</p>
         )}
       </div>
+
+      {desejos.length > 0 && (
+        <div className="mt-4 border-t border-white/[0.12] pt-3.5">
+          <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">Desejos</h3>
+          <BarrasDesejos desejos={desejos} />
+        </div>
+      )}
     </section>
   );
 }
