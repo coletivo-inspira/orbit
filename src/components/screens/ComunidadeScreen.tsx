@@ -43,7 +43,7 @@ export function ComunidadeScreen() {
   const feed = (
     <section aria-label="Posts da comunidade" className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex shrink-0 items-center gap-1 rounded-full border border-white/[0.11] bg-white/[0.05] p-0.5">
+        <div className="lg-glass-tint flex shrink-0 items-center gap-1 rounded-full p-1">
           {SORTS.map((s) => {
             const active = state.communitySort === s.id;
             return (
@@ -158,7 +158,11 @@ export function ComunidadeScreen() {
         <p className="mt-0.5 text-xs text-marfim-suave">
           Alertas da sua região, artigos de profissionais verificados e conversas abertas.
         </p>
-        <div className="orbit-scroll mt-3 flex items-center gap-1.5 overflow-x-auto pb-0.5" aria-label="Subcomunidades">
+        <div
+          role="group"
+          className="orbit-scroll mt-3 flex items-center gap-1.5 overflow-x-auto pr-6 pb-0.5 [mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)]"
+          aria-label="Subcomunidades"
+        >
           {FILTERS.map((c) => {
             const active = state.communityFilter === c.id;
             return (
@@ -167,10 +171,8 @@ export function ComunidadeScreen() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => dispatch({ type: "setCommunityFilter", filter: c.id })}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                  active
-                    ? "lg-active-lens text-white"
-                    : "border border-white/[0.14] bg-white/[0.06] text-marfim-suave hover:bg-white/[0.12] hover:text-white"
+                className={`min-h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${
+                  active ? "lg-active-lens text-white" : "lg-pill text-marfim-suave hover:text-white"
                 }`}
               >
                 {c.label}

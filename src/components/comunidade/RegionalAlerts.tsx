@@ -18,7 +18,7 @@ export function RegionalAlerts({ compact = false }: { compact?: boolean }) {
           <select
             value={region.id}
             onChange={(e) => dispatch({ type: "setRegion", regionId: e.target.value })}
-            className="cursor-pointer appearance-none bg-transparent pr-1 font-bold text-white outline-none"
+            className="min-h-9 cursor-pointer appearance-none bg-transparent pr-1 font-bold text-white outline-none"
           >
             {REGION_LIST.map((r) => (
               <option key={r.id} value={r.id} className="bg-tinta text-white">
@@ -53,14 +53,14 @@ export function RegionalAlerts({ compact = false }: { compact?: boolean }) {
             </div>
             <h3 className="text-sm leading-snug font-bold text-white">{alert.title}</h3>
             <p className="text-xs leading-relaxed text-marfim-suave">{alert.text}</p>
-            <ul className="mt-auto space-y-1 border-t border-white/[0.1] pt-2">
+            <ul className="mt-auto border-t border-white/[0.1] pt-1">
               {alert.sources.map((source) => (
                 <li key={source.url}>
                   <a
                     href={source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-areia underline-offset-2 hover:underline"
+                    className="inline-flex min-h-9 items-center gap-1 py-1 text-xs font-semibold text-areia underline-offset-2 hover:underline"
                   >
                     {source.label}
                     <ExternalLinkIcon className="h-2.5 w-2.5" />
