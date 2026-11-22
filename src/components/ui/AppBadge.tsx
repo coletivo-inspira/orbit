@@ -76,7 +76,7 @@ export function AppTile({
   return (
     <span
       title={`Ativo no ${app.name}`}
-      className={`flex shrink-0 items-center justify-center shadow-sm ${className}`}
+      className={`flex shrink-0 items-center justify-center shadow-xs ${className}`}
       style={{ background: app.bg, color: app.textColor }}
     >
       <AppBadgeIcon appId={appId} className={iconClassName} />

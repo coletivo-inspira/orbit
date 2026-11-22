@@ -141,7 +141,7 @@ function StudioContent() {
             title="Orbit — Início"
             className="lg-pill lg-sheen group relative h-11 w-11 rounded-2xl p-[1.5px] transition-transform active:scale-95"
           >
-            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-gradient-to-br from-violet-500/30 via-indigo-500/20 to-cyan-400/25">
+            <div className="flex h-full w-full items-center justify-center rounded-[14px] bg-linear-to-br/srgb from-violet-500/30 via-indigo-500/20 to-cyan-400/25">
               <OrbitLogo className="h-6 w-6 text-violet-200" />
             </div>
           </button>

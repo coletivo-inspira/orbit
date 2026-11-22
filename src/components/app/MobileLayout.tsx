@@ -11,7 +11,7 @@ import { useOrbit } from "@/lib/state/OrbitProvider";
 export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?: ReactNode; homeIndicator?: boolean }) {
   const { state, dispatch } = useOrbit();
   return (
-    <div className="app-ambient-bg relative flex h-full w-full flex-col overflow-hidden">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#0b101d]">
       <AmbientOrbs />
       {statusBar}
       <main className="relative z-10 min-h-0 flex-1 overflow-hidden">
