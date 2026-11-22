@@ -1,0 +1,379 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+    background-color: #070a12;
+    color: #f8fafc;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@layer components {
+  .studio-bg {
+    background:
+      radial-gradient(circle at 18% 16%, rgba(124, 106, 214, 0.16), transparent 44%),
+      radial-gradient(circle at 84% 78%, rgba(72, 169, 197, 0.13), transparent 46%),
+      radial-gradient(circle at 52% 48%, rgba(30, 41, 66, 0.48), #070a12 84%);
+  }
+
+  /* ---------------------------------------------------------------------------
+     Liquid Glass design system (translucent optical glass + specular light)
+     --------------------------------------------------------------------------- */
+  .app-ambient-bg {
+    background:
+      radial-gradient(90% 60% at 15% 10%, rgba(139, 118, 224, 0.22), transparent 62%),
+      radial-gradient(80% 55% at 88% 22%, rgba(78, 174, 206, 0.18), transparent 60%),
+      radial-gradient(75% 60% at 50% 92%, rgba(176, 118, 184, 0.15), transparent 62%),
+      linear-gradient(165deg, #0b101d 0%, #0f1628 48%, #0a0f1c 100%);
+  }
+
+  .ambient-orb {
+    animation: ambientDrift 14s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .lg-bar {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.14) 0%,
+      rgba(226, 232, 240, 0.06) 45%,
+      rgba(148, 163, 184, 0.09) 100%
+    );
+    backdrop-filter: blur(26px) saturate(175%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 14px 36px rgba(2, 6, 23, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07);
+  }
+
+  .lg-panel {
+    position: relative;
+    background: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(203, 213, 225, 0.045) 50%,
+      rgba(15, 23, 42, 0.38) 100%
+    );
+    backdrop-filter: blur(20px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 10px 28px rgba(2, 6, 23, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Modal sheet: more frosted to keep reading contrast. */
+  .lg-sheet {
+    position: relative;
+    background: linear-gradient(
+      155deg,
+      rgba(30, 41, 66, 0.84) 0%,
+      rgba(15, 23, 42, 0.9) 55%,
+      rgba(11, 17, 32, 0.94) 100%
+    );
+    backdrop-filter: blur(30px) saturate(165%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 24px 60px rgba(2, 6, 23, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.32),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .lg-pill {
+    position: relative;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(18px) saturate(155%);
+    border: 1px solid rgba(255, 255, 255, 0.19);
+    box-shadow:
+      0 6px 18px rgba(2, 6, 23, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      transform 0.16s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .lg-pill:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.19) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .lg-btn-primary {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(139, 92, 246, 0.8) 0%,
+      rgba(99, 102, 241, 0.74) 55%,
+      rgba(56, 189, 248, 0.64) 100%
+    );
+    backdrop-filter: blur(16px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow:
+      0 10px 26px rgba(99, 102, 241, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    transition: all 0.2s ease;
+  }
+
+  .lg-btn-primary:hover {
+    filter: brightness(1.08);
+    box-shadow:
+      0 12px 30px rgba(124, 58, 237, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  }
+
+  .lg-active-lens {
+    background: linear-gradient(140deg, rgba(255, 255, 255, 0.24) 0%, rgba(196, 181, 253, 0.16) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+    box-shadow:
+      0 4px 14px rgba(2, 6, 23, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+
+  /* Specular sheen that follows the pointer (position set by <LiquidSheen />). */
+  .lg-sheen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+    background: radial-gradient(
+      180px circle at var(--lg-x, 50%) var(--lg-y, 20%),
+      rgba(255, 255, 255, 0.16),
+      transparent 68%
+    );
+  }
+
+  .lg-sheen:hover::before {
+    opacity: 1;
+  }
+
+  .lg-header {
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.62) 0%, rgba(15, 23, 42, 0.38) 100%);
+    backdrop-filter: blur(22px) saturate(160%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.11);
+  }
+
+  .orbit-scroll::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .orbit-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .orbit-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+  }
+
+  .pixel-canvas {
+    image-rendering: pixelated;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Studio device frames (laptop, phone, watch)
+     --------------------------------------------------------------------------- */
+  .device-scaler {
+    transform-origin: center center;
+    will-change: transform;
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .laptop-shell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 36px 70px rgba(0, 0, 0, 0.7));
+  }
+  .laptop-lid {
+    position: relative;
+    padding: 16px 16px 14px;
+    border-radius: 24px 24px 10px 10px;
+    border: 1.5px solid rgba(255, 255, 255, 0.14);
+    background: linear-gradient(160deg, #272c3a 0%, #141821 45%, #0c0f16 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  }
+  .laptop-camera {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 7px;
+    height: 7px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+  }
+  .laptop-screen {
+    position: relative;
+    width: 1160px;
+    height: 720px;
+    overflow: hidden;
+    border-radius: 12px;
+    background: #0b101d;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+  }
+  .laptop-base {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    width: 1270px;
+    height: 20px;
+    background: linear-gradient(180deg, #334155 0%, #1e293b 45%, #0f172a 100%);
+    border-radius: 4px 4px 16px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-top: none;
+  }
+  .laptop-notch {
+    width: 132px;
+    height: 6px;
+    background: rgba(15, 23, 42, 0.85);
+    border-radius: 0 0 8px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-top: none;
+  }
+
+  .phone-shell {
+    position: relative;
+    padding: 13px;
+    border-radius: 56px;
+    background: linear-gradient(155deg, #2d3446 0%, #161b26 42%, #0c0f17 100%);
+    border: 2px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 34px 70px rgba(0, 0, 0, 0.72),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 0 0 2px rgba(0, 0, 0, 0.55);
+  }
+  .phone-btn-left-1,
+  .phone-btn-left-2,
+  .phone-btn-right {
+    position: absolute;
+    background: #2d3548;
+    border-radius: 3px;
+  }
+  .phone-btn-left-1 {
+    left: -4px;
+    top: 152px;
+    width: 4px;
+    height: 42px;
+  }
+  .phone-btn-left-2 {
+    left: -4px;
+    top: 206px;
+    width: 4px;
+    height: 42px;
+  }
+  .phone-btn-right {
+    right: -4px;
+    top: 185px;
+    width: 4px;
+    height: 64px;
+  }
+  .phone-screen {
+    position: relative;
+    width: 390px;
+    height: 800px;
+    overflow: hidden;
+    border-radius: 44px;
+    background: #0b101d;
+  }
+
+  .watch-assembly {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 30px 55px rgba(0, 0, 0, 0.75));
+  }
+  .watch-band-top,
+  .watch-band-bottom {
+    width: 176px;
+    height: 76px;
+    background: linear-gradient(90deg, #151924 0%, #242b3d 50%, #151924 100%);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .watch-band-top {
+    margin-bottom: -14px;
+    border-radius: 24px 24px 0 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+  }
+  .watch-band-bottom {
+    margin-top: -14px;
+    border-radius: 0 0 24px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .watch-case {
+    position: relative;
+    z-index: 2;
+    padding: 16px;
+    border-radius: 74px;
+    background: linear-gradient(150deg, #3b4256 0%, #191e2b 55%, #0c0f17 100%);
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      inset 0 2px 3px rgba(255, 255, 255, 0.35),
+      inset 0 -3px 6px rgba(0, 0, 0, 0.6);
+  }
+  .watch-crown {
+    position: absolute;
+    right: -11px;
+    top: 86px;
+    width: 11px;
+    height: 54px;
+    border-radius: 5px;
+    background: repeating-linear-gradient(180deg, #64748b 0px, #64748b 3px, #1e293b 3px, #1e293b 6px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+  .watch-side-btn {
+    position: absolute;
+    right: -6px;
+    top: 164px;
+    width: 6px;
+    height: 62px;
+    border-radius: 3px;
+    background: #334155;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+  }
+  .watch-screen {
+    position: relative;
+    width: 272px;
+    height: 330px;
+    overflow: hidden;
+    border-radius: 58px;
+    background: #060914;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
+}
+
+@keyframes ambientDrift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(14px, -12px, 0) scale(1.06);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient-orb {
+    animation: none;
+  }
+}
