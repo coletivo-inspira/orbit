@@ -158,8 +158,8 @@ function InterestCard({
           aria-disabled={tapped}
           aria-label={tapped ? `Você já tocou de volta em ${p.name}` : `Tocar de volta em ${p.name}`}
           title={tapped ? "Tocado de volta" : "Tocar de volta"}
-          className={`lg-pill absolute top-2 right-2 flex h-9 w-9 items-center justify-center rounded-full aria-disabled:cursor-default ${
-            tapped ? "text-areia" : "text-white hover:text-areia"
+          className={`absolute top-2 right-2 flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md aria-disabled:cursor-default ${
+            tapped ? "border-areia bg-areia text-tinta" : "border-white/25 bg-tinta/70 text-white hover:text-areia"
           }`}
         >
           <TapIcon className="h-5 w-5" filled={tapped} />
