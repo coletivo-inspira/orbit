@@ -180,8 +180,10 @@ export interface PostComment {
   text: string;
   /** Written in this session (Modo Explorar); never published. */
   local?: boolean;
-  /** Demo profile that wrote it, when it is one of the simulated profiles. */
+  /** Demo profile that wrote it ("me" for the demo user), when it is one of the simulated profiles. */
   profileId?: string;
+  /** Answers to this comment (one level deep, like a thread). */
+  replies?: PostComment[];
 }
 
 /** A paragraph, or a semantic list instead of typed bullets. */
@@ -216,6 +218,8 @@ export interface CommunityPost {
   authorProfileId?: string;
   /** Interests the thread is about; only open discussions turn them into links between people. */
   topics?: TopicId[];
+  /** Keywords chosen by the author; when absent they are extracted from the text. */
+  tags?: string[];
   /** Only articles carry a credential; it is shown as verified once status is "publicado". */
   professional?: Omit<ProfessionalCredential, "registration"> & { registration?: string };
   /** Moderator who approved a submitted article (simulated in the demo). */
@@ -238,6 +242,8 @@ export interface PostDraft {
   category: CommunityCategory;
   title: string;
   body: string;
+  /** Keywords kept by the author (suggested automatically, removable). */
+  tags?: string[];
   professional?: ProfessionalCredential;
 }
 

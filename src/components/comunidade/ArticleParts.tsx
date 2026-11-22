@@ -72,35 +72,84 @@ export function CommentList({
   tone,
   note,
   headingId,
+  onReply,
+  replyingTo,
 }: {
   comments: PostComment[];
   tone: Tone;
   note: string;
   headingId: string;
+  /** When set, each comment gets a "Responder" button. */
+  onReply?: (index: number) => void;
+  replyingTo?: number | null;
 }) {
+  const total = comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);
   return (
     <section aria-labelledby={headingId}>
       <h2 id={headingId} className={`font-sans text-sm font-bold ${tone === "dark" ? "text-white" : "text-tinta"}`}>
-        Comentários de exemplo ({comments.length})
+        Comentários de exemplo ({total})
       </h2>
       <p className={`mt-1 text-xs ${muted[tone]}`}>{note}</p>
       <ul className="mt-3 space-y-2.5">
         {comments.map((c, i) => (
-          <li
-            key={i}
-            className={`rounded-2xl border p-3 ${tone === "dark" ? "border-white/[0.12] bg-tinta" : "border-linha bg-marfim"}`}
-          >
-            <div className="flex items-center justify-between gap-2 text-[11px]">
-              <span className={`font-bold ${accent[tone]}`}>
-                {c.author}
-                {c.local && <span className={`ml-1.5 font-semibold ${muted[tone]}`}>· você, só nesta sessão</span>}
-              </span>
-              <span className={muted[tone]}>{c.time}</span>
-            </div>
-            <p className={`mt-1 text-sm leading-relaxed ${tone === "dark" ? "text-white" : "text-tinta"}`}>{c.text}</p>
+          <li key={i}>
+            <CommentCard comment={c} tone={tone} highlighted={replyingTo === i}>
+              {onReply && (
+                <button
+                  type="button"
+                  onClick={() => onReply(i)}
+                  aria-label={`Responder ${c.author}`}
+                  className={`mt-1.5 text-[11px] font-bold ${accent[tone]} hover:underline`}
+                >
+                  ↩ Responder
+                </button>
+              )}
+            </CommentCard>
+            {c.replies && c.replies.length > 0 && (
+              <ul
+                aria-label={`Respostas a ${c.author}`}
+                className={`mt-2 ml-4 space-y-2 border-l-2 pl-3 ${tone === "dark" ? "border-violet-300/40" : "border-linha"}`}
+              >
+                {c.replies.map((r, j) => (
+                  <li key={j}>
+                    <CommentCard comment={r} tone={tone} />
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))}
       </ul>
     </section>
+  );
+}
+
+function CommentCard({
+  comment: c,
+  tone,
+  highlighted = false,
+  children,
+}: {
+  comment: PostComment;
+  tone: Tone;
+  highlighted?: boolean;
+  children?: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-3 ${tone === "dark" ? "bg-tinta" : "bg-marfim"} ${
+        highlighted ? "border-areia" : tone === "dark" ? "border-white/[0.12]" : "border-linha"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-2 text-[11px]">
+        <span className={`font-bold ${accent[tone]}`}>
+          {c.author}
+          {c.local && <span className={`ml-1.5 font-semibold ${muted[tone]}`}>· você, só nesta sessão</span>}
+        </span>
+        <span className={muted[tone]}>{c.time}</span>
+      </div>
+      <p className={`mt-1 text-sm leading-relaxed ${tone === "dark" ? "text-white" : "text-tinta"}`}>{c.text}</p>
+      {children}
+    </div>
   );
 }

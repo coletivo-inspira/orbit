@@ -1,10 +1,11 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import { useId, useMemo, useRef, useState, type FormEvent } from "react";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { BODY_LIMITS, COUNCILS, TITLE_LIMITS, UFS, validateDraft } from "@/lib/community";
 import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
+import { extractKeywords, tagId } from "@/lib/keywords";
 import { REGIONS } from "@/lib/data/regions";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -34,6 +35,10 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
   const [registration, setRegistration] = useState("");
   const [uf, setUf] = useState(REGIONS[state.regionId].uf);
   const [errors, setErrors] = useState<string[]>([]);
+  /** Suggested tags the author took out; kept by tag id so they stay out while the text changes. */
+  const [removedTags, setRemovedTags] = useState<string[]>([]);
+  const suggested = useMemo(() => extractKeywords(title, body), [title, body]);
+  const tags = suggested.filter((t) => !removedTags.includes(tagId(t)));
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -42,6 +47,7 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
       category,
       title,
       body,
+      tags,
       professional: kind === "artigo" ? { name, council, registration, uf } : undefined,
     };
     const problems = validateDraft(draft);
@@ -179,6 +185,48 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
               }
               className={`${FIELD} resize-none leading-relaxed`}
             />
+          </div>
+
+          <div role="group" aria-labelledby={`${uid}-tags`}>
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span id={`${uid}-tags`} className="text-[11px] font-bold text-slate-200">
+                Tags automáticas
+              </span>
+              {removedTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setRemovedTags([])}
+                  className="text-[11px] font-bold text-areia underline underline-offset-2"
+                >
+                  Restaurar removidas
+                </button>
+              )}
+            </div>
+            {tags.length ? (
+              <ul className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <li key={tag}>
+                    <button
+                      type="button"
+                      onClick={() => setRemovedTags((r) => [...r, tagId(tag)])}
+                      aria-label={`Tirar a tag ${tag}`}
+                      className="flex items-center gap-1 rounded-full border border-areia/40 bg-areia/10 py-1 pr-2 pl-2.5 text-[11px] font-semibold text-areia hover:bg-areia/20"
+                    >
+                      #{tag} <span aria-hidden="true">✕</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-[11px] text-slate-300">
+                {suggested.length
+                  ? "Nenhuma tag: o post sai sem palavras-chave."
+                  : "Aparecem aqui conforme você escreve."}
+              </p>
+            )}
+            <p className="mt-1 text-[11px] leading-snug text-slate-300">
+              Tiradas do título e do texto, sem artigos e preposições (“a”, “e”, “de”…). Toque numa tag para tirar.
+            </p>
           </div>
 
           {kind === "artigo" && (

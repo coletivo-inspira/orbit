@@ -1,7 +1,10 @@
 import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
+import { extractKeywords, MAX_COMMENT_TAGS, sanitizeTags } from "@/lib/keywords";
 import type {
+  ArticleBlock,
   CommunityCategory,
   CommunityPost,
+  PostComment,
   PostDraft,
   ProfessionalCouncil,
   TopicId,
@@ -29,6 +32,35 @@ export function communityTopics(posts: readonly CommunityPost[]): Map<string, Se
     for (const c of post.comments) add(c.local ? "me" : c.profileId, post.topics);
   }
   return byPerson;
+}
+
+/**
+ * Health categories: a comment's own words never become tags there, so writing on a PrEP or
+ * mental-health thread doesn't put a sensitive keyword next to someone's name.
+ */
+export function isHealthCategory(category: CommunityCategory): boolean {
+  return !INTEREST_CATEGORIES.includes(category);
+}
+
+function blockText(block: ArticleBlock): string {
+  return typeof block === "string" ? block : block.items.join(" ");
+}
+
+/** The post's tags: the ones its author kept, or keywords extracted from the text. */
+export function postTags(post: CommunityPost): string[] {
+  if (post.tags) return post.tags;
+  return extractKeywords(post.title, [post.summary, ...post.content.map(blockText)].join(" "));
+}
+
+/** Automatic keywords of a comment or reply; none in health categories. */
+export function commentTags(comment: PostComment, category: CommunityCategory): string[] {
+  if (isHealthCategory(category)) return [];
+  return extractKeywords("", comment.text, MAX_COMMENT_TAGS);
+}
+
+/** Comments plus their replies. */
+export function commentCount(post: CommunityPost): number {
+  return post.comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);
 }
 
 export type CommunitySort = "hot" | "new";
@@ -119,6 +151,7 @@ export function buildPost(draft: PostDraft, id: string, authorName: string): Com
     score: 1,
     vote: 1 as const,
     content: paragraphs,
+    tags: draft.tags ? sanitizeTags(draft.tags) : extractKeywords(draft.title, draft.body),
     comments: [],
   };
   if (draft.kind === "artigo" && draft.professional) {

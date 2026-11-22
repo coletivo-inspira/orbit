@@ -148,6 +148,32 @@ describe("orbitReducer", () => {
     expect(comments.at(-1)).toMatchObject({ author: initial.user.name, text: "oi" });
   });
 
+  it("adds a reply under the answered comment, and ignores unknown comments", () => {
+    const initial = createInitialState();
+    const next = orbitReducer(initial, { type: "addComment", id: "c7", text: "Boa!", replyTo: 0 });
+    const post = next.posts.find((p) => p.id === "c7")!;
+    expect(post.comments).toHaveLength(initial.posts.find((p) => p.id === "c7")!.comments.length);
+    expect(post.comments[0].replies?.at(-1)).toMatchObject({ text: "Boa!", local: true });
+    const unknown = orbitReducer(initial, { type: "addComment", id: "c7", text: "Boa!", replyTo: 99 });
+    expect(unknown.posts.find((p) => p.id === "c7")).toEqual(initial.posts.find((p) => p.id === "c7"));
+  });
+
+  it("publishes the tags the author kept, or extracts them", () => {
+    const draft = {
+      kind: "discussao" as const,
+      category: "debates" as const,
+      title: "Sessão de cinema no Parque",
+      body: "Quem topa uma sessão de cinema nacional no sábado?",
+    };
+    const kept = orbitReducer(createInitialState(), {
+      type: "submitPost",
+      draft: { ...draft, tags: ["#Cinema", "parque"] },
+    });
+    expect(kept.posts[0].tags).toEqual(["cinema", "parque"]);
+    const auto = orbitReducer(createInitialState(), { type: "submitPost", draft });
+    expect(auto.posts[0].tags).toContain("cinema");
+  });
+
   it("does not mutate the shared demo data", () => {
     const a = createInitialState();
     orbitReducer(a, { type: "toggleApp", id: "bumble" });

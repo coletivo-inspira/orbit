@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { ArticleBody, ArticleProvenance, CommentList } from "@/components/comunidade/ArticleParts";
 import { PostTrustBadge } from "@/components/comunidade/PostTrust";
+import { TagList } from "@/components/comunidade/TagList";
 import { VoteControl } from "@/components/comunidade/VoteControl";
 import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
 import { DesejoSheet } from "@/components/desejos/DesejoSheet";
@@ -15,6 +16,7 @@ import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
+import { postTags } from "@/lib/community";
 import { copyText } from "@/lib/clipboard";
 import { desejosPublicosDe } from "@/lib/desejos/perfis";
 import { activeAppIds, COMMUNITY_CATEGORIES, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
@@ -423,10 +425,13 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
   const { device } = useDevice();
   const showToast = useToast();
   const [comment, setComment] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const commentInputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
   const commentsId = useId();
+  const replyAuthor = replyTo !== null ? post.comments[replyTo]?.author : undefined;
   const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
   const isMobile = device === "mobile";
   const category = COMMUNITY_CATEGORIES[post.category];
@@ -437,9 +442,18 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
   const submit = (e: FormEvent) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    dispatch({ type: "addComment", id: post.id, text: comment });
+    dispatch({
+      type: "addComment",
+      id: post.id,
+      text: comment,
+      replyTo: replyAuthor ? (replyTo ?? undefined) : undefined,
+    });
     setComment("");
-    showToast("Comentário simulado: fica só nesta sessão.", "info");
+    setReplyTo(null);
+    showToast(
+      replyAuthor ? "Resposta simulada: fica só nesta sessão." : "Comentário simulado: fica só nesta sessão.",
+      "info",
+    );
   };
 
   const share = async () => {
@@ -481,6 +495,7 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
           >
             {post.title}
           </h2>
+          <TagList tags={postTags(post)} className="mt-2.5" />
           <div className="mt-3 mb-4">
             <ArticleProvenance post={post} tone="dark" />
           </div>
@@ -529,27 +544,51 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
               comments={post.comments}
               tone="dark"
               headingId={commentsId}
+              replyingTo={replyTo}
+              onReply={(i) => {
+                setReplyTo(i);
+                commentInputRef.current?.focus();
+              }}
               note="Comentários fictícios do Modo Explorar. O que você escrever aqui fica só nesta sessão e não aparece na página pública."
             />
           </div>
         </div>
 
-        <form
-          onSubmit={submit}
-          className="flex shrink-0 items-center gap-2 border-t border-white/[0.12] bg-tinta p-3.5"
-        >
-          <input
-            type="text"
-            value={comment}
-            maxLength={COMMENT_MAX_LENGTH}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Comentário simulado..."
-            aria-label="Novo comentário simulado (fica só nesta sessão)"
-            className="min-w-0 flex-1 rounded-full border border-white/20 bg-noite px-4 py-2 text-sm text-white placeholder-slate-300"
-          />
-          <button type="submit" className="lg-btn-primary shrink-0 rounded-full px-4 py-2 text-xs font-bold">
-            Publicar
-          </button>
+        <form onSubmit={submit} className="flex shrink-0 flex-col gap-2 border-t border-white/[0.12] bg-tinta p-3.5">
+          {replyAuthor && (
+            <div className="flex items-center justify-between gap-2 text-[11px] text-slate-300">
+              <span>
+                ↩ Respondendo a <strong className="text-areia">{replyAuthor}</strong>
+              </span>
+              <button
+                type="button"
+                onClick={() => setReplyTo(null)}
+                aria-label="Cancelar resposta"
+                className="lg-pill flex h-6 w-6 items-center justify-center rounded-full text-[10px] text-white"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <input
+              ref={commentInputRef}
+              type="text"
+              value={comment}
+              maxLength={COMMENT_MAX_LENGTH}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder={replyAuthor ? `Resposta para ${replyAuthor}...` : "Comentário simulado..."}
+              aria-label={
+                replyAuthor
+                  ? `Resposta simulada para ${replyAuthor} (fica só nesta sessão)`
+                  : "Novo comentário simulado (fica só nesta sessão)"
+              }
+              className="min-w-0 flex-1 rounded-full border border-white/20 bg-noite px-4 py-2 text-sm text-white placeholder-slate-300"
+            />
+            <button type="submit" className="lg-btn-primary shrink-0 rounded-full px-4 py-2 text-xs font-bold">
+              {replyAuthor ? "Responder" : "Publicar"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
