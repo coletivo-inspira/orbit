@@ -4,14 +4,19 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "c1",
     category: "vacinas",
+    kind: "artigo",
+    status: "publicado",
     title: "Calendário de Vacinação Adulto no SUS: HPV, Hepatites A & B e Mpox",
     summary:
       "Guia direto ao ponto sobre quais vacinas gratuitas estão disponíveis para a nossa comunidade e como agendar no posto mais próximo.",
-    author: "Dani Rocha · Enfermeiro & Curadoria Orbit",
+    author: "Dani Rocha · Enfermeiro",
+    professional: { name: "Dani Rocha", council: "COREN", uf: "MG" },
+    reviewedBy: "Moderação Orbit",
     date: "Hoje · 14:20",
+    ageHours: 3,
     readTime: "3 min",
-    likes: 84,
-    liked: false,
+    score: 84,
+    vote: 0,
     content: [
       "Manter a carteira de vacinação em dia é uma das formas mais simples e eficazes de autocuidado. Muitas pessoas ainda não sabem que o SUS oferece proteção gratuita para várias infecções relevantes para adultos sexualmente ativos.",
       {
@@ -39,14 +44,19 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "c2",
     category: "prevencao",
+    kind: "artigo",
+    status: "publicado",
     title: "PrEP Diária vs. PrEP Sob Demanda (2+1+1): como escolher com segurança",
     summary:
       "Entenda as diferenças entre os dois protocolos de prevenção ao HIV aprovados pelo Ministério da Saúde e como iniciar gratuitamente.",
-    author: "Coletivo Saúde do Vale",
+    author: "Dra. Helena Prado · Infectologista",
+    professional: { name: "Helena Prado", council: "CRM", uf: "RS" },
+    reviewedBy: "Moderação Orbit",
     date: "Ontem",
+    ageHours: 26,
     readTime: "4 min",
-    likes: 119,
-    liked: true,
+    score: 119,
+    vote: 1,
     content: [
       "A Profilaxia Pré-Exposição (PrEP) revolucionou a prevenção combinada. Hoje existem dois modelos principais acompanhados gratuitamente pelo SUS:",
       {
@@ -69,14 +79,19 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "c3",
     category: "bemestar",
+    kind: "artigo",
+    status: "publicado",
     title: "Fadiga de grade quadrada: por que os apps de encontro estão nos esgotando?",
     summary:
       "Como a dinâmica mecânica de catálogo e rejeição silenciosa afeta a autoestima — e como espaços sociais mais humanos podem mudar isso.",
     author: "Igor Mendes · Psicólogo Clínico",
+    professional: { name: "Igor Mendes", council: "CRP", uf: "SP" },
+    reviewedBy: "Moderação Orbit",
     date: "Há 2 dias",
+    ageHours: 50,
     readTime: "5 min",
-    likes: 156,
-    liked: false,
+    score: 156,
+    vote: 0,
     content: [
       'Passar horas rolando grades infinitas de torsos e respondendo roteiros automáticos ("oi / tudo bem / foto") gera um desgaste emocional real, conhecido como fadiga de aplicativos de relacionamento.',
       "Quando toda interação nasce de um filtro instantâneo sem contexto, o cérebro associa socialização a avaliação constante. Criar espaços com contexto compartilhado — como salas de conversa leve, parques virtuais e interesses explícitos — devolve a naturalidade do encontro.",
@@ -98,14 +113,17 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
   {
     id: "c4",
     category: "debates",
+    kind: "discussao",
+    status: "publicado",
     title: "Qual recurso você mais sente falta nas versões Web dos apps de relacionamento?",
     summary:
       "Fórum aberto da comunidade Orbit: conte suas maiores dores de usabilidade para ajudar a moldar o roadmap do MVP.",
     author: "Lucas Silva · Criador do Orbit",
     date: "Há 3 dias",
+    ageHours: 74,
     readTime: "2 min",
-    likes: 92,
-    liked: false,
+    score: 92,
+    vote: 0,
     content: [
       "O Orbit nasceu de uma frustração simples: usar apps de encontro no computador é quase sempre uma experiência limitada, desconectada e fragmentada entre 4 plataformas diferentes.",
       "Queremos construir esse hub junto com a comunidade. O que mais faz falta no seu dia a dia? Filtros por intenção real? Espaços abertos para fazer amizades? Integração mais limpa com o relógio?",
@@ -116,6 +134,63 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         author: "Gui",
         time: "há 2 dias",
         text: "Atalhos de teclado decentes no desktop e separar claramente quem quer conversar de quem quer algo imediato!",
+      },
+    ],
+  },
+  {
+    id: "c5",
+    category: "prevencao",
+    kind: "discussao",
+    status: "publicado",
+    title: "Alguém já precisou de PEP num fim de semana? Como foi o atendimento?",
+    summary:
+      "Fiquei na dúvida de onde ir fora do horário comercial. Queria ouvir experiências para não travar se acontecer de novo.",
+    author: "Caio R.",
+    date: "Há 5 h",
+    ageHours: 5,
+    readTime: "1 min",
+    score: 37,
+    vote: 0,
+    content: [
+      "Fiquei na dúvida de onde ir fora do horário comercial. Queria ouvir experiências para não travar se acontecer de novo.",
+      "Vocês foram em UPA, hospital ou serviço especializado? Pediram algum documento?",
+    ],
+    comments: [
+      {
+        author: "Rê",
+        time: "há 4 h",
+        text: "Fui numa UPA num domingo e fui bem atendida. Vale conferir no site da prefeitura quais serviços fazem PEP na sua cidade.",
+      },
+      {
+        author: "Diego",
+        time: "há 2 h",
+        text: "O mais importante é não esperar: quanto antes começar, melhor. Depois fiz o acompanhamento no CTA.",
+      },
+    ],
+  },
+  {
+    id: "c6",
+    category: "bemestar",
+    kind: "discussao",
+    status: "publicado",
+    title: "Sair do armário depois dos 30: bora montar uma roda de conversa?",
+    summary:
+      "Pensei num encontro online quinzenal, sem pressão, para quem está vivendo isso agora ou já passou por lá.",
+    author: "Marina",
+    date: "Ontem",
+    ageHours: 30,
+    readTime: "1 min",
+    score: 64,
+    vote: 0,
+    content: [
+      "Pensei num encontro online quinzenal, sem pressão, para quem está vivendo isso agora ou já passou por lá.",
+      "Quem topa? Podemos usar o Parque do Orbit como ponto de encontro.",
+    ],
+    comments: [
+      {
+        author: "Tati",
+        time: "há 20 h",
+        text: "Topo demais! Seria ótimo ter alguém de psicologia acompanhando de vez em quando.",
       },
     ],
   },
