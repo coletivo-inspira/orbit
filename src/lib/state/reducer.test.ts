@@ -236,11 +236,6 @@ describe("sanitizeStoredUser", () => {
 });
 
 describe("Interesse", () => {
-  it("switches between Visualizações and Toques", () => {
-    const state = orbitReducer(createInitialState(), { type: "setInteresseTab", tab: "toques" });
-    expect(state.interesseTab).toBe("toques");
-  });
-
   it("records each tap once, newest first", () => {
     let state = createInitialState();
     state = orbitReducer(state, { type: "tapProfile", id: "p1" });

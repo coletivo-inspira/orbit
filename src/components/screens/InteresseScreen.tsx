@@ -1,49 +1,30 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent } from "react";
 import { TapIcon } from "@/components/interesse/TapIcon";
+import { CardDeck } from "@/components/ui/CardDeck";
 import { ProfileImage } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
-import { rovingIndex } from "@/lib/a11y/roving";
-import { formatAgo, PROFILE_VIEWS, RECEIVED_TAPS, type InteresseTab, type InterestEvent } from "@/lib/interesse";
+import { formatAgo, INTEREST_FEED, type InterestEntry } from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
-const TABS: { id: InteresseTab; label: string; events: InterestEvent[] }[] = [
-  { id: "visualizacoes", label: "Visualizações", events: PROFILE_VIEWS },
-  { id: "toques", label: "Toques", events: RECEIVED_TAPS },
-];
+const TAP_COUNT = INTEREST_FEED.filter((e) => e.tapMinutesAgo !== undefined).length;
 
-/** Who viewed the user's profile and who tapped them. Simulated data, no paywall. */
+/** Everyone who viewed or tapped the user, one card per person in a single pile. Simulated data. */
 export function InteresseScreen() {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const showToast = useToast();
   const isMobile = device === "mobile";
-  const ids = useId();
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const tabId = (tab: InteresseTab) => `${ids}-tab-${tab}`;
-  const panelId = `${ids}-panel`;
-  const activeIndex = TABS.findIndex((t) => t.id === state.interesseTab);
-  const active = TABS[activeIndex];
-  const setTab = (tab: InteresseTab) => dispatch({ type: "setInteresseTab", tab });
 
-  const onTabKeyDown = (e: KeyboardEvent) => {
-    const next = rovingIndex(e.key, activeIndex, TABS.length);
-    if (next === null) return;
-    e.preventDefault();
-    setTab(TABS[next].id);
-    tabRefs.current[next]?.focus();
-  };
-
-  const tapBack = (event: InterestEvent) => {
-    dispatch({ type: "tapProfile", id: event.profile.id });
-    showToast(`Você tocou de volta em ${event.profile.name}. (simulação)`, "success");
+  const tapBack = (entry: InterestEntry) => {
+    dispatch({ type: "tapProfile", id: entry.profile.id });
+    showToast(`Você tocou de volta em ${entry.profile.name}. (simulação)`, "success");
   };
 
   return (
     <div className="relative flex h-full w-full flex-col">
-      <div className={`lg-header z-20 shrink-0 ${isMobile ? "px-4 pt-2" : "px-5 pt-4"}`}>
+      <div className={`lg-header z-20 shrink-0 ${isMobile ? "px-4 pt-2 pb-2" : "px-5 pt-4 pb-3"}`}>
         <h1
           tabIndex={-1}
           data-focus-fallback
@@ -51,120 +32,116 @@ export function InteresseScreen() {
         >
           Interesse
         </h1>
-        <div role="tablist" aria-label="Tipo de interesse" className="mt-2 flex justify-center gap-8">
-          {TABS.map((tab, i) => {
-            const selected = tab.id === state.interesseTab;
-            return (
-              <button
-                key={tab.id}
-                ref={(el) => {
-                  tabRefs.current[i] = el;
-                }}
-                id={tabId(tab.id)}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                aria-controls={panelId}
-                tabIndex={selected ? 0 : -1}
-                onKeyDown={onTabKeyDown}
-                onClick={() => setTab(tab.id)}
-                className={`border-b-2 px-1 pb-2 text-base font-bold transition ${
-                  selected ? "border-areia text-white" : "border-transparent text-slate-300 hover:text-white"
-                }`}
-              >
-                {tab.label} {tab.events.length}
-              </button>
-            );
-          })}
-        </div>
+        <p className="mt-0.5 text-[11px] leading-snug text-slate-300">
+          <span className="font-semibold text-white">
+            {INTEREST_FEED.length} pessoas · <span className="text-areia">{TAP_COUNT} toques</span>
+          </span>{" "}
+          — quem abriu seu perfil ou te deu um toque, do mais recente. Dados simulados; distâncias aproximadas.
+        </p>
       </div>
 
       <div
-        id={panelId}
-        role="tabpanel"
-        aria-labelledby={tabId(active.id)}
-        className={`orbit-scroll @container min-h-0 flex-1 overflow-y-auto ${isMobile ? "p-2.5 pb-24" : "p-5"}`}
+        style={{ containerType: "size" }}
+        className={`orbit-scroll flex min-h-0 flex-1 flex-col justify-center overflow-x-hidden overflow-y-auto ${
+          isMobile ? "px-3 pt-4 pb-24" : "p-6"
+        }`}
       >
-        <p className="mb-2.5 px-1 text-[11px] leading-snug text-slate-300">
-          {active.id === "visualizacoes"
-            ? "Quem abriu seu perfil recentemente."
-            : "Quem te deu um toque. Toque de volta para mostrar interesse."}{" "}
-          Dados simulados; distâncias aproximadas.
-        </p>
-        <ul
-          className={`grid gap-2 ${isMobile ? "grid-cols-2" : "grid-cols-2 @min-[560px]:grid-cols-3 @min-[820px]:grid-cols-4 @min-[1100px]:grid-cols-5"}`}
-          aria-label={active.label}
-        >
-          {active.events.map((event) => (
-            <InterestCard
-              key={event.profile.id}
-              event={event}
-              tapped={state.sentTaps.includes(event.profile.id)}
-              showTap={active.id === "toques"}
-              onOpen={() => dispatch({ type: "openProfile", id: event.profile.id })}
-              onTapBack={() => tapBack(event)}
-            />
-          ))}
-        </ul>
+        <CardDeck
+          items={INTEREST_FEED}
+          getKey={(e) => e.profile.id}
+          label="Quem passou pela sua órbita"
+          itemLabel={entryLabel}
+          stageClassName={
+            isMobile ? "h-[clamp(220px,calc(100cqh-190px),400px)]" : "h-[clamp(260px,calc(100cqh-150px),520px)]"
+          }
+          onOpen={(e) => dispatch({ type: "openProfile", id: e.profile.id })}
+          renderCard={(e, { front }) => (
+            <>
+              <ProfileImage cfg={e.profile.avatar} photo={e.profile.photo} />
+              {e.tapMinutesAgo !== undefined && <InterestStamp animate={front} />}
+            </>
+          )}
+          renderActions={(e) =>
+            e.tapMinutesAgo !== undefined && (
+              <TapBackButton
+                name={e.profile.name}
+                tapped={state.sentTaps.includes(e.profile.id)}
+                onTapBack={() => tapBack(e)}
+              />
+            )
+          }
+          renderCaption={(e) => <InterestCaption entry={e} />}
+        />
       </div>
     </div>
   );
 }
 
-function InterestCard({
-  event,
-  tapped,
-  showTap,
-  onOpen,
-  onTapBack,
-}: {
-  event: InterestEvent;
-  tapped: boolean;
-  showTap: boolean;
-  onOpen: () => void;
-  onTapBack: () => void;
-}) {
-  const p = event.profile;
+function entryLabel(e: InterestEntry): string {
+  const parts = [`${e.profile.name}, ${e.profile.age}`];
+  if (e.tapMinutesAgo !== undefined) parts.push("te deu um toque");
+  if (e.opens > 1) parts.push(`abriu seu perfil ${e.opens} vezes`);
+  return parts.join(", ");
+}
+
+/** Rubber stamp over a card whose person tapped the user. */
+function InterestStamp({ animate }: { animate: boolean }) {
   return (
-    <li className="relative">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="group relative block aspect-square w-full overflow-hidden rounded-[18px] border border-white/[0.12] bg-noite text-left"
-      >
-        <ProfileImage cfg={p.avatar} photo={p.photo} />
-        <span
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-tinta/95 via-tinta/40 to-transparent"
-          aria-hidden="true"
-        />
-        <span className="absolute right-2.5 bottom-2 left-2.5 flex flex-col gap-0.5">
-          <span className="flex items-center gap-1.5 truncate text-[13px] font-bold text-white">
-            {p.online && <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />}
-            <span className="truncate">
-              {p.name}, {p.age}
-            </span>
-            {p.online && <span className="sr-only">, online</span>}
-          </span>
-          <span className="flex items-center justify-between gap-2 text-[11px] font-medium text-slate-200">
-            <span>{formatAgo(event.minutesAgo)}</span>
-            <span>{p.dist}</span>
-          </span>
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute top-[11%] left-[9%] flex rotate-[-11deg] items-center gap-1 rounded-md border-[3px] border-areia bg-tinta/60 px-2.5 py-1 text-[15px] font-black tracking-[0.14em] text-areia uppercase shadow-[0_0_0_2px_rgba(28,38,49,0.55),inset_0_0_0_1.5px_rgba(222,201,168,0.45)] backdrop-blur-[2px] ${
+        animate ? "carimbo-entra" : ""
+      }`}
+    >
+      <TapIcon className="h-[18px] w-[18px]" filled />
+      Interessado
+    </span>
+  );
+}
+
+function InterestCaption({ entry }: { entry: InterestEntry }) {
+  const p = entry.profile;
+  return (
+    <>
+      <p className="flex items-center justify-center gap-1.5 truncate text-sm font-bold text-white">
+        <span className="truncate">
+          {p.name}, {p.age}
         </span>
-      </button>
-      {showTap && (
-        <button
-          type="button"
-          onClick={() => !tapped && onTapBack()}
-          aria-disabled={tapped}
-          aria-label={tapped ? `Você já tocou de volta em ${p.name}` : `Tocar de volta em ${p.name}`}
-          title={tapped ? "Tocado de volta" : "Tocar de volta"}
-          className={`absolute top-2 right-2 flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md aria-disabled:cursor-default ${
-            tapped ? "border-areia bg-areia text-tinta" : "border-white/25 bg-tinta/70 text-white hover:text-areia"
-          }`}
-        >
-          <TapIcon className="h-5 w-5" filled={tapped} />
-        </button>
-      )}
-    </li>
+        {p.online && (
+          <>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />
+            <span className="sr-only">, online</span>
+          </>
+        )}
+      </p>
+      <p className="flex items-center justify-center gap-1.5 text-[12px] font-medium text-slate-300">
+        <span>
+          {formatAgo(entry.minutesAgo)} · {p.dist}
+        </span>
+        {entry.opens > 1 && (
+          <span className="rounded-full border border-white/15 bg-white/[0.07] px-1.5 text-[11px] font-semibold text-white">
+            abriu {entry.opens}×
+          </span>
+        )}
+      </p>
+    </>
+  );
+}
+
+function TapBackButton({ name, tapped, onTapBack }: { name: string; tapped: boolean; onTapBack: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => !tapped && onTapBack()}
+      aria-disabled={tapped}
+      aria-label={tapped ? `Você já tocou de volta em ${name}` : `Tocar de volta em ${name}`}
+      title={tapped ? "Tocado de volta" : "Tocar de volta"}
+      className={`absolute right-[8%] bottom-[8%] z-10 flex h-11 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-bold backdrop-blur-md aria-disabled:cursor-default ${
+        tapped ? "border-areia bg-areia text-tinta" : "border-white/25 bg-tinta/75 text-white hover:text-areia"
+      }`}
+    >
+      <TapIcon className="h-5 w-5" filled={tapped} />
+      {tapped ? "Tocado" : "Tocar de volta"}
+    </button>
   );
 }
