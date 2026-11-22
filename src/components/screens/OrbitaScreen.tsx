@@ -302,9 +302,10 @@ function NearbyCard({
         </RingedAvatar>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold text-white">
-            {p.name}, {p.age} <span className="text-[11px] font-normal text-slate-300">· {PRONOUNS[p.pronouns]}</span>
+            {p.name}, {p.age}
           </div>
           <div className="flex flex-wrap items-center gap-x-1 text-[11px] text-slate-300">
+            <span>{PRONOUNS[p.pronouns]} ·</span>
             <span>📍 {p.dist}</span>
             {p.online && <span>· online</span>}
             {p.inPark && <span className="font-semibold text-salvia">· no Parque</span>}

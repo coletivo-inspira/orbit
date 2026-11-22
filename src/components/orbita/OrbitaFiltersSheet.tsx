@@ -151,7 +151,7 @@ export function OrbitaFiltersSheet({ onClose }: { onClose: () => void }) {
           </Group>
 
           <Group title="Identidade de gênero">
-            <div className="mb-2">
+            <div>
               <ToggleChip pressed={onlyTrans} onToggle={() => update({ genders: onlyTrans ? [] : [...TRANS_GENDERS] })}>
                 <span aria-hidden="true">🏳️‍⚧️</span> Só pessoas trans e travestis
               </ToggleChip>
@@ -227,9 +227,9 @@ export function OrbitaFiltersSheet({ onClose }: { onClose: () => void }) {
         >
           <button
             type="button"
-            disabled={count === 0}
-            onClick={() => dispatch({ type: "clearOrbitaFilters" })}
-            className="lg-pill rounded-full px-4 py-2.5 text-xs font-bold text-white disabled:opacity-50"
+            aria-disabled={count === 0}
+            onClick={() => count > 0 && dispatch({ type: "clearOrbitaFilters" })}
+            className="lg-pill rounded-full px-4 py-2.5 text-xs font-bold text-white aria-disabled:cursor-default aria-disabled:opacity-50"
           >
             Limpar
           </button>
