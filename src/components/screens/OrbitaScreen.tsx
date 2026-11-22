@@ -2,15 +2,18 @@
 
 import { useId, useRef, type KeyboardEvent } from "react";
 import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
+import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
+import { ToggleChip } from "@/components/ui/ToggleChip";
 import { rovingIndex } from "@/lib/a11y/roving";
 import { activeAppIds, EXTERNAL_APPS, INTENTION_LIST, INTENTIONS } from "@/lib/data/intentions";
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { labelOf, PRONOUNS, TOPICS } from "@/lib/data/profileOptions";
+import { activeFilterCount, sharedTopics } from "@/lib/orbitaFilters";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { OrbitaFilter, OrbitState } from "@/lib/state/reducer";
-import type { Profile } from "@/lib/types";
+import type { Profile, TopicId } from "@/lib/types";
 
 const FILTERS: { id: OrbitaFilter; label: string; color: string }[] = [
   { id: "all", label: "Todos", color: "#f5f0e7" },
@@ -22,15 +25,17 @@ const VIEW_MODES: { id: OrbitState["orbitaViewMode"]; label: string }[] = [
   { id: "lista", label: "Lista" },
 ];
 
-export function filterProfiles(filter: OrbitaFilter): Profile[] {
-  return filter === "all" ? SIMULATED_PROFILES : SIMULATED_PROFILES.filter((p) => p.intentions.includes(filter));
-}
-
 export function OrbitaScreen() {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const isMobile = device === "mobile";
-  const profiles = filterProfiles(state.orbitaFilter);
+  const { profiles, affinity } = useOrbitaProfiles();
+  const filterCount = activeFilterCount(state.orbitaFilters);
+  const byAffinity = state.orbitaSort === "afinidade";
+  const clearAll = () => {
+    dispatch({ type: "clearOrbitaFilters" });
+    dispatch({ type: "setOrbitaFilter", filter: "all" });
+  };
   const ids = useId();
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const tabId = (mode: string) => `${ids}-tab-${mode}`;
@@ -94,31 +99,70 @@ export function OrbitaScreen() {
           </div>
         </div>
         <p className="mt-1 text-[11px] leading-snug text-slate-300">
-          {state.orbitaViewMode === "radial"
-            ? "Arraste o radar ou use Tab. A posição no radar não indica distância; as distâncias são aproximadas e simuladas."
-            : "Todas as pessoas por perto, com nome, intenção e distância aproximada (simulada)."}
+          {byAffinity
+            ? "Quem tem mais assuntos em comum com você fica mais perto do centro. O número na bolha mostra quantos."
+            : state.orbitaViewMode === "radial"
+              ? "Arraste o radar ou use Tab. A posição no radar não indica distância; as distâncias são aproximadas e simuladas."
+              : "Pessoas por perto, da mais próxima à mais distante (distâncias aproximadas e simuladas)."}
         </p>
 
-        <div role="group" aria-label="Filtrar por intenção" className="mt-2.5 flex flex-wrap items-center gap-1.5">
-          {FILTERS.map((f) => {
-            const active = state.orbitaFilter === f.id;
-            return (
-              <button
+        <div className="mt-2.5 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "openOrbitaFilters" })}
+            aria-haspopup="dialog"
+            aria-label={filterCount ? `Filtros, ${filterCount} ativos` : "Filtros"}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+              filterCount ? "lg-active-lens" : "lg-pill text-white"
+            }`}
+          >
+            <svg
+              className="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              aria-hidden="true"
+            >
+              <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" />
+              <circle cx="16" cy="6" r="2" />
+              <circle cx="10" cy="12" r="2" />
+              <circle cx="18" cy="18" r="2" />
+            </svg>
+            Filtros
+            {filterCount > 0 && (
+              <span
+                className="flex h-4 min-w-4 items-center justify-center rounded-full bg-areia px-1 text-[10px] font-extrabold text-tinta"
+                aria-hidden="true"
+              >
+                {filterCount}
+              </span>
+            )}
+          </button>
+          <ToggleChip
+            pressed={byAffinity}
+            onToggle={() => dispatch({ type: "setOrbitaSort", sort: byAffinity ? "proximidade" : "afinidade" })}
+          >
+            <span aria-hidden="true">✦</span> Afinidade
+          </ToggleChip>
+          <span className="h-5 w-px shrink-0 bg-white/15" aria-hidden="true" />
+          <div
+            role="group"
+            aria-label="Filtrar por intenção"
+            className="orbit-scroll -my-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1"
+          >
+            {FILTERS.map((f) => (
+              <ToggleChip
                 key={f.id}
-                type="button"
-                aria-pressed={active}
-                onClick={() => dispatch({ type: "setOrbitaFilter", filter: f.id })}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                  active
-                    ? "lg-active-lens"
-                    : "border border-white/[0.14] bg-white/[0.06] text-slate-300 hover:bg-white/[0.12] hover:text-white"
-                }`}
+                pressed={state.orbitaFilter === f.id}
+                onToggle={() => dispatch({ type: "setOrbitaFilter", filter: f.id })}
               >
                 <span className="h-2 w-2 rounded-full" style={{ background: f.color }} aria-hidden="true" />
                 {f.label}
-              </button>
-            );
-          })}
+              </ToggleChip>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -128,9 +172,12 @@ export function OrbitaScreen() {
         aria-labelledby={tabId(state.orbitaViewMode)}
         className="relative flex min-h-0 flex-1 flex-col"
       >
-        {state.orbitaViewMode === "radial" ? (
+        {profiles.length === 0 ? (
+          <EmptyState compact={isMobile} onClear={clearAll} onAdjust={() => dispatch({ type: "openOrbitaFilters" })} />
+        ) : state.orbitaViewMode === "radial" ? (
           <OrbitRadial
             profiles={profiles}
+            affinity={byAffinity ? affinity : undefined}
             centerOffsetY={isMobile ? 18 : 0}
             onCenterClick={() => dispatch({ type: "setTab", tab: "perfil" })}
             className="flex-1"
@@ -149,6 +196,7 @@ export function OrbitaScreen() {
                 <li key={p.id} className="flex">
                   <NearbyCard
                     profile={p}
+                    userTopics={state.user.topics}
                     compact={isMobile}
                     onOpen={() => dispatch({ type: "openProfile", id: p.id })}
                   />
@@ -197,9 +245,49 @@ function RadialOverlay({ compact, count, onShowList }: { compact: boolean; count
   );
 }
 
-function NearbyCard({ profile: p, compact, onOpen }: { profile: Profile; compact: boolean; onOpen: () => void }) {
+function EmptyState({ compact, onClear, onAdjust }: { compact: boolean; onClear: () => void; onAdjust: () => void }) {
+  return (
+    <div className={`flex flex-1 items-center justify-center ${compact ? "p-5 pb-28" : "p-8"}`}>
+      <div className="lg-panel max-w-sm rounded-[26px] p-6 text-center" role="status">
+        <div className="text-3xl" aria-hidden="true">
+          🔭
+        </div>
+        <h2 className="mt-2 text-base font-bold text-white">Ninguém por perto com esses filtros</h2>
+        <p className="mt-1 text-xs leading-relaxed text-slate-300">
+          Tente afrouxar algum grupo: cada filtro ativo precisa combinar ao mesmo tempo, e quem deixou um campo em
+          branco fica de fora quando você filtra por ele.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          <button type="button" onClick={onClear} className="lg-btn-primary rounded-full px-4 py-2 text-xs font-bold">
+            Limpar filtros
+          </button>
+          <button
+            type="button"
+            onClick={onAdjust}
+            className="lg-pill rounded-full px-4 py-2 text-xs font-bold text-white"
+          >
+            Ajustar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NearbyCard({
+  profile: p,
+  userTopics,
+  compact,
+  onOpen,
+}: {
+  profile: Profile;
+  userTopics: TopicId[];
+  compact: boolean;
+  onOpen: () => void;
+}) {
   const intention = INTENTIONS[p.primaryIntention];
   const apps = activeAppIds(p.apps);
+  const shared = sharedTopics(userTopics, p.topics);
   return (
     <button
       type="button"
@@ -207,14 +295,14 @@ function NearbyCard({ profile: p, compact, onOpen }: { profile: Profile; compact
       className="lg-panel group flex w-full flex-col gap-2.5 rounded-[22px] p-3.5 text-left transition-colors hover:border-white/30"
     >
       <div className="flex items-center gap-2.5">
-        <RingedAvatar cfg={p.avatar} color={intention.color} size={48} halo={false}>
+        <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} size={48} halo={false}>
           {p.online && (
             <span className="absolute right-0.5 bottom-0.5 h-3 w-3 rounded-full border-2 border-noite bg-emerald-400" />
           )}
         </RingedAvatar>
         <div className="min-w-0 flex-1">
           <div className="truncate text-sm font-bold text-white">
-            {p.name}, {p.age}
+            {p.name}, {p.age} <span className="text-[11px] font-normal text-slate-300">· {PRONOUNS[p.pronouns]}</span>
           </div>
           <div className="flex flex-wrap items-center gap-x-1 text-[11px] text-slate-300">
             <span>📍 {p.dist}</span>
@@ -230,6 +318,11 @@ function NearbyCard({ profile: p, compact, onOpen }: { profile: Profile; compact
         {intention.emoji} {intention.label}
       </div>
       {!compact && <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-300">{p.bio}</p>}
+      {shared.length > 0 && (
+        <p className="text-[11px] leading-snug text-areia">
+          <span className="font-bold">✦ Em comum:</span> {shared.map((id) => labelOf(TOPICS, id)).join(", ")}
+        </p>
+      )}
       <div className="mt-auto flex items-center gap-1.5 border-t border-white/[0.09] pt-2">
         {apps.slice(0, 4).map((id) => (
           <AppTile key={id} appId={id} />

@@ -40,18 +40,116 @@ export interface AppPresence {
   handle?: string;
 }
 
+export type GenderId =
+  "homem-cis" | "homem-trans" | "mulher-cis" | "mulher-trans" | "travesti" | "nao-binarie" | "genero-fluido";
+export type Pronouns = "ele" | "ela" | "elu";
+export type OrientationId = "gay" | "lesbica" | "bi" | "pan" | "queer" | "hetero" | "assexual";
+export type TribeId =
+  | "bear"
+  | "otter"
+  | "twink"
+  | "jock"
+  | "geek"
+  | "daddy"
+  | "leather"
+  | "discreto"
+  | "trans"
+  | "clean-cut"
+  | "rugged"
+  | "poz"
+  | "sem-tribo";
+export type LookingForId = "amizade" | "troca" | "namoro" | "casual" | "agora" | "networking";
+export type PositionId = "ativo" | "vers-ativo" | "versatil" | "vers-passivo" | "passivo" | "side";
+export type SportId =
+  | "futebol"
+  | "volei"
+  | "corrida"
+  | "musculacao"
+  | "natacao"
+  | "yoga"
+  | "ciclismo"
+  | "crossfit"
+  | "danca"
+  | "trilha"
+  | "lutas"
+  | "skate";
+export type RelationshipId = "solteiro" | "namorando" | "casado" | "aberto";
+export type MeetPlaceId = "minha-casa" | "sua-casa" | "bar" | "restaurante" | "cafe" | "online";
+export type CondomUse = "sempre" | "as-vezes" | "prefiro-nao-dizer";
+export type HivStatus = "negativo" | "positivo-indetectavel" | "positivo" | "prefiro-nao-dizer";
+export type TopicId =
+  | "cinema"
+  | "series"
+  | "musica-eletronica"
+  | "mpb"
+  | "pop"
+  | "kpop"
+  | "games"
+  | "anime"
+  | "livros"
+  | "politica"
+  | "tecnologia"
+  | "design"
+  | "moda"
+  | "gastronomia"
+  | "viagens"
+  | "fotografia"
+  | "arte"
+  | "teatro"
+  | "drag"
+  | "astrologia"
+  | "pets"
+  | "plantas"
+  | "cafe"
+  | "cerveja"
+  | "vinho"
+  | "natureza"
+  | "ativismo"
+  | "saude-mental"
+  | "carreira"
+  | "idiomas"
+  | "ciencia"
+  | "esportes";
+
+/** Self-declared and optional; an absent field means "not informed". */
+export interface SexualHealth {
+  prep?: boolean;
+  condom?: CondomUse;
+  /** Month of the last test, "YYYY-MM". */
+  lastTest?: string;
+  status?: HivStatus;
+}
+
 export interface Profile {
   id: string;
   name: string;
   age: number;
   dist: string;
+  distanceM: number;
   online: boolean;
   inPark: boolean;
   primaryIntention: IntentionId;
   intentions: IntentionId[];
   bio: string;
   avatar: AvatarConfig;
+  /** File in `public/profiles/`; the illustrated avatar is the fallback. */
+  photo?: string;
   apps: Partial<Record<AppId, AppPresence>>;
+  city: string;
+  gender: GenderId;
+  pronouns: Pronouns;
+  orientation: OrientationId;
+  heightCm?: number;
+  weightKg?: number;
+  tribes: TribeId[];
+  lookingFor: LookingForId[];
+  position?: PositionId;
+  sports: SportId[];
+  relationship?: RelationshipId;
+  acceptsNsfw?: boolean;
+  meetAt: MeetPlaceId[];
+  health: SexualHealth;
+  topics: TopicId[];
 }
 
 export interface UserProfile {
@@ -66,6 +164,7 @@ export interface UserProfile {
   bio: string;
   avatar: AvatarConfig;
   apps: Record<AppId, { active: boolean; handle: string }>;
+  topics: TopicId[];
 }
 
 export interface PostComment {

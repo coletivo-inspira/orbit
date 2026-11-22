@@ -1,6 +1,9 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
-import { articleRoute, publicPath, publicUrl } from "./publicUrl";
+import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { articleRoute, profilePhotoUrl, publicPath, publicUrl } from "./publicUrl";
 
 describe("publicUrl", () => {
   it("keeps the GitHub Pages base path", () => {
@@ -23,5 +26,16 @@ describe("publicUrl", () => {
     const urls = COMMUNITY_POSTS.map((p) => publicUrl(articleRoute(p.id), "https://x.dev", "/orbit"));
     expect(new Set(urls).size).toBe(COMMUNITY_POSTS.length);
     urls.forEach((u) => expect(u).toMatch(/^https:\/\/x\.dev\/orbit\/comunidade\/c\d\/$/));
+  });
+
+  it("prefixes profile photos with the base path", () => {
+    expect(profilePhotoUrl("p1.webp", "/orbit")).toBe("/orbit/profiles/p1.webp");
+    expect(profilePhotoUrl("p1.webp", "")).toBe("/profiles/p1.webp");
+  });
+
+  it("ships a photo file for every profile that declares one", () => {
+    for (const p of SIMULATED_PROFILES) {
+      if (p.photo) expect(existsSync(join(process.cwd(), "public/profiles", p.photo)), p.photo).toBe(true);
+    }
   });
 });

@@ -17,3 +17,8 @@ export function publicUrl(
 }
 
 export const articleRoute = (id: string) => `/comunidade/${id}`;
+
+/** Static asset under `public/profiles/`, prefixed with the base path like every exported URL. */
+export function profilePhotoUrl(photo: string, basePath: string = BASE_PATH): string {
+  return `${basePath.replace(/\/+$/, "")}/profiles/${photo}`;
+}

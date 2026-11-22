@@ -1,7 +1,9 @@
 import { INTENTIONS } from "@/lib/data/intentions";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
+import { TOPIC_IDS } from "@/lib/data/profileOptions";
 import { DEMO_USER } from "@/lib/data/user";
-import type { AppId, CommunityCategory, CommunityPost, IntentionId, TabId, UserProfile } from "@/lib/types";
+import { EMPTY_FILTERS, type OrbitaFilters, type OrbitaSort } from "@/lib/orbitaFilters";
+import type { AppId, CommunityCategory, CommunityPost, IntentionId, TabId, TopicId, UserProfile } from "@/lib/types";
 
 export type OrbitaFilter = "all" | IntentionId;
 export type CommunityFilter = "all" | CommunityCategory;
@@ -13,6 +15,9 @@ export interface OrbitState {
   activeTab: TabId;
   orbitaViewMode: "radial" | "lista";
   orbitaFilter: OrbitaFilter;
+  orbitaFilters: OrbitaFilters;
+  orbitaSort: OrbitaSort;
+  orbitaFiltersOpen: boolean;
   communityFilter: CommunityFilter;
   /** 0: Órbita, 1: Parque, 2: Meu Cartão */
   watchPage: 0 | 1 | 2;
@@ -27,6 +32,10 @@ export type OrbitAction =
   | { type: "resetHome" }
   | { type: "setOrbitaViewMode"; mode: OrbitState["orbitaViewMode"] }
   | { type: "setOrbitaFilter"; filter: OrbitaFilter }
+  | { type: "updateOrbitaFilters"; patch: Partial<OrbitaFilters> }
+  | { type: "clearOrbitaFilters" }
+  | { type: "setOrbitaSort"; sort: OrbitaSort }
+  | { type: "openOrbitaFilters" }
   | { type: "setCommunityFilter"; filter: CommunityFilter }
   | { type: "setWatchPage"; page: OrbitState["watchPage"] }
   | { type: "openProfile"; id: string }
@@ -40,11 +49,13 @@ export type OrbitAction =
   | { type: "setPrimaryIntention"; id: IntentionId }
   | { type: "toggleApp"; id: AppId }
   | { type: "updateAppHandle"; id: AppId; handle: string }
+  | { type: "toggleTopic"; id: TopicId }
   | { type: "togglePostLike"; id: string }
   | { type: "addComment"; id: string; text: string };
 
 export const BIO_MAX_LENGTH = 160;
 export const COMMENT_MAX_LENGTH = 500;
+export const TOPICS_MAX = 8;
 
 export function createInitialState(): OrbitState {
   return {
@@ -54,6 +65,9 @@ export function createInitialState(): OrbitState {
     activeTab: "orbita",
     orbitaViewMode: "radial",
     orbitaFilter: "all",
+    orbitaFilters: structuredClone(EMPTY_FILTERS),
+    orbitaSort: "proximidade",
+    orbitaFiltersOpen: false,
     communityFilter: "all",
     watchPage: 0,
     selectedProfileId: null,
@@ -64,6 +78,10 @@ export function createInitialState(): OrbitState {
 
 function isIntention(value: unknown): value is IntentionId {
   return typeof value === "string" && Object.hasOwn(INTENTIONS, value);
+}
+
+function isTopic(value: unknown): value is TopicId {
+  return typeof value === "string" && TOPIC_IDS.has(value);
 }
 
 /**
@@ -99,10 +117,11 @@ export function sanitizeStoredUser(raw: unknown): UserProfile | null {
     intentions,
     primaryIntention,
     apps,
+    topics: Array.isArray(data.topics) ? [...new Set(data.topics.filter(isTopic))].slice(0, TOPICS_MAX) : base.topics,
   };
 }
 
-const closed = { selectedProfileId: null, selectedArticleId: null } as const;
+const closed = { selectedProfileId: null, selectedArticleId: null, orbitaFiltersOpen: false } as const;
 
 export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState {
   switch (action.type) {
@@ -116,14 +135,22 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
       return { ...state, orbitaViewMode: action.mode };
     case "setOrbitaFilter":
       return { ...state, orbitaFilter: action.filter };
+    case "updateOrbitaFilters":
+      return { ...state, orbitaFilters: { ...state.orbitaFilters, ...action.patch } };
+    case "clearOrbitaFilters":
+      return { ...state, orbitaFilters: structuredClone(EMPTY_FILTERS) };
+    case "setOrbitaSort":
+      return { ...state, orbitaSort: action.sort };
+    case "openOrbitaFilters":
+      return { ...state, ...closed, orbitaFiltersOpen: true };
     case "setCommunityFilter":
       return { ...state, communityFilter: action.filter };
     case "setWatchPage":
       return { ...state, selectedProfileId: null, watchPage: action.page };
     case "openProfile":
-      return { ...state, selectedProfileId: action.id, selectedArticleId: null };
+      return { ...state, ...closed, selectedProfileId: action.id };
     case "openArticle":
-      return { ...state, selectedArticleId: action.id, selectedProfileId: null };
+      return { ...state, ...closed, selectedArticleId: action.id };
     case "closeModals":
       return { ...state, ...closed };
     case "toggleDesktopDpad":
@@ -173,6 +200,12 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
           apps: { ...state.user.apps, [action.id]: { ...app, handle: action.handle.slice(0, 40) } },
         },
       };
+    }
+    case "toggleTopic": {
+      const { topics } = state.user;
+      if (!topics.includes(action.id) && topics.length >= TOPICS_MAX) return state;
+      const next = topics.includes(action.id) ? topics.filter((t) => t !== action.id) : [...topics, action.id];
+      return { ...state, user: { ...state.user, topics: next } };
     }
     case "togglePostLike":
       return {
