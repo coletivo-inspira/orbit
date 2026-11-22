@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useLayoutEffect, useRef, useState, type FormEvent } from "react";
+import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
@@ -26,7 +27,6 @@ export function MiniChat({
   const isMobile = device === "mobile";
   const conversation = state.conversations[p.id] ?? { mine: null, theirs: null };
   const intention = INTENTIONS[p.primaryIntention];
-  const userIntention = INTENTIONS[state.user.primaryIntention];
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState("");
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -104,16 +104,9 @@ export function MiniChat({
             emptyNote="Você ainda não falou"
             delay={180}
             avatar={
-              <div
-                className="overflow-hidden rounded-full"
-                style={{
-                  width: avatarSize,
-                  height: avatarSize,
-                  boxShadow: `0 0 0 3px ${userIntention.color}, 0 0 0 7px rgba(255,255,255,0.12), 0 14px 30px rgba(0,0,0,0.5)`,
-                }}
-              >
+              <MolduraDoUsuario size={avatarSize} sombra="0 14px 30px rgba(0,0,0,0.5)">
                 <Avatar cfg={state.user.avatar} />
-              </div>
+              </MolduraDoUsuario>
             }
           />
           <ComicSpeaker

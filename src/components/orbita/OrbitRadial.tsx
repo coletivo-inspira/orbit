@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
 import { RadarMapBackdrop } from "@/components/orbita/RadarMapBackdrop";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
@@ -85,7 +86,6 @@ export function OrbitRadial({
     };
   }, [profileKey, positions, maxPan, isWatch, centerOffsetY, getScale]);
 
-  const userIntention = INTENTIONS[state.user.primaryIntention];
   const centerSize = baseRadius * 2.15;
   const diameter = baseRadius * 2;
   const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
@@ -118,17 +118,9 @@ export function OrbitRadial({
           className="absolute top-1/2 left-1/2 z-20 flex -translate-x-1/2 -translate-y-1/2 cursor-pointer flex-col items-center rounded-full"
         >
           <div className="relative flex flex-col items-center">
-            <div
-              className="overflow-hidden rounded-full shadow-2xl"
-              style={{
-                width: centerSize,
-                height: centerSize,
-                boxShadow: `0 0 0 3px ${userIntention.color}, 0 0 0 6px rgba(255,255,255,0.14), 0 12px 28px rgba(0,0,0,0.55)`,
-              }}
-              aria-hidden="true"
-            >
+            <MolduraDoUsuario size={centerSize} sombra="0 12px 28px rgba(0,0,0,0.55)">
               <Avatar cfg={state.user.avatar} />
-            </div>
+            </MolduraDoUsuario>
             <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
               Você<span className="sr-only">, abrir meu perfil</span>
             </span>

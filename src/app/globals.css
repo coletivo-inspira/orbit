@@ -305,6 +305,9 @@
     border-style: dashed;
     border-color: rgb(245 240 231 / 65%);
   }
+  .moldura-girar {
+    animation: molduraGirar 14s linear infinite;
+  }
   .hq-speech-pop {
     animation: hqPop 0.42s cubic-bezier(0.22, 1.4, 0.36, 1) both;
   }
@@ -537,6 +540,12 @@
   }
 }
 
+@keyframes molduraGirar {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
 @keyframes hqPop {
   from {
     opacity: 0;
@@ -568,7 +577,8 @@
     scroll-behavior: auto !important;
   }
   .ambient-orb,
-  .clay-loader {
+  .clay-loader,
+  .moldura-girar {
     animation: none;
   }
   .lg-sheen::before {

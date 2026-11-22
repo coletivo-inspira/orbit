@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useReducer,
 import { createConversationArchive, type ConversationArchive } from "@/lib/seguranca/conversationArchive";
 import { createInitialState, orbitReducer, sanitizeStoredUser, type OrbitAction, type OrbitState } from "./reducer";
 import { sanitizarDesejos } from "@/lib/desejos/pontuacao";
+import { sanitizarMolduras, type EstadoMolduras } from "@/lib/molduras/estado";
 import type { EstadoDesejos } from "@/lib/desejos/types";
 import type { UserProfile } from "@/lib/types";
 
@@ -11,6 +12,7 @@ const STORAGE_KEY = "orbit:user:v1";
 const REGION_KEY = "orbit:region:v1";
 const DESEJOS_KEY = "orbit:desejos:v1";
 const TAPS_KEY = "orbit:taps:v1";
+const MOLDURAS_KEY = "orbit:molduras:v1";
 
 interface OrbitContextValue {
   state: OrbitState;
@@ -28,6 +30,15 @@ function readStoredUser(): UserProfile | null {
   }
 }
 
+function readStoredMolduras(): EstadoMolduras | null {
+  try {
+    const raw = window.localStorage.getItem(MOLDURAS_KEY);
+    return raw ? sanitizarMolduras(JSON.parse(raw)) : null;
+  } catch {
+    return null;
+  }
+}
+
 function readStoredDesejos(): EstadoDesejos | null {
   try {
     const raw = window.localStorage.getItem(DESEJOS_KEY);
@@ -40,8 +51,8 @@ function readStoredDesejos(): EstadoDesejos | null {
 /**
  * Holds the single app state shared by every device layout, so switching
  * desktop / mobile / watch in the studio keeps the session in sync.
- * Until a backend exists, only the user's hub, chosen region, sent taps and Desejos answers are persisted
- * (localStorage); conversations are deliberately not.
+ * Until a backend exists, only the user's hub, chosen region, sent taps, Desejos answers and avatar
+ * frames are persisted (localStorage); conversations are deliberately not.
  */
 export function OrbitProvider({ children }: { children: ReactNode }) {
   const [state, rawDispatch] = useReducer(orbitReducer, undefined, createInitialState);
@@ -96,11 +107,22 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [state.sentTaps]);
 
+  // Same Strict Mode guard as Desejos: the untouched initial frames must not overwrite stored ones.
+  const moldurasIniciais = useRef(state.molduras);
+  useEffect(() => {
+    if (!hydrated.current || state.molduras === moldurasIniciais.current) return;
+    try {
+      window.localStorage.setItem(MOLDURAS_KEY, JSON.stringify(state.molduras));
+    } catch {}
+  }, [state.molduras]);
+
   useEffect(() => {
     const stored = readStoredUser();
     const desejos = readStoredDesejos();
     if (desejos) rawDispatch({ type: "hydrateDesejos", estado: desejos });
     if (stored) rawDispatch({ type: "hydrateUser", user: stored });
+    const molduras = readStoredMolduras();
+    if (molduras) rawDispatch({ type: "hydrateMolduras", estado: molduras });
     try {
       const region = window.localStorage.getItem(REGION_KEY);
       if (region) rawDispatch({ type: "setRegion", regionId: region });
