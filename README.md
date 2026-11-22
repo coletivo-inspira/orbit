@@ -20,15 +20,20 @@ Requisitos: Node.js 22 (veja `.nvmrc`) e npm.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # http://localhost:3000/orbit/
 ```
 
-Produção local:
+Produção local (o build é um export estático em `out/`, servido sob `/orbit/` como no GitHub Pages):
 
 ```bash
 npm run build
-npm start
+mkdir -p /tmp/orbit-site && ln -sfn "$PWD/out" /tmp/orbit-site/orbit
+python3 -m http.server 8080 --directory /tmp/orbit-site   # http://localhost:8080/orbit/
 ```
+
+## Deploy (GitHub Pages)
+
+O app é publicado em <https://coletivo-inspira.github.io/orbit/> pelo workflow `.github/workflows/pages.yml` a cada push na `main` (ou manualmente em _Actions → Deploy GitHub Pages → Run workflow_). O `next.config.ts` usa `output: "export"`, `basePath: "/orbit"`, `trailingSlash: true` e imagens sem otimização; o manifesto PWA usa o mesmo prefixo. Para publicar na raiz de um domínio, faça o build com `PAGES_BASE_PATH=""`.
 
 ## Verificações
 
@@ -37,14 +42,14 @@ npm run lint          # ESLint (next/core-web-vitals + TypeScript), sem warnings
 npm run typecheck     # gera os tipos de rota do Next e roda tsc
 npm test              # Vitest: reducer de estado e matemática dos motores
 npm run format:check  # Prettier
-npm run build         # build de produção
+npm run build         # export estático em out/
 ```
 
 O workflow `.github/workflows/ci.yml` roda todas essas etapas em cada pull request e em pushes na `main`.
 
 ## Stack
 
-- **Next.js 16 (App Router) + React 19 + TypeScript**, com Cache Components; as páginas públicas da Comunidade são estáticas.
+- **Next.js 16 (App Router) + React 19 + TypeScript**, exportado como site estático (todas as rotas, inclusive os artigos da Comunidade, são pré-renderizadas).
 - **Tailwind CSS 4** + classes do design system Liquid Glass em `src/app/globals.css` (`lg-bar`, `lg-panel`, `lg-sheet`, `lg-pill`, `lg-active-lens`, `lg-sheen`).
 - **Órbita**: motor próprio em TypeScript (`src/lib/engines/orbitHoneycomb.ts`) que posiciona as bolhas em anéis hexagonais, com efeito fisheye, inércia e limite elástico. O React renderiza o markup e o motor só atualiza `transform`/`opacity`.
 - **Parque 2D**: motor Canvas 2D em TypeScript (`src/lib/engines/park2d.ts`) com colisão deslizante, câmera suave, clique/arraste, WASD/setas, D-Pad, 7 bots com falas e o easter egg do gato Paçoca. Card do bot, chat e D-Pad são componentes React.
