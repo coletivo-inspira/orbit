@@ -4,15 +4,15 @@ import { generateRadarMap, RADAR_TILE, radarMapSvg } from "@/lib/engines/radarMa
 const MASK = "radial-gradient(circle at center, black 30%, transparent 78%)";
 
 /**
- * Faint street map under the radar, tiled so it never runs out however far the radar pans.
- * The engine shifts its background position slower than the bubbles (parallax).
+ * Illustrative street pattern, tiled so it never runs out however far the radar pans. Under the map
+ * radar it stands in for the real map while it loads or when it can't load (offline, no WebGL).
  */
-export function RadarMapBackdrop({ ref }: { ref?: Ref<HTMLDivElement> }) {
+export function RadarMapBackdrop({ ref, className = "" }: { ref?: Ref<HTMLDivElement>; className?: string }) {
   const image = useMemo(() => `url("data:image/svg+xml,${encodeURIComponent(radarMapSvg(generateRadarMap()))}")`, []);
   return (
     <div
       ref={ref}
-      className="pointer-events-none absolute inset-0"
+      className={`pointer-events-none absolute inset-0 ${className}`}
       style={{
         backgroundImage: image,
         backgroundSize: `${RADAR_TILE}px ${RADAR_TILE}px`,

@@ -1,9 +1,10 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
 import { RadarMapBackdrop } from "@/components/orbita/RadarMapBackdrop";
+import { RecenterContext, useOrbitRecenter } from "@/components/orbita/recenter";
 import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
 import { OrbeVidro } from "@/components/ui/OrbeVidro";
@@ -36,11 +37,7 @@ interface OrbitRadialProps {
   style?: React.CSSProperties;
 }
 
-const RecenterContext = createContext<() => void>(() => {});
-
-export function useOrbitRecenter() {
-  return useContext(RecenterContext);
-}
+export { useOrbitRecenter };
 
 /** Apple Watch–style honeycomb: user fixed at the center, nearby profiles orbiting with fisheye scaling. */
 export function OrbitRadial({
