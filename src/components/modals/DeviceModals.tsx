@@ -6,14 +6,33 @@ import { ArticleBody, ArticleProvenance, CommentList } from "@/components/comuni
 import { PostTrustBadge } from "@/components/comunidade/PostTrust";
 import { VoteControl } from "@/components/comunidade/VoteControl";
 import { ComposerSheet } from "@/components/modals/ComposerSheet";
+import { OrbitaFiltersSheet } from "@/components/orbita/OrbitaFiltersSheet";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { copyText } from "@/lib/clipboard";
 import { activeAppIds, COMMUNITY_CATEGORIES, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
+import {
+  CONDOM_USE,
+  DEMO_MONTH,
+  formatMonth,
+  GENDERS,
+  HIV_STATUS,
+  labelOf,
+  LOOKING_FOR,
+  MEET_PLACES,
+  ORIENTATIONS,
+  POSITIONS,
+  PRONOUNS,
+  relationshipLabel,
+  SPORTS,
+  TOPICS,
+  TRIBES,
+} from "@/lib/data/profileOptions";
 import { getPost } from "@/lib/data/posts";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { monthsBetween, sharedTopics } from "@/lib/orbitaFilters";
 import { articleRoute, publicUrl } from "@/lib/publicUrl";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -25,8 +44,9 @@ export function DeviceModals() {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const close = () => dispatch({ type: "closeModals" });
+  const showFilters = state.orbitaFiltersOpen && device !== "watch";
   const composerKind = device === "watch" ? null : state.composerKind;
-  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind);
+  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind || showFilters);
 
   const profile = state.selectedProfileId
     ? SIMULATED_PROFILES.find((p) => p.id === state.selectedProfileId)
@@ -37,6 +57,7 @@ export function DeviceModals() {
     <div className={`absolute inset-0 z-40 ${open ? "" : "pointer-events-none"}`}>
       {profile && <ProfileSheet key={profile.id} profile={profile} onClose={close} />}
       {post && <ArticleSheet key={post.id} post={post} onClose={close} />}
+      {showFilters && <OrbitaFiltersSheet onClose={close} />}
       {composerKind && <ComposerSheet initialKind={composerKind} onClose={close} />}
     </div>
   );
@@ -56,7 +77,7 @@ function CloseButton({ onClose, className }: { onClose: () => void; className: s
 }
 
 function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () => void }) {
-  const { dispatch } = useOrbit();
+  const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const showToast = useToast();
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -65,6 +86,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
   const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
   const primary = INTENTIONS[p.primaryIntention] ?? INTENTIONS.troca;
   const apps = activeAppIds(p.apps);
+  const shared = sharedTopics(state.user.topics, p.topics);
 
   const wave = () => {
     onClose();
@@ -98,7 +120,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
           <span className="text-[10px] font-bold text-slate-300">📍 {p.dist}</span>
         </div>
         <div className="flex flex-col items-center text-center">
-          <RingedAvatar cfg={p.avatar} color={primary.color} size={56} />
+          <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} size={56} />
           <h2 ref={titleRef} id={titleId} tabIndex={-1} className="mt-1.5 font-sans text-sm font-extrabold text-white">
             {p.name}, {p.age}
           </h2>
@@ -139,81 +161,158 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
         tabIndex={-1}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
-        className={`lg-sheet relative w-full overflow-hidden p-5 outline-none ${isMobile ? "rounded-[32px]" : "max-w-[430px] rounded-[30px]"}`}
+        className={`lg-sheet relative flex w-full flex-col overflow-hidden outline-none ${isMobile ? "max-h-[94%] rounded-[32px]" : "max-h-[92%] max-w-[460px] rounded-[30px]"}`}
       >
-        <div className="flex items-center gap-3.5 pr-10">
-          <RingedAvatar cfg={p.avatar} color={primary.color} size={64}>
-            {p.online && (
-              <span className="absolute right-0.5 bottom-0.5 h-3.5 w-3.5 rounded-full border-2 border-tinta bg-emerald-400" />
-            )}
-          </RingedAvatar>
-          <div>
-            <h2
-              ref={titleRef}
-              id={titleId}
-              tabIndex={-1}
-              className="font-sans text-lg leading-tight font-extrabold text-white"
-            >
-              {p.name}, {p.age}
-            </h2>
-            <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
-              <span>📍 {p.dist} (aprox.)</span>
-              <span aria-hidden="true">·</span>
-              <span className={p.online ? "font-semibold text-salvia" : "text-slate-300"}>
-                {p.online ? "Online agora" : "Visto há pouco"}
-              </span>
+        <CloseButton onClose={onClose} className="absolute top-4 right-4 z-10 h-8 w-8 text-sm" />
+        <div className="orbit-scroll flex-1 overflow-y-auto p-5">
+          <div className="flex items-center gap-3.5 pr-10">
+            <RingedAvatar cfg={p.avatar} photo={p.photo} color={primary.color} size={isMobile ? 76 : 88}>
+              {p.online && (
+                <span className="absolute right-1 bottom-1 h-3.5 w-3.5 rounded-full border-2 border-tinta bg-emerald-400" />
+              )}
+            </RingedAvatar>
+            <div className="min-w-0">
+              <h2
+                ref={titleRef}
+                id={titleId}
+                tabIndex={-1}
+                className="font-sans text-lg leading-tight font-extrabold text-white"
+              >
+                {p.name}, {p.age}
+              </h2>
+              <p className="text-xs text-slate-300">
+                {PRONOUNS[p.pronouns]} · {p.city}
+              </p>
+              <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-slate-300">
+                <span>📍 {p.dist} (aprox.)</span>
+                <span aria-hidden="true">·</span>
+                <span className={p.online ? "font-semibold text-salvia" : "text-slate-300"}>
+                  {p.online ? "Online agora" : "Visto há pouco"}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-        <CloseButton onClose={onClose} className="absolute top-4 right-4 h-8 w-8 text-sm" />
+          {p.photo && (
+            <p className="mt-2 text-[10px] leading-snug text-slate-300">
+              Foto ilustrativa gerada por IA — perfil simulado
+            </p>
+          )}
 
-        <p className="mt-4 text-sm leading-relaxed text-white">{p.bio}</p>
+          <p className="mt-3 text-sm leading-relaxed text-white">{p.bio}</p>
 
-        <ul className="mt-3.5 flex flex-wrap gap-1.5" aria-label="Intenções">
-          {p.intentions.map((id) => {
-            const it = INTENTIONS[id];
-            return (
-              <li
-                key={id}
-                className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-                style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
-              >
-                {it.emoji} {it.label}
-                {id === p.primaryIntention && " · principal"}
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="mt-4 border-t border-white/[0.12] pt-3.5">
-          <h3 className="mb-1 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">
-            Presença em outros aplicativos
-          </h3>
-          <p className="mb-2 text-[11px] text-slate-300">
-            Autodeclarada. “Presença” indica conta ativa; um @ pode ser copiado para abrir no app.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {apps.map((id) => {
-              const handle = p.apps[id]?.handle ?? "";
+          <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Intenções">
+            {p.intentions.map((id) => {
+              const it = INTENTIONS[id];
               return (
-                <button
+                <li
                   key={id}
-                  type="button"
-                  onClick={() => onBadge(id)}
-                  className="lg-pill inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-left"
+                  className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                  style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
                 >
-                  <AppTile appId={id} className="h-5 w-5 rounded-md" />
-                  <span className="text-[11px] font-bold text-white">{EXTERNAL_APPS[id].name}</span>
-                  <span className={`text-[11px] ${handle ? "text-areia" : "text-salvia"}`}>
-                    {handle ? `${handle} · copiar` : "Presença"}
-                  </span>
-                </button>
+                  {it.emoji} {it.label}
+                  {id === p.primaryIntention && " · principal"}
+                </li>
               );
             })}
-          </div>
+          </ul>
+
+          {shared.length > 0 && (
+            <p className="mt-3 rounded-2xl border border-areia/40 bg-areia/10 px-3 py-2 text-xs text-areia">
+              <span className="font-bold">✦ Em comum:</span> {shared.map((id) => labelOf(TOPICS, id)).join(", ")}
+            </p>
+          )}
+
+          <SheetSection title="Sobre">
+            <FactList
+              facts={[
+                ["Gênero", labelOf(GENDERS, p.gender)],
+                ["Orientação", labelOf(ORIENTATIONS, p.orientation)],
+                ["Altura", p.heightCm && `${p.heightCm} cm`],
+                ["Peso", p.weightKg && `${p.weightKg} kg`],
+                ["Relacionamento", p.relationship && relationshipLabel(p.relationship, p.pronouns)],
+                ["Tribos", p.tribes.length ? p.tribes.map((id) => labelOf(TRIBES, id)).join(", ") : "Sem tribo"],
+                ["Esportes", p.sports.map((id) => labelOf(SPORTS, id)).join(", ")],
+              ]}
+            />
+          </SheetSection>
+
+          <SheetSection title="Busca">
+            <FactList
+              facts={[
+                ["Procura", p.lookingFor.map((id) => labelOf(LOOKING_FOR, id)).join(", ")],
+                ["Posição", p.position && labelOf(POSITIONS, p.position)],
+                ["Fotos NSFW", p.acceptsNsfw === undefined ? undefined : p.acceptsNsfw ? "Aceita" : "Não aceita"],
+              ]}
+            />
+          </SheetSection>
+
+          <SheetSection title="Encontro">
+            <FactList facts={[["Prefere", p.meetAt.map((id) => labelOf(MEET_PLACES, id)).join(", ")]]} />
+          </SheetSection>
+
+          <SheetSection title="Saúde sexual">
+            <p className="mb-2 text-[11px] leading-snug text-slate-300">
+              Autodeclarado e opcional. Dados de saúde e sexualidade são sensíveis (LGPD): só aparecem quando a pessoa
+              escolhe contar.
+            </p>
+            <FactList
+              empty="Não informado."
+              facts={[
+                ["PrEP", p.health.prep === undefined ? undefined : p.health.prep ? "Usa" : "Não usa"],
+                ["Preservativo", p.health.condom && labelOf(CONDOM_USE, p.health.condom)],
+                ["Última testagem", p.health.lastTest && testLabel(p.health.lastTest)],
+                ["Status", p.health.status && HIV_STATUS[p.health.status]],
+              ]}
+            />
+          </SheetSection>
+
+          <SheetSection title="Assuntos">
+            <ul className="flex flex-wrap gap-1.5" aria-label="Assuntos para trocar ideia">
+              {p.topics.map((id) => {
+                const isShared = shared.includes(id);
+                return (
+                  <li
+                    key={id}
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold ${isShared ? "border-areia/60 bg-areia/15 text-areia" : "border-white/[0.14] bg-white/[0.06] text-slate-300"}`}
+                  >
+                    {isShared && <span aria-hidden="true">✦ </span>}
+                    {labelOf(TOPICS, id)}
+                    {isShared && <span className="sr-only"> (em comum)</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </SheetSection>
+
+          <SheetSection title="Presença em outros aplicativos">
+            <p className="mb-2 text-[11px] text-slate-300">
+              Autodeclarada. “Presença” indica conta ativa; um @ pode ser copiado para abrir no app.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {apps.map((id) => {
+                const handle = p.apps[id]?.handle ?? "";
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => onBadge(id)}
+                    className="lg-pill inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-left"
+                  >
+                    <AppTile appId={id} className="h-5 w-5 rounded-md" />
+                    <span className="text-[11px] font-bold text-white">{EXTERNAL_APPS[id].name}</span>
+                    <span className={`text-[11px] ${handle ? "text-areia" : "text-salvia"}`}>
+                      {handle ? `${handle} · copiar` : "Presença"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </SheetSection>
         </div>
 
-        <div className={`mt-5 grid gap-2.5 ${p.inPark ? "grid-cols-2" : "grid-cols-1"}`}>
+        <div
+          className={`grid shrink-0 gap-2.5 border-t border-white/[0.12] bg-tinta px-5 py-3.5 ${p.inPark ? "grid-cols-2" : "grid-cols-1"}`}
+        >
           <button
             type="button"
             onClick={wave}
@@ -233,6 +332,37 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
         </div>
       </div>
     </div>
+  );
+}
+
+function testLabel(ym: string): string {
+  const months = monthsBetween(ym, DEMO_MONTH);
+  const ago = months <= 0 ? "este mês" : months === 1 ? "há 1 mês" : `há ${months} meses`;
+  return `${formatMonth(ym)} (${ago})`;
+}
+
+function SheetSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-4 border-t border-white/[0.12] pt-3.5">
+      <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+/** Label/value pairs; blank optional fields are skipped instead of shown as empty. */
+function FactList({ facts, empty }: { facts: [string, string | number | undefined | 0][]; empty?: string }) {
+  const filled = facts.filter((f): f is [string, string] => Boolean(f[1]));
+  if (!filled.length) return empty ? <p className="text-xs text-slate-300">{empty}</p> : null;
+  return (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+      {filled.map(([label, value]) => (
+        <div key={label} className="contents">
+          <dt className="text-slate-300">{label}</dt>
+          <dd className="font-semibold text-white">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

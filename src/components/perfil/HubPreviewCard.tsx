@@ -2,6 +2,7 @@ import type { Ref } from "react";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { activeAppIds, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
+import { labelOf, TOPICS } from "@/lib/data/profileOptions";
 import type { UserProfile } from "@/lib/types";
 
 /** The "Cartão Orbit": a live, local preview of what others would see once real profiles exist. */
@@ -70,6 +71,19 @@ export function HubPreviewCard({
           );
         })}
       </ul>
+
+      {u.topics.length > 0 && (
+        <ul className="mt-2.5 flex flex-wrap gap-1" aria-label="Assuntos">
+          {u.topics.map((id) => (
+            <li
+              key={id}
+              className="rounded-full border border-white/[0.14] bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-slate-300"
+            >
+              {labelOf(TOPICS, id)}
+            </li>
+          ))}
+        </ul>
+      )}
 
       <div className="mt-4 border-t border-white/[0.12] pt-3.5">
         <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">Selos ativos</h3>

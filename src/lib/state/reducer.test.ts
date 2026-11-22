@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { MODERATION_TEAM, sortPosts } from "@/lib/community";
-import { BIO_MAX_LENGTH, createInitialState, orbitReducer, sanitizeStoredUser } from "./reducer";
+import { BIO_MAX_LENGTH, createInitialState, orbitReducer, sanitizeStoredUser, TOPICS_MAX } from "./reducer";
 
 describe("orbitReducer", () => {
   it("closes modals when switching tabs", () => {
@@ -145,6 +145,41 @@ describe("orbitReducer", () => {
     orbitReducer(a, { type: "toggleApp", id: "bumble" });
     expect(createInitialState().user.apps.bumble.active).toBe(false);
   });
+
+  it("merges, keeps and clears Órbita filters", () => {
+    let state = orbitReducer(createInitialState(), { type: "updateOrbitaFilters", patch: { genders: ["travesti"] } });
+    state = orbitReducer(state, { type: "updateOrbitaFilters", patch: { prepOnly: true } });
+    expect(state.orbitaFilters.genders).toEqual(["travesti"]);
+    expect(state.orbitaFilters.prepOnly).toBe(true);
+    state = orbitReducer(state, { type: "setTab", tab: "parque" });
+    expect(state.orbitaFilters.genders).toEqual(["travesti"]);
+    state = orbitReducer(state, { type: "clearOrbitaFilters" });
+    expect(state.orbitaFilters).toEqual(createInitialState().orbitaFilters);
+  });
+
+  it("opens the filter sheet alone and closes it with the other modals", () => {
+    let state = orbitReducer(createInitialState(), { type: "openProfile", id: "p1" });
+    state = orbitReducer(state, { type: "openOrbitaFilters" });
+    expect(state.orbitaFiltersOpen).toBe(true);
+    expect(state.selectedProfileId).toBeNull();
+    expect(orbitReducer(state, { type: "closeModals" }).orbitaFiltersOpen).toBe(false);
+    expect(orbitReducer(state, { type: "openProfile", id: "p2" }).orbitaFiltersOpen).toBe(false);
+  });
+
+  it("sets the sort order", () => {
+    expect(orbitReducer(createInitialState(), { type: "setOrbitaSort", sort: "afinidade" }).orbitaSort).toBe(
+      "afinidade",
+    );
+  });
+
+  it("toggles topics up to the limit", () => {
+    let state = createInitialState();
+    expect(orbitReducer(state, { type: "toggleTopic", id: "cafe" }).user.topics).not.toContain("cafe");
+    const extra = ["games", "anime", "livros", "mpb", "pop"] as const;
+    for (const id of extra) state = orbitReducer(state, { type: "toggleTopic", id });
+    expect(state.user.topics).toHaveLength(TOPICS_MAX);
+    expect(orbitReducer(state, { type: "toggleTopic", id: "vinho" })).toBe(state);
+  });
 });
 
 describe("sanitizeStoredUser", () => {
@@ -169,6 +204,12 @@ describe("sanitizeStoredUser", () => {
     expect(user.apps.insta).toEqual({ active: false, handle: "@eu" });
     expect(user.apps.spotify).toEqual(createInitialState().user.apps.spotify);
     expect(user.name).toBe(createInitialState().user.name);
+    expect(user.topics).toEqual(createInitialState().user.topics);
+  });
+
+  it("keeps only known topics", () => {
+    const user = sanitizeStoredUser({ intentions: ["troca"], topics: ["cafe", "hack", "cafe", 3, "mpb"] })!;
+    expect(user.topics).toEqual(["cafe", "mpb"]);
   });
 });
 

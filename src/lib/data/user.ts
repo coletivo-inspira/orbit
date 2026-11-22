@@ -20,6 +20,7 @@ export const DEMO_USER: UserProfile = {
     insta: { active: true, handle: "@lucas.orbit" },
     spotify: { active: true, handle: "lucas.vibes" },
   },
+  topics: ["tecnologia", "design", "cafe", "cinema", "ativismo"],
 };
 
 export function profileSlug(handle: string): string {
