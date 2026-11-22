@@ -6,6 +6,7 @@ import { Switch } from "@/components/ui/Switch";
 import { ToggleChip } from "@/components/ui/ToggleChip";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import {
+  BODY_TYPES,
   CONDOM_USE,
   GENDERS,
   LOOKING_FOR,
@@ -23,9 +24,11 @@ import {
   RANGE_LIMITS,
   toggleInList,
   type ListFilterKey,
+  type BodyTypeFilter,
   type NumberRange,
   type OrbitaFilters,
   type OrbitaSort,
+  type PhotoFilterId,
   type RangeFilterKey,
 } from "@/lib/orbitaFilters";
 import { useDevice } from "@/lib/state/device";
@@ -43,6 +46,14 @@ const NSFW: Option<OrbitaFilters["nsfw"]>[] = [
   { id: "any", label: "Tanto faz" },
   { id: "sim", label: "Aceita" },
   { id: "nao", label: "Não aceita" },
+];
+
+const BODY_TYPE_OPTIONS: Option<BodyTypeFilter>[] = [...BODY_TYPES, { id: "nao-informado", label: "Não informado" }];
+
+const PHOTOS: Option<PhotoFilterId>[] = [
+  { id: "tem-fotos", label: "Tem fotos" },
+  { id: "rosto", label: "Tem fotos do rosto" },
+  { id: "album", label: "Tem álbum" },
 ];
 
 const TESTED: Option<string>[] = [
@@ -172,6 +183,14 @@ export function OrbitaFiltersSheet({ onClose }: { onClose: () => void }) {
           <Group title="Corpo" note="Perfis sem altura ou peso ficam de fora quando você usa esse filtro.">
             <RangeField label="Altura" rangeKey="height" value={f.height} onChange={(height) => update({ height })} />
             <RangeField label="Peso" rangeKey="weight" value={f.weight} onChange={(weight) => update({ weight })} />
+          </Group>
+
+          <Group title="Tipo de corpo" note="Como a própria pessoa se descreve.">
+            {chips("bodyTypes", BODY_TYPE_OPTIONS)}
+          </Group>
+
+          <Group title="Fotos" note="Só aparece quem tem tudo o que você marcar. Álbuns são privados.">
+            {chips("photos", PHOTOS)}
           </Group>
 
           <Group title="Relacionamento">{chips("relationships", RELATIONSHIPS)}</Group>

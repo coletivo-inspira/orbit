@@ -1,4 +1,5 @@
 import type { TabId } from "@/lib/types";
+import { TapIcon } from "@/components/interesse/TapIcon";
 import { PARK_BOTS } from "@/lib/data/park";
 
 export interface NavItem {
@@ -48,6 +49,12 @@ export const NAV_ITEMS: NavItem[] = [
         <path d="M12 17v4" />
       </svg>
     ),
+  },
+  {
+    id: "interesse",
+    label: "Interesse",
+    short: "Interesse",
+    icon: <TapIcon className="h-4 w-4" />,
   },
   {
     id: "comunidade",

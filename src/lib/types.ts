@@ -2,7 +2,7 @@ export type IntentionId = "troca" | "amizade" | "casual" | "namoro" | "apoio";
 export type AppId = "grindr" | "scruff" | "tinder" | "bumble" | "insta" | "spotify";
 export type DeviceKind = "desktop" | "mobile" | "watch";
 /** "desejos" has no item of its own in the main navigation: it opens from Meu Perfil Hub. */
-export type TabId = "orbita" | "parque" | "comunidade" | "perfil" | "desejos";
+export type TabId = "orbita" | "parque" | "interesse" | "comunidade" | "perfil" | "desejos";
 export type CommunityCategory = "vacinas" | "prevencao" | "bemestar" | "debates";
 
 export interface Intention {
@@ -74,6 +74,7 @@ export type SportId =
   | "trilha"
   | "lutas"
   | "skate";
+export type BodyTypeId = "definido" | "medio" | "grande" | "musculoso" | "esbelto" | "robusto";
 export type RelationshipId = "solteiro" | "namorando" | "casado" | "aberto";
 export type MeetPlaceId = "minha-casa" | "sua-casa" | "bar" | "restaurante" | "cafe" | "online";
 export type CondomUse = "sempre" | "as-vezes" | "prefiro-nao-dizer";
@@ -143,6 +144,9 @@ export interface Profile {
   heightCm?: number;
   weightKg?: number;
   tribes: TribeId[];
+  bodyType?: BodyTypeId;
+  /** `face`: the main photo shows the face. `album`: keeps a private album (never shown in the demo). */
+  photos: { face: boolean; album: boolean };
   lookingFor: LookingForId[];
   position?: PositionId;
   sports: SportId[];

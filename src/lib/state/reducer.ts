@@ -6,8 +6,10 @@ import { applyVote, buildPost, MODERATION_TEAM, validateDraft, type CommunitySor
 import { INTENTIONS } from "@/lib/data/intentions";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
 import { TOPIC_IDS } from "@/lib/data/profileOptions";
+import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import { DEFAULT_REGION, isRegionId } from "@/lib/data/regions";
 import { DEMO_USER } from "@/lib/data/user";
+import type { InteresseTab } from "@/lib/interesse";
 import { EMPTY_FILTERS, type OrbitaFilters, type OrbitaSort } from "@/lib/orbitaFilters";
 import type {
   AppId,
@@ -38,6 +40,9 @@ export interface OrbitState {
   communityFilter: CommunityFilter;
   communitySort: CommunitySort;
   regionId: RegionId;
+  interesseTab: InteresseTab;
+  /** Profiles the user tapped, newest first. */
+  sentTaps: string[];
   /** 0: Órbita, 1: Parque, 2: Meu Cartão */
   watchPage: 0 | 1 | 2;
   selectedProfileId: string | null;
@@ -69,6 +74,9 @@ export type OrbitAction =
   | { type: "setCommunityFilter"; filter: CommunityFilter }
   | { type: "setCommunitySort"; sort: CommunitySort }
   | { type: "setRegion"; regionId: string }
+  | { type: "setInteresseTab"; tab: InteresseTab }
+  | { type: "tapProfile"; id: string }
+  | { type: "hydrateTaps"; ids: unknown }
   | { type: "setWatchPage"; page: OrbitState["watchPage"] }
   | { type: "openProfile"; id: string }
   | { type: "openArticle"; id: string }
@@ -118,6 +126,8 @@ export function createInitialState(): OrbitState {
     communityFilter: "all",
     communitySort: "hot",
     regionId: DEFAULT_REGION,
+    interesseTab: "visualizacoes",
+    sentTaps: [],
     watchPage: 0,
     selectedProfileId: null,
     selectedArticleId: null,
@@ -134,6 +144,8 @@ export function createInitialState(): OrbitState {
 function isIntention(value: unknown): value is IntentionId {
   return typeof value === "string" && Object.hasOwn(INTENTIONS, value);
 }
+
+const PROFILE_IDS = new Set(SIMULATED_PROFILES.map((p) => p.id));
 
 function isTopic(value: unknown): value is TopicId {
   return typeof value === "string" && TOPIC_IDS.has(value);
@@ -176,6 +188,12 @@ export function sanitizeStoredUser(raw: unknown): UserProfile | null {
   };
 }
 
+/** Keeps only known profile ids from storage, once each. */
+export function sanitizeStoredTaps(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return [...new Set(raw.filter((id): id is string => typeof id === "string" && PROFILE_IDS.has(id)))];
+}
+
 const closed = {
   selectedProfileId: null,
   selectedArticleId: null,
@@ -210,6 +228,13 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
       return { ...state, communitySort: action.sort };
     case "setRegion":
       return isRegionId(action.regionId) ? { ...state, regionId: action.regionId } : state;
+    case "setInteresseTab":
+      return { ...state, interesseTab: action.tab };
+    case "tapProfile":
+      if (!PROFILE_IDS.has(action.id) || state.sentTaps.includes(action.id)) return state;
+      return { ...state, sentTaps: [action.id, ...state.sentTaps] };
+    case "hydrateTaps":
+      return { ...state, sentTaps: sanitizeStoredTaps(action.ids) };
     case "setWatchPage":
       return { ...state, selectedProfileId: null, watchPage: action.page };
     case "openProfile":

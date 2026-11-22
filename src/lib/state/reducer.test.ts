@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { MODERATION_TEAM, sortPosts } from "@/lib/community";
-import { BIO_MAX_LENGTH, createInitialState, orbitReducer, sanitizeStoredUser, TOPICS_MAX } from "./reducer";
+import { RECEIVED_TAPS } from "@/lib/interesse";
+import {
+  BIO_MAX_LENGTH,
+  createInitialState,
+  orbitReducer,
+  sanitizeStoredTaps,
+  sanitizeStoredUser,
+  TOPICS_MAX,
+} from "./reducer";
 
 describe("orbitReducer", () => {
   it("closes modals when switching tabs", () => {
@@ -224,6 +232,48 @@ describe("sanitizeStoredUser", () => {
   it("keeps only known topics", () => {
     const user = sanitizeStoredUser({ intentions: ["troca"], topics: ["cafe", "hack", "cafe", 3, "mpb"] })!;
     expect(user.topics).toEqual(["cafe", "mpb"]);
+  });
+});
+
+describe("Interesse", () => {
+  it("switches between Visualizações and Toques", () => {
+    const state = orbitReducer(createInitialState(), { type: "setInteresseTab", tab: "toques" });
+    expect(state.interesseTab).toBe("toques");
+  });
+
+  it("records each tap once, newest first", () => {
+    let state = createInitialState();
+    state = orbitReducer(state, { type: "tapProfile", id: "p1" });
+    state = orbitReducer(state, { type: "tapProfile", id: "p2" });
+    const again = orbitReducer(state, { type: "tapProfile", id: "p1" });
+    expect(again).toBe(state);
+    expect(state.sentTaps).toEqual(["p2", "p1"]);
+  });
+
+  it("taps back someone who tapped the user", () => {
+    const from = RECEIVED_TAPS[0].profile.id;
+    const state = orbitReducer(createInitialState(), { type: "tapProfile", id: from });
+    expect(state.sentTaps).toContain(from);
+  });
+
+  it("ignores taps on unknown profiles", () => {
+    const initial = createInitialState();
+    expect(orbitReducer(initial, { type: "tapProfile", id: "nobody" })).toBe(initial);
+  });
+
+  it("keeps taps across tab and modal changes", () => {
+    let state = orbitReducer(createInitialState(), { type: "tapProfile", id: "p3" });
+    state = orbitReducer(state, { type: "openProfile", id: "p4" });
+    state = orbitReducer(state, { type: "setTab", tab: "interesse" });
+    expect(state.activeTab).toBe("interesse");
+    expect(state.sentTaps).toEqual(["p3"]);
+  });
+
+  it("restores only known, unique profile ids from storage", () => {
+    expect(sanitizeStoredTaps(["p1", "p1", "x", 4, "p2"])).toEqual(["p1", "p2"]);
+    expect(sanitizeStoredTaps("p1")).toEqual([]);
+    const state = orbitReducer(createInitialState(), { type: "hydrateTaps", ids: ["p5", null] });
+    expect(state.sentTaps).toEqual(["p5"]);
   });
 });
 

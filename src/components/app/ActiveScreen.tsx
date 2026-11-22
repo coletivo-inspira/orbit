@@ -2,6 +2,7 @@
 
 import { ComunidadeScreen } from "@/components/screens/ComunidadeScreen";
 import { DesejosScreen } from "@/components/screens/DesejosScreen";
+import { InteresseScreen } from "@/components/screens/InteresseScreen";
 import { OrbitaScreen } from "@/components/screens/OrbitaScreen";
 import { ParqueScreen } from "@/components/screens/ParqueScreen";
 import { PerfilScreen } from "@/components/screens/PerfilScreen";
@@ -14,6 +15,8 @@ export function ActiveScreen() {
       return <OrbitaScreen />;
     case "parque":
       return <ParqueScreen />;
+    case "interesse":
+      return <InteresseScreen />;
     case "comunidade":
       return <ComunidadeScreen />;
     case "perfil":

@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Agentes do Agent SDK têm package.json e checagens próprios.
+    "agents/**",
   ]),
 ]);
 

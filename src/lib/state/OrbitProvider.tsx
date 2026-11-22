@@ -9,6 +9,7 @@ import type { UserProfile } from "@/lib/types";
 const STORAGE_KEY = "orbit:user:v1";
 const REGION_KEY = "orbit:region:v1";
 const DESEJOS_KEY = "orbit:desejos:v1";
+const TAPS_KEY = "orbit:taps:v1";
 
 interface OrbitContextValue {
   state: OrbitState;
@@ -38,7 +39,7 @@ function readStoredDesejos(): EstadoDesejos | null {
 /**
  * Holds the single app state shared by every device layout, so switching
  * desktop / mobile / watch in the studio keeps the session in sync.
- * Until a backend exists, only the user's hub, chosen region and Desejos answers are persisted (localStorage).
+ * Until a backend exists, only the user's hub, chosen region, sent taps and Desejos answers are persisted (localStorage).
  */
 export function OrbitProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(orbitReducer, undefined, createInitialState);
@@ -75,6 +76,13 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
   }, [state.desejos, state.desejosPublicos]);
 
   useEffect(() => {
+    if (!hydrated.current) return;
+    try {
+      window.localStorage.setItem(TAPS_KEY, JSON.stringify(state.sentTaps));
+    } catch {}
+  }, [state.sentTaps]);
+
+  useEffect(() => {
     const stored = readStoredUser();
     const desejos = readStoredDesejos();
     if (desejos) dispatch({ type: "hydrateDesejos", estado: desejos });
@@ -82,6 +90,8 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
     try {
       const region = window.localStorage.getItem(REGION_KEY);
       if (region) dispatch({ type: "setRegion", regionId: region });
+      const taps = window.localStorage.getItem(TAPS_KEY);
+      if (taps) dispatch({ type: "hydrateTaps", ids: JSON.parse(taps) });
     } catch {}
     hydrated.current = true;
   }, []);
