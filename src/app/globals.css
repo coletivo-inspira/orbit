@@ -326,6 +326,15 @@
     scale: 0.6;
     pointer-events: none;
   }
+  /* The few MapLibre rules the radar needs; its full stylesheet styles controls the radar does not use. */
+  .orbit-map {
+    overflow: hidden;
+  }
+  .orbit-map .maplibregl-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 
   /* Specular sheen that follows the pointer (position set by <LiquidSheen />). */
   .lg-sheen::before {

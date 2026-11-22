@@ -2,7 +2,8 @@
 
 import { useId, useRef, type KeyboardEvent } from "react";
 import { InterestGraph } from "@/components/orbita/InterestGraph";
-import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
+import { OrbitMapRadar } from "@/components/orbita/OrbitMapRadar";
+import { useOrbitRecenter } from "@/components/orbita/recenter";
 import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
 import { useProgressiveCount } from "@/components/orbita/useProgressiveCount";
 import { AppTile } from "@/components/ui/AppBadge";
@@ -105,10 +106,12 @@ export function OrbitaScreen() {
         <p className="mt-1 text-[11px] leading-snug text-slate-300">
           {state.orbitaViewMode === "conexoes"
             ? "Linhas ligam cada pessoa aos assuntos e estilos de música que ela curte. Toque numa pessoa para ver as conexões; toque de novo para abrir o perfil."
-            : byAffinity
-              ? "Quem tem mais assuntos em comum com você fica mais perto do centro. O número na bolha mostra quantos."
-              : state.orbitaViewMode === "radial"
-                ? "Arraste o radar ou use Tab. A posição no radar não indica distância; as distâncias são aproximadas e simuladas."
+            : state.orbitaViewMode === "radial"
+              ? byAffinity
+                ? "No mapa, cada pessoa fica na distância dela. O número na bolha mostra quantos assuntos vocês têm em comum; quem tem mais ganha destaque quando o mapa agrupa."
+                : "Arraste e dê zoom no mapa. Cada pessoa fica na distância dela, num ponto aproximado e simulado, nunca exato."
+              : byAffinity
+                ? "Quem tem mais assuntos em comum com você fica mais perto do centro. O número na bolha mostra quantos."
                 : "Pessoas por perto, da mais próxima à mais distante (distâncias aproximadas e simuladas)."}
         </p>
 
@@ -181,15 +184,14 @@ export function OrbitaScreen() {
         {profiles.length === 0 ? (
           <EmptyState compact={isMobile} onClear={clearAll} onAdjust={() => dispatch({ type: "openOrbitaFilters" })} />
         ) : state.orbitaViewMode === "radial" ? (
-          <OrbitRadial
+          <OrbitMapRadar
             profiles={profiles}
             affinity={byAffinity ? affinity : undefined}
             centerOffsetY={isMobile ? 18 : 0}
+            compact={isMobile}
             onCenterClick={() => dispatch({ type: "setTab", tab: "perfil" })}
             className="flex-1"
-            style={{
-              background: "radial-gradient(circle at center, #344252 0%, rgb(28 38 49 / 0) 70%)",
-            }}
+            style={{ background: "#1b2530" }}
             overlay={<RadialOverlay compact={isMobile} count={profiles.length} onShowList={() => setMode("lista")} />}
           />
         ) : state.orbitaViewMode === "conexoes" ? (
