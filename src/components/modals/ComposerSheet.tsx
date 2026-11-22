@@ -25,7 +25,7 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
   const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
   const [kind, setKind] = useState<PostKind>(initialKind);
   const [category, setCategory] = useState<CommunityCategory>(
-    state.communityFilter === "all" ? "debates" : state.communityFilter,
+    state.communityFilter !== "all" ? state.communityFilter : initialKind === "artigo" ? "prevencao" : "debates",
   );
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -197,8 +197,8 @@ export function ComposerSheet({ initialKind, onClose }: { initialKind: PostKind;
                   className={FIELD}
                 />
               </div>
-              <div className="grid grid-cols-[1fr_1fr_76px] gap-2">
-                <div>
+              <div className="grid grid-cols-[minmax(0,1fr)_84px] gap-2">
+                <div className="col-span-2">
                   <label className={LABEL} htmlFor={`${uid}-council`}>
                     Conselho
                   </label>
