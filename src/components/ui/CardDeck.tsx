@@ -280,7 +280,7 @@ export function CardDeck<T>({
         onWheel={onWheel}
         className={`relative flex w-full touch-pan-y items-center justify-center select-none ${stageClassName}`}
       >
-        <div ref={boxRef} className="relative aspect-square h-[88%] max-w-[88%]">
+        <div ref={boxRef} className="relative isolate aspect-square h-[88%] max-w-[88%]">
           <div
             className="pointer-events-none absolute -inset-[13%] rounded-full border border-dashed border-white/[0.13]"
             aria-hidden="true"
