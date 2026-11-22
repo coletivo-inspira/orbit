@@ -97,7 +97,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
           </h2>
           <span
             className="mt-1 rounded-full px-2.5 py-0.5 text-[9px] font-bold"
-            style={{ background: primary.bg, color: primary.color }}
+            style={{ background: primary.bg, color: primary.text }}
           >
             {primary.emoji} {primary.label}
           </span>
@@ -169,7 +169,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
               <li
                 key={id}
                 className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-                style={{ background: it.bg, color: it.color, border: `1px solid ${it.border}` }}
+                style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
               >
                 {it.emoji} {it.label}
                 {id === p.primaryIntention && " · principal"}

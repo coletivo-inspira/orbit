@@ -9,7 +9,10 @@ export interface Intention {
   label: string;
   short: string;
   emoji: string;
+  /** Ring and dot color. */
   color: string;
+  /** Lighter shade for chip text: at least 4.5:1 on its tinted background. */
+  text: string;
   bg: string;
   border: string;
 }

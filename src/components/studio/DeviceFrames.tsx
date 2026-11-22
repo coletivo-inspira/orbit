@@ -54,7 +54,10 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
 
 export function PhoneStatusBar() {
   return (
-    <div className="relative z-20 flex h-11 shrink-0 items-center justify-between bg-transparent px-6 pt-2">
+    <div
+      aria-hidden="true"
+      className="relative z-20 flex h-11 shrink-0 items-center justify-between bg-transparent px-6 pt-2"
+    >
       <span className="text-xs font-bold tracking-tight text-white/95">16:36</span>
       <div className="flex h-[26px] w-[104px] items-center justify-end rounded-full border border-white/15 bg-black/95 pr-2.5 shadow-lg">
         <span className="h-2.5 w-2.5 rounded-full border border-white/20 bg-tinta" />

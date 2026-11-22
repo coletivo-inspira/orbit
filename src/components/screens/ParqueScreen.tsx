@@ -415,7 +415,7 @@ function BotCard({
               <span>{bot.name}</span>
               <span
                 className="rounded-full px-2 py-0.5 text-[10px] font-bold"
-                style={{ background: intention.bg, color: intention.color }}
+                style={{ background: intention.bg, color: intention.text }}
               >
                 {intention.emoji} {intention.short}
               </span>

@@ -133,7 +133,7 @@ export function WatchScreen() {
       <div className="flex flex-col items-center text-center">
         <RingedAvatar cfg={u.avatar} color={primary.color} size={56} />
         <div className="mt-2 text-sm font-extrabold text-white">{u.firstName}</div>
-        <div className="mt-0.5 text-[10px] font-bold" style={{ color: primary.color }}>
+        <div className="mt-0.5 text-[10px] font-bold" style={{ color: primary.text }}>
           {primary.emoji} {primary.label}
         </div>
         <div className="mt-3 flex items-center justify-center gap-1.5">

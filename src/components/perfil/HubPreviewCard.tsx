@@ -62,7 +62,7 @@ export function HubPreviewCard({
             <li
               key={id}
               className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
-              style={{ background: it.bg, color: it.color, border: `1px solid ${it.border}` }}
+              style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
             >
               {it.emoji} {it.label}
               {u.primaryIntention === id ? " ★ principal" : ""}

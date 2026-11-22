@@ -225,7 +225,7 @@ function NearbyCard({ profile: p, compact, onOpen }: { profile: Profile; compact
       </div>
       <div
         className="inline-flex items-center gap-1 self-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-        style={{ background: intention.bg, color: intention.color, border: `1px solid ${intention.border}` }}
+        style={{ background: intention.bg, color: intention.text, border: `1px solid ${intention.border}` }}
       >
         {intention.emoji} {intention.label}
       </div>
