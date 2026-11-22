@@ -347,6 +347,164 @@
     opacity: 1;
   }
 
+  /* ---------------------------------------------------------------------------
+     Liquid Glass over a scene (watch): translucent tint, refraction-like rim
+     (bright top-left, dark bottom-right) and a specular top edge. The tint stays
+     dark enough for ivory text over any part of the ocean.
+     --------------------------------------------------------------------------- */
+  .lg-liquid {
+    position: relative;
+    isolation: isolate;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 15%) 0%, rgb(255 255 255 / 3%) 48%, rgb(255 255 255 / 7%) 100%),
+      rgb(6 28 44 / 72%);
+    border: 1px solid rgb(245 240 231 / 18%);
+    box-shadow:
+      inset 0 1px 0.5px rgb(255 255 255 / 55%),
+      inset 0 -1px 1px rgb(255 255 255 / 12%),
+      inset 0 0 16px rgb(150 225 255 / 9%),
+      0 10px 24px rgb(2 12 22 / 42%);
+    transition:
+      background 0.2s ease,
+      transform 0.16s ease;
+  }
+  .lg-liquid::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 75%) 0%,
+      rgb(255 255 255 / 8%) 32%,
+      rgb(150 225 255 / 4%) 62%,
+      rgb(255 255 255 / 38%) 100%
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    .lg-liquid {
+      background:
+        linear-gradient(180deg, rgb(255 255 255 / 15%) 0%, rgb(255 255 255 / 3%) 48%, rgb(255 255 255 / 7%) 100%),
+        rgb(6 28 44 / 38%);
+      -webkit-backdrop-filter: blur(10px) saturate(175%) brightness(1.06);
+      backdrop-filter: blur(10px) saturate(175%) brightness(1.06);
+    }
+  }
+  .lg-liquid:is(button):hover {
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 22%) 0%, rgb(255 255 255 / 6%) 48%, rgb(255 255 255 / 10%) 100%),
+      rgb(6 28 44 / 34%);
+  }
+  .lg-liquid:is(button):active {
+    transform: scale(0.97);
+  }
+
+  /* Underwater scene: light from the surface, slow rays, caustics and rising bubbles. */
+  .oceano-cena {
+    background:
+      radial-gradient(120% 55% at 50% -12%, rgb(178 236 255 / 55%), transparent 62%),
+      radial-gradient(90% 40% at 50% 112%, rgb(222 201 168 / 30%), transparent 70%),
+      linear-gradient(180deg, #1a6f93 0%, #0f5577 26%, #0a3d5c 52%, #072a43 76%, #051c2e 100%);
+  }
+  .oceano-raios {
+    background: repeating-conic-gradient(
+      from 168deg at 50% -18%,
+      rgb(200 240 255 / 0%) 0deg 4deg,
+      rgb(200 240 255 / 13%) 5deg 7deg,
+      rgb(200 240 255 / 0%) 9deg 13deg
+    );
+    mask: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 50%) 45%, transparent 78%);
+    transform-origin: 50% -18%;
+    animation: oceanoRaios 13s ease-in-out infinite alternate;
+  }
+  .oceano-caustica {
+    background:
+      radial-gradient(38% 14% at 30% 20%, rgb(190 245 255 / 22%), transparent 70%),
+      radial-gradient(30% 12% at 72% 34%, rgb(190 245 255 / 16%), transparent 70%),
+      radial-gradient(44% 10% at 50% 8%, rgb(255 255 255 / 20%), transparent 70%);
+    filter: blur(6px);
+    animation: oceanoCaustica 9s ease-in-out infinite alternate;
+  }
+  .oceano-bolha {
+    position: absolute;
+    bottom: -12px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 32% 30%, rgb(255 255 255 / 70%), rgb(190 240 255 / 18%) 45%, transparent 70%);
+    box-shadow: inset 0 0 0 1px rgb(220 245 255 / 35%);
+    animation: oceanoBolha var(--dur, 11s) linear var(--atraso, 0s) infinite;
+  }
+
+  @keyframes oceanoRaios {
+    from {
+      transform: rotate(-4deg);
+    }
+    to {
+      transform: rotate(4deg);
+    }
+  }
+
+  @keyframes oceanoCaustica {
+    from {
+      transform: translate3d(-8px, 0, 0) scale(1);
+      opacity: 0.75;
+    }
+    to {
+      transform: translate3d(10px, 6px, 0) scale(1.08);
+      opacity: 1;
+    }
+  }
+
+  @keyframes oceanoBolha {
+    0% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.9;
+    }
+    50% {
+      transform: translate3d(6px, -180px, 0);
+    }
+    100% {
+      transform: translate3d(-4px, -360px, 0);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .oceano-raios,
+    .oceano-caustica {
+      animation: none;
+    }
+    .oceano-bolha {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .lg-liquid,
+    .lg-liquid:is(button):hover {
+      background: var(--color-noite) !important;
+      border-color: rgb(245 240 231 / 30%);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .lg-liquid,
+    .lg-liquid:is(button):hover {
+      background: var(--color-tinta);
+      border-color: var(--color-marfim);
+    }
+  }
+
   .orbit-scroll::-webkit-scrollbar {
     width: 5px;
     height: 5px;
