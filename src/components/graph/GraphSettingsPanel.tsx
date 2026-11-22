@@ -17,6 +17,9 @@ interface GraphSettingsPanelProps {
   onReset: () => void;
   /** Replays the layout from scratch, like Obsidian's "Animar". */
   onAnimate: () => void;
+  /** Nodes pinned in the current view. */
+  pinnedCount: number;
+  onUnpinAll: () => void;
   search: string;
   onSearch: (value: string) => void;
   toggles: GraphFilterToggle[];
@@ -32,6 +35,8 @@ export function GraphSettingsPanel({
   onChange,
   onReset,
   onAnimate,
+  pinnedCount,
+  onUnpinAll,
   search,
   onSearch,
   toggles,
@@ -118,13 +123,34 @@ export function GraphSettingsPanel({
           limits={GRAPH_DISPLAY_LIMITS.linkWidth}
           onChange={(v) => onChange({ linkWidth: v })}
         />
-        <button
-          type="button"
-          onClick={onAnimate}
-          className="lg-btn-primary mt-1 self-end rounded-full px-3.5 py-1.5 text-[11px] font-bold"
-        >
-          Animar
-        </button>
+        <Row label="Fixar nós ao arrastar">
+          <Switch
+            size="sm"
+            checked={display.pinOnDrag}
+            onChange={() => onChange({ pinOnDrag: !display.pinOnDrag })}
+            label="Fixar nós ao arrastar"
+          />
+        </Row>
+        <p className="-mt-1 text-[10px] leading-snug text-slate-300">
+          Arraste para organizar: o nó fica onde você soltar (📌). Dois cliques nele, ou “Soltar”, devolvem à física.
+        </p>
+        <div className="mt-1 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onUnpinAll}
+            disabled={pinnedCount === 0}
+            className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-40"
+          >
+            Soltar todos{pinnedCount ? ` (${pinnedCount})` : ""}
+          </button>
+          <button
+            type="button"
+            onClick={onAnimate}
+            className="lg-btn-primary rounded-full px-3.5 py-1.5 text-[11px] font-bold"
+          >
+            Animar
+          </button>
+        </div>
       </Group>
 
       <Group title="Forças" defaultOpen={!compact}>
