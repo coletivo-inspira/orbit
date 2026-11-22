@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MODERATION_TEAM, sortPosts } from "@/lib/community";
 import { BIO_MAX_LENGTH, createInitialState, orbitReducer, sanitizeStoredUser, TOPICS_MAX } from "./reducer";
 
 describe("orbitReducer", () => {
@@ -35,13 +36,100 @@ describe("orbitReducer", () => {
     expect(state.user.bio).toHaveLength(BIO_MAX_LENGTH);
   });
 
-  it("toggles likes symmetrically", () => {
+  it("toggles votes symmetrically and switches direction", () => {
     const initial = createInitialState();
-    const before = initial.posts.find((p) => p.id === "c1")!;
-    const liked = orbitReducer(initial, { type: "togglePostLike", id: "c1" });
-    const unliked = orbitReducer(liked, { type: "togglePostLike", id: "c1" });
-    expect(liked.posts.find((p) => p.id === "c1")!.likes).toBe(before.likes + 1);
-    expect(unliked.posts.find((p) => p.id === "c1")).toEqual(before);
+    const find = (s: typeof initial) => s.posts.find((p) => p.id === "c1")!;
+    const before = find(initial);
+    const up = orbitReducer(initial, { type: "votePost", id: "c1", direction: 1 });
+    expect(find(up)).toMatchObject({ vote: 1, score: before.score + 1 });
+    const down = orbitReducer(up, { type: "votePost", id: "c1", direction: -1 });
+    expect(find(down)).toMatchObject({ vote: -1, score: before.score - 1 });
+    const cleared = orbitReducer(down, { type: "votePost", id: "c1", direction: -1 });
+    expect(find(cleared)).toEqual(before);
+  });
+
+  it("only accepts known regions", () => {
+    const initial = createInitialState();
+    const next = orbitReducer(initial, { type: "setRegion", regionId: "recife" });
+    expect(next.regionId).toBe("recife");
+    expect(orbitReducer(next, { type: "setRegion", regionId: "atlantida" })).toBe(next);
+  });
+
+  it("opens the composer exclusively and closes it with the other modals", () => {
+    const article = orbitReducer(createInitialState(), { type: "openArticle", id: "c1" });
+    const composing = orbitReducer(article, { type: "openComposer", kind: "artigo" });
+    expect(composing).toMatchObject({ composerKind: "artigo", selectedArticleId: null });
+    expect(orbitReducer(composing, { type: "closeModals" }).composerKind).toBeNull();
+  });
+
+  it("publishes community posts right away and opens the thread", () => {
+    const initial = orbitReducer(createInitialState(), { type: "openComposer", kind: "discussao" });
+    const next = orbitReducer(initial, {
+      type: "submitPost",
+      draft: {
+        kind: "discussao",
+        category: "debates",
+        title: "  Rolê no domingo?  ",
+        body: "Quem topa um piquenique no parque?",
+      },
+    });
+    const post = next.posts[0];
+    expect(post).toMatchObject({
+      kind: "discussao",
+      status: "publicado",
+      title: "Rolê no domingo?",
+      author: initial.user.name,
+      score: 1,
+      vote: 1,
+    });
+    expect(post.professional).toBeUndefined();
+    expect(next).toMatchObject({ composerKind: null, selectedArticleId: post.id, communitySort: "new" });
+  });
+
+  it("rejects invalid drafts", () => {
+    const initial = createInitialState();
+    const short = orbitReducer(initial, {
+      type: "submitPost",
+      draft: { kind: "discussao", category: "debates", title: "oi", body: "curto" },
+    });
+    expect(short).toBe(initial);
+    const noCredential = orbitReducer(initial, {
+      type: "submitPost",
+      draft: {
+        kind: "artigo",
+        category: "vacinas",
+        title: "Vacina de HPV",
+        body: "Texto longo o suficiente para passar.",
+      },
+    });
+    expect(noCredential).toBe(initial);
+  });
+
+  it("sends professional articles to review until a moderator approves them", () => {
+    const initial = createInitialState();
+    const submitted = orbitReducer(initial, {
+      type: "submitPost",
+      draft: {
+        kind: "artigo",
+        category: "prevencao",
+        title: "Como funciona a PEP no SUS",
+        body: "Primeiro parágrafo do artigo.\n\nSegundo parágrafo com mais detalhes.",
+        professional: { name: "Ana Souza", council: "CRM", registration: " 123456 ", uf: "MG" },
+      },
+    });
+    const post = submitted.posts[0];
+    expect(post).toMatchObject({
+      kind: "artigo",
+      status: "em_revisao",
+      author: "Ana Souza · Médico(a)",
+      professional: { name: "Ana Souza", council: "CRM", registration: "123456", uf: "MG" },
+      content: ["Primeiro parágrafo do artigo.", "Segundo parágrafo com mais detalhes."],
+    });
+    expect(post.reviewedBy).toBeUndefined();
+
+    const approved = orbitReducer(submitted, { type: "approveArticle", id: post.id });
+    expect(approved.posts[0]).toMatchObject({ status: "publicado", reviewedBy: MODERATION_TEAM });
+    expect(orbitReducer(approved, { type: "approveArticle", id: "c4" }).posts).toEqual(approved.posts);
   });
 
   it("ignores blank comments and trims the rest", () => {
@@ -122,5 +210,17 @@ describe("sanitizeStoredUser", () => {
   it("keeps only known topics", () => {
     const user = sanitizeStoredUser({ intentions: ["troca"], topics: ["cafe", "hack", "cafe", 3, "mpb"] })!;
     expect(user.topics).toEqual(["cafe", "mpb"]);
+  });
+});
+
+describe("sortPosts", () => {
+  it("orders by age for Novos and balances score with age for Em alta", () => {
+    const posts = createInitialState().posts;
+    expect(sortPosts(posts, "new").map((p) => p.ageHours)).toEqual(
+      [...posts.map((p) => p.ageHours)].sort((a, b) => a - b),
+    );
+    const hot = sortPosts(posts, "hot");
+    expect(hot[0].id).toBe("c1");
+    expect(hot.at(-1)!.id).toBe("c4");
   });
 });
