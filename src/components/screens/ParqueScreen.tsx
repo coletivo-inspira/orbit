@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { WorldMapPicker } from "@/components/parque/WorldMapPicker";
 import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { INTENTIONS } from "@/lib/data/intentions";
-import { PARK_BOTS } from "@/lib/data/park";
+import { loadRoomMap } from "@/lib/data/park-rooms";
+import { findCityRoom, type ParkRoomDefinition } from "@/lib/data/parkRooms";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import {
   Park2DEngine,
@@ -14,6 +16,9 @@ import {
   type Proximity,
   type RosterEntry,
 } from "@/lib/engines/park2d";
+import { CentralParkScene } from "@/lib/engines/scenes/centralPark";
+import { ClayCityScene } from "@/lib/engines/scenes/clayCity";
+import type { ParkScene } from "@/lib/engines/scenes/types";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
@@ -26,12 +31,74 @@ const PROXIMITY_LABEL: Record<Proximity, string> = {
 };
 
 export function ParqueScreen() {
+  const { state } = useOrbit();
+  if (!state.parkRoomId) return <WorldMapPicker />;
+  return <ParkRoom key={state.parkRoomId} room={findCityRoom(state.parkRoomId)} />;
+}
+
+/** Loads the room's scene: the pilot park right away, a city room from its OpenStreetMap snapshot. */
+function ParkRoom({ room }: { room: ParkRoomDefinition | null }) {
+  const { dispatch } = useOrbit();
+  const [scene, setScene] = useState<ParkScene | null>(() => (room ? null : new CentralParkScene()));
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    if (!room) return;
+    let alive = true;
+    loadRoomMap(room.id)
+      .then((data) => alive && setScene(new ClayCityScene(room, data)))
+      .catch(() => alive && setFailed(true));
+    return () => {
+      alive = false;
+    };
+  }, [room, attempt]);
+
+  if (scene) return <ParkRoomView scene={scene} room={room} />;
+  return (
+    <div className="relative flex h-full w-full flex-col items-center justify-center gap-3 bg-tinta px-6 text-center">
+      <div className="clay-loader h-14 w-14 rounded-full" aria-hidden="true" />
+      <div role="status" aria-live="polite" className="flex flex-col gap-1">
+        <h1 className="text-sm font-bold text-white">
+          {failed ? "Não deu para abrir essa sala agora." : `Modelando ${room?.city} em massinha…`}
+        </h1>
+        <p className="text-xs text-slate-300">
+          {failed ? "Verifique sua conexão e tente de novo." : "Ruas, quadras e árvores vêm do mapa real da região."}
+        </p>
+      </div>
+      <div className="mt-1 flex flex-wrap justify-center gap-2">
+        {failed && (
+          <button
+            type="button"
+            onClick={() => {
+              setFailed(false);
+              setAttempt((a) => a + 1);
+            }}
+            className="lg-btn-primary rounded-full px-4 py-1.5 text-xs font-bold"
+          >
+            Tentar de novo
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => dispatch({ type: "leaveParkRoom" })}
+          className="lg-pill rounded-full px-4 py-1.5 text-xs font-bold text-white"
+        >
+          ← Voltar ao mapa-múndi
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinition | null }) {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const showToast = useToast();
   const isMobile = device === "mobile";
   const showDpad = isMobile || state.showDesktopDpad;
   const ids = useId();
+  const title = room ? room.name : "Parque Central Orbit";
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -57,7 +124,7 @@ export function ParqueScreen() {
     const canvas = canvasRef.current;
     const wrap = wrapRef.current;
     if (!canvas || !wrap) return;
-    const engine = new Park2DEngine(canvas, wrap, {
+    const engine = new Park2DEngine(canvas, wrap, scene, {
       onActiveBotChange: setActiveBot,
       onRosterChange: setRoster,
       reducedMotion: prefersReducedMotion,
@@ -77,7 +144,7 @@ export function ParqueScreen() {
       engine.destroy();
       engineRef.current = null;
     };
-  }, []);
+  }, [scene]);
 
   // A card opened from the people list takes focus; a card that vanishes while focused hands focus to a stable control.
   useEffect(() => {
@@ -119,30 +186,40 @@ export function ParqueScreen() {
   const pressDpad = (dir: Direction, pressed: boolean) => engineRef.current?.setDpad(dir, pressed);
 
   return (
-    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#1b2e1e]">
+    <div className="relative flex h-full w-full flex-col overflow-hidden" style={{ background: scene.background }}>
       <div ref={wrapRef} className="relative min-h-0 w-full flex-1 overflow-hidden">
         <canvas
           ref={canvasRef}
           tabIndex={0}
           role="application"
           aria-roledescription="mapa"
-          aria-label="Mapa do Parque Central Orbit"
+          aria-label={room ? `Mapa da sala ${room.name}, ${room.city}` : "Mapa do Parque Central Orbit"}
           aria-describedby={`${ids}-controls`}
           className="pixel-canvas block h-full w-full cursor-pointer touch-none outline-offset-[-4px]"
         />
 
         <div className="pointer-events-none absolute top-3 right-3 left-3 z-10 flex flex-col items-start gap-2">
           <div className="flex w-full flex-wrap items-start justify-between gap-2">
-            <div className="lg-bar pointer-events-auto flex items-center gap-2 rounded-full px-3.5 py-1.5">
+            <div className="lg-bar pointer-events-auto flex min-w-0 items-center gap-2 rounded-full py-1 pr-3.5 pl-1">
+              <button
+                type="button"
+                onClick={() => dispatch({ type: "leaveParkRoom" })}
+                aria-label="Voltar ao mapa-múndi"
+                title="Voltar ao mapa-múndi"
+                className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm text-white"
+              >
+                <span aria-hidden="true">🌍</span>
+              </button>
               <h1
                 tabIndex={-1}
                 data-focus-fallback
-                className={`${isMobile ? "text-[12px]" : "text-sm"} font-bold tracking-tight text-white`}
+                className={`${isMobile ? "text-[12px]" : "text-sm"} min-w-0 truncate font-bold tracking-tight text-white`}
               >
-                Parque Central Orbit
+                {room && <span aria-hidden="true">{room.flag} </span>}
+                {title}
               </h1>
-              <span className="presenca-chip rounded-full px-2 py-0.5 text-[11px] font-bold">
-                {PARK_BOTS.length} online
+              <span className="presenca-chip shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold">
+                {scene.bots.length} online
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -154,7 +231,7 @@ export function ParqueScreen() {
                 onClick={() => setPeopleOpen((o) => !o)}
                 className="lg-bar pointer-events-auto rounded-full px-3 py-1.5 text-[11px] font-semibold text-white"
               >
-                👥 Pessoas ({roster.length || PARK_BOTS.length})
+                👥 Pessoas ({roster.length || scene.bots.length})
               </button>
               {!isMobile && (
                 <button
@@ -174,6 +251,17 @@ export function ParqueScreen() {
               : "Foque o mapa e use WASD/setas, clique no chão ou use a lista de pessoas"}
           </p>
         </div>
+
+        {room && (
+          <a
+            href="https://www.openstreetmap.org/copyright"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute right-2 bottom-1.5 z-10 rounded-full bg-marfim px-2 py-0.5 text-[10px] font-semibold text-tinta"
+          >
+            Mapa © OpenStreetMap<span className="sr-only"> (abre em nova aba)</span>
+          </a>
+        )}
 
         {peopleOpen && (
           <PeopleList

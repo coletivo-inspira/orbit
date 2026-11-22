@@ -1,39 +1,7 @@
-import {
-  CAFE_AREA,
-  LAMPS,
-  OBSTACLES,
-  PACOCA_POSITION,
-  PARK_BOTS,
-  PLAYER_SPAWN,
-  TOTEM_AREA,
-  TREES,
-  WORLD,
-  type BotDefinition,
-  type Obstacle,
-  type Point,
-} from "@/lib/data/park";
+import type { BotDefinition, Point } from "@/lib/data/park";
+import type { ParkScene, ViewRect } from "./scenes/types";
 
 export type Direction = "up" | "down" | "left" | "right";
-
-const EDGE = 22;
-
-export function collidesAt(x: number, y: number, radius: number, obstacles: Obstacle[] = OBSTACLES): boolean {
-  if (x < EDGE || x > WORLD.width - EDGE || y < EDGE || y > WORLD.height - EDGE) return true;
-  for (const ob of obstacles) {
-    if (ob.type === "circle") {
-      if (Math.hypot(x - ob.x, y - ob.y) < ob.r + radius) return true;
-    } else {
-      const cx = Math.max(ob.x, Math.min(x, ob.x + ob.w));
-      const cy = Math.max(ob.y, Math.min(y, ob.y + ob.h));
-      if (Math.hypot(x - cx, y - cy) < radius) return true;
-    }
-  }
-  return false;
-}
-
-function inRect(p: Point, r: { x: number; y: number; w: number; h: number }) {
-  return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
-}
 
 interface BotState extends BotDefinition {
   walkPhase: number;
@@ -91,26 +59,10 @@ export interface Park2DCallbacks {
   getPlayerLook: () => PlayerLook;
 }
 
-interface Flower extends Point {
-  color: string;
-}
-
-function buildFlowers(): Flower[] {
-  const colors = ["#fef08a", "#f9a8d4", "#93c5fd", "#ffffff", "#c4b5fd"];
-  const flowers: Flower[] = [];
-  for (let i = 0; i < 64; i++) {
-    const x = 60 + ((i * 173) % 1080);
-    const y = 60 + ((i * 251) % 780);
-    if ((x > 525 && x < 675) || (y > 375 && y < 525)) continue;
-    if (Math.hypot(x - 600, y - 450) < 170) continue;
-    flowers.push({ x, y, color: colors[i % colors.length] });
-  }
-  return flowers;
-}
-
 /**
- * Pixel-art top-down room (WorkAdventure-style pilot). Rendering and movement
- * are local only; multiplayer presence (Supabase Realtime) is a later step.
+ * Top-down Parque room (WorkAdventure-style): movement, bots, chat bubbles and
+ * camera; the scene supplies the map. Local only; multiplayer presence
+ * (Supabase Realtime) is a later step.
  */
 export class Park2DEngine {
   private readonly ctx: CanvasRenderingContext2D;
@@ -132,31 +84,33 @@ export class Park2DEngine {
   private rosterKey = "";
   private readonly keys: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
   private readonly dpad: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
-  private readonly flowers = buildFlowers();
   private readonly resizeObserver: ResizeObserver;
-  private readonly player: PlayerState = {
-    ...PLAYER_SPAWN,
-    r: 13,
-    speed: 175,
-    targetX: null,
-    targetY: null,
-    walkPhase: 0,
-    speech: null,
-    speechTimer: 0,
-  };
-  private readonly bots: BotState[] = PARK_BOTS.map((b) => ({
-    ...b,
-    waypoints: b.waypoints.map((w) => ({ ...w })),
-    walkPhase: 0,
-    wpIndex: 0,
-    lineIndex: 0,
-  }));
+  private readonly player: PlayerState;
+  private readonly bots: BotState[];
 
   constructor(
     private readonly canvas: HTMLCanvasElement,
     private readonly wrap: HTMLElement,
+    private readonly scene: ParkScene,
     private readonly cb: Park2DCallbacks,
   ) {
+    this.player = {
+      ...scene.spawn,
+      r: 13,
+      speed: 175,
+      targetX: null,
+      targetY: null,
+      walkPhase: 0,
+      speech: null,
+      speechTimer: 0,
+    };
+    this.bots = scene.bots.map((b) => ({
+      ...b,
+      waypoints: b.waypoints.map((w) => ({ ...w })),
+      walkPhase: 0,
+      wpIndex: 0,
+      lineIndex: 0,
+    }));
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Canvas 2D context unavailable");
     this.ctx = ctx;
@@ -255,19 +209,19 @@ export class Park2DEngine {
     const sx = (clientX - rect.left) * (this.viewW / rect.width);
     const sy = (clientY - rect.top) * (this.viewH / rect.height);
     return {
-      x: Math.max(24, Math.min(WORLD.width - 24, sx + this.camX)),
-      y: Math.max(24, Math.min(WORLD.height - 24, sy + this.camY)),
+      x: Math.max(24, Math.min(this.scene.world.width - 24, sx + this.camX)),
+      y: Math.max(24, Math.min(this.scene.world.height - 24, sy + this.camY)),
     };
   }
 
   private ensureUnstuck() {
     const p = this.player;
-    if (!collidesAt(p.x, p.y, p.r)) return;
+    if (!this.scene.collides(p.x, p.y, p.r)) return;
     for (let dist = 8; dist <= 96; dist += 8) {
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 6) {
         const nx = p.x + Math.cos(a) * dist;
         const ny = p.y + Math.sin(a) * dist;
-        if (!collidesAt(nx, ny, p.r)) {
+        if (!this.scene.collides(nx, ny, p.r)) {
           p.x = nx;
           p.y = ny;
           return;
@@ -325,22 +279,19 @@ export class Park2DEngine {
     this.engagedBotId = null;
     const pt = this.screenToWorld(e.clientX, e.clientY);
 
-    if (Math.hypot(pt.x - PACOCA_POSITION.x, pt.y - PACOCA_POSITION.y) < 34) this.triggerPacoca();
+    const { pacoca } = this.scene;
+    if (pacoca && Math.hypot(pt.x - pacoca.x, pt.y - pacoca.y) < 34) this.triggerPacoca();
 
-    if (inRect(pt, CAFE_AREA)) {
-      this.cb.onToast("☕ Café Orbit: você pediu um iced latte virtual!", "success");
-      this.setTarget(245, 258);
-      return;
-    }
-    if (inRect(pt, TOTEM_AREA)) {
-      this.cb.onToast("🛡️ Totem Saúde: acesse a aba Comunidade para guias de PrEP e vacinas!", "info");
-      this.setTarget(930, 252);
+    const tap = this.scene.tap?.(pt);
+    if (tap) {
+      if (tap.toast) this.cb.onToast(tap.toast.message, tap.toast.type);
+      if (tap.walkTo) this.setTarget(tap.walkTo.x, tap.walkTo.y);
       return;
     }
     for (const b of this.bots) {
       if (Math.hypot(pt.x - b.x, pt.y - b.y) < 34) {
         const below = b.y + 42;
-        this.setTarget(b.x, collidesAt(b.x, below, this.player.r) ? b.y - 42 : below);
+        this.setTarget(b.x, this.scene.collides(b.x, below, this.player.r) ? b.y - 42 : below);
         if (this.activeBotId === b.id) b.lineIndex++;
         this.dismissedBotId = null;
         this.focusBot(b);
@@ -426,8 +377,8 @@ export class Park2DEngine {
       const prevX = p.x;
       const prevY = p.y;
       // Axis-separated collision lets the avatar slide along obstacles.
-      if (!collidesAt(p.x + vx, p.y, p.r)) p.x += vx;
-      if (!collidesAt(p.x, p.y + vy, p.r)) p.y += vy;
+      if (!this.scene.collides(p.x + vx, p.y, p.r)) p.x += vx;
+      if (!this.scene.collides(p.x, p.y + vy, p.r)) p.y += vy;
       if (p.targetX !== null && Math.hypot(p.x - prevX, p.y - prevY) < 0.25 && !this.pointerWalking) {
         this.clearTarget();
       }
@@ -436,13 +387,16 @@ export class Park2DEngine {
       p.walkPhase = 0;
     }
 
-    if (Math.hypot(p.x - PACOCA_POSITION.x, p.y - PACOCA_POSITION.y) < 62) this.triggerPacoca();
+    const { pacoca } = this.scene;
+    if (pacoca && Math.hypot(p.x - pacoca.x, p.y - pacoca.y) < 62) this.triggerPacoca();
 
     const engaged = this.bots.find((b) => b.id === this.engagedBotId) ?? null;
     if (engaged) {
       const dist = Math.hypot(engaged.x - p.x, engaged.y - p.y);
-      if (dist > 48) this.setTarget(engaged.x, engaged.y + (collidesAt(engaged.x, engaged.y + 42, p.r) ? -42 : 42));
-      else this.engagedBotId = null;
+      if (dist > 48) {
+        const below = this.scene.collides(engaged.x, engaged.y + 42, p.r) ? -42 : 42;
+        this.setTarget(engaged.x, engaged.y + below);
+      } else this.engagedBotId = null;
     }
 
     let nearest: BotState | null = null;
@@ -472,7 +426,7 @@ export class Park2DEngine {
       const step = Math.min(dist, b.speed * dt);
       const nx = b.x + (dx / dist) * step;
       const ny = b.y + (dy / dist) * step;
-      if (!collidesAt(nx, ny, 12)) {
+      if (!this.scene.collides(nx, ny, 12)) {
         b.x = nx;
         b.y = ny;
         b.walkPhase += dt * 7.5;
@@ -491,8 +445,9 @@ export class Park2DEngine {
     }
     this.emitRoster();
 
-    const desiredCamX = Math.max(0, Math.min(WORLD.width - this.viewW, p.x - this.viewW / 2));
-    const desiredCamY = Math.max(0, Math.min(WORLD.height - this.viewH, p.y - this.viewH / 2));
+    const { world } = this.scene;
+    const desiredCamX = Math.max(0, Math.min(world.width - this.viewW, p.x - this.viewW / 2));
+    const desiredCamY = Math.max(0, Math.min(world.height - this.viewH, p.y - this.viewH / 2));
     const follow = this.cb.reducedMotion() ? 1 : Math.min(1, dt * 8);
     this.camX += (desiredCamX - this.camX) * follow;
     this.camY += (desiredCamY - this.camY) * follow;
@@ -525,34 +480,31 @@ export class Park2DEngine {
   private draw() {
     const ctx = this.ctx;
     ctx.save();
-    ctx.clearRect(0, 0, this.viewW, this.viewH);
+    ctx.fillStyle = this.scene.background;
+    ctx.fillRect(0, 0, this.viewW, this.viewH);
     ctx.translate(-Math.round(this.camX), -Math.round(this.camY));
+    const view: ViewRect = { x: this.camX, y: this.camY, w: this.viewW, h: this.viewH };
 
-    this.drawGround(ctx);
+    this.scene.drawGround(ctx, view, this.decorTime);
     this.drawTargetMarker(ctx);
-    this.drawFountain(ctx);
-    this.drawCafeKiosk(ctx);
-    this.drawHealthTotem(ctx);
-    this.drawBenches(ctx);
-    this.drawLamps(ctx);
-
-    ctx.fillStyle = "#15803d";
-    ctx.beginPath();
-    ctx.arc(352, 206, 18, 0, Math.PI * 2);
-    ctx.arc(374, 202, 16, 0, Math.PI * 2);
-    ctx.fill();
-    this.drawPacoca(ctx);
 
     type Drawable = { y: number; draw: () => void };
+    const time = this.decorTime;
     const drawables: Drawable[] = [
-      ...TREES.map((t) => ({ y: t.y, draw: () => this.drawTree(ctx, t.x, t.y) })),
+      ...this.scene.props
+        .filter(
+          (pr) => pr.maxX > view.x && pr.minX < view.x + view.w && pr.y + 40 > view.y && pr.minY < view.y + view.h,
+        )
+        .map((pr) => ({ y: pr.y, draw: () => pr.draw(ctx, time) })),
       ...this.bots.map((b) => ({ y: b.y, draw: () => this.drawCharacter(ctx, b, false) })),
       { y: this.player.y, draw: () => this.drawCharacter(ctx, this.player, true) },
     ];
     drawables.sort((a, b) => a.y - b.y).forEach((d) => d.draw());
+    this.scene.drawOverlay?.(ctx, view, this.decorTime, this.player);
 
-    if (this.pacocaSpeechTimer > 0) {
-      this.drawSpeechBubble(ctx, PACOCA_POSITION.x, PACOCA_POSITION.y - 24, "Miau! 🐱 (Paçoca)");
+    const { pacoca } = this.scene;
+    if (pacoca && this.pacocaSpeechTimer > 0) {
+      this.drawSpeechBubble(ctx, pacoca.x, pacoca.y - 24, "Miau! 🐱 (Paçoca)");
     }
     const active = this.bots.find((b) => b.id === this.activeBotId);
     if (active) this.drawSpeechBubble(ctx, active.x, active.y - 46, this.botLine(active));
@@ -560,40 +512,6 @@ export class Park2DEngine {
       this.drawSpeechBubble(ctx, this.player.x, this.player.y - 46, this.player.speech, true);
     }
     ctx.restore();
-  }
-
-  private drawGround(ctx: CanvasRenderingContext2D) {
-    const tile = 32;
-    const startCol = Math.max(0, Math.floor(this.camX / tile));
-    const endCol = Math.min(Math.ceil(WORLD.width / tile), Math.ceil((this.camX + this.viewW) / tile));
-    const startRow = Math.max(0, Math.floor(this.camY / tile));
-    const endRow = Math.min(Math.ceil(WORLD.height / tile), Math.ceil((this.camY + this.viewH) / tile));
-    for (let r = startRow; r < endRow; r++) {
-      for (let c = startCol; c < endCol; c++) {
-        ctx.fillStyle = (r + c) % 2 === 0 ? "#2f7a47" : "#2a6f40";
-        ctx.fillRect(c * tile, r * tile, tile, tile);
-      }
-    }
-
-    ctx.fillStyle = "#c8b896";
-    ctx.fillRect(552, 0, 96, WORLD.height);
-    ctx.fillRect(0, 404, WORLD.width, 92);
-    ctx.fillRect(190, 232, 820, 56);
-    ctx.beginPath();
-    ctx.arc(600, 450, 152, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = "#b6a47e";
-    for (let i = 0; i < 42; i++) {
-      ctx.fillRect(560 + ((i * 37) % 80), 30 + ((i * 89) % 840), 5, 4);
-    }
-
-    for (const f of this.flowers) {
-      ctx.fillStyle = "#14532d";
-      ctx.fillRect(f.x - 1, f.y + 2, 4, 3);
-      ctx.fillStyle = f.color;
-      ctx.fillRect(f.x - 2, f.y - 2, 5, 5);
-    }
   }
 
   private drawTargetMarker(ctx: CanvasRenderingContext2D) {
@@ -609,128 +527,6 @@ export class Park2DEngine {
     ctx.beginPath();
     ctx.arc(targetX, targetY, 4, 0, Math.PI * 2);
     ctx.fill();
-  }
-
-  private drawFountain(ctx: CanvasRenderingContext2D) {
-    const rings: [number, number, string][] = [
-      [456, 62, "rgba(15, 23, 42, 0.25)"],
-      [450, 58, "#64748b"],
-      [450, 50, "#94a3b8"],
-      [450, 42, "#0ea5e9"],
-    ];
-    for (const [y, r, color] of rings) {
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(600, y, r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    const ripple = 14 + ((this.decorTime * 16) % 24);
-    ctx.strokeStyle = `rgba(224, 242, 254, ${Math.max(0, 0.85 - (ripple - 14) / 28)})`;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(600, 450, ripple, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = "#cbd5e1";
-    ctx.fillRect(590, 440, 20, 20);
-    ctx.fillStyle = "#bae6fd";
-    ctx.fillRect(596, 444 + Math.sin(this.decorTime * 10) * 2, 8, 8);
-  }
-
-  private drawCafeKiosk(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "rgba(0,0,0,0.24)";
-    ctx.fillRect(156, 134, 185, 102);
-    ctx.fillStyle = "#fef3c7";
-    ctx.fillRect(150, 155, 185, 75);
-    ctx.fillStyle = "#78350f";
-    ctx.fillRect(166, 204, 153, 20);
-    for (let i = 0; i < 8; i++) {
-      ctx.fillStyle = i % 2 === 0 ? "#a87356" : "#f5f0e7";
-      ctx.fillRect(146 + i * 24, 125, 24, 34);
-    }
-    ctx.fillStyle = "#1c2631";
-    ctx.fillRect(184, 165, 118, 24);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("☕ CAFÉ ORBIT", 243, 181);
-  }
-
-  private drawHealthTotem(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.fillRect(876, 162, 126, 70);
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(870, 155, 126, 72);
-    ctx.strokeStyle = "#34d399";
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(872, 157, 122, 68);
-    ctx.fillStyle = "#34d399";
-    ctx.font = "bold 10px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.fillText("🛡️ SAÚDE & PREP", 933, 183);
-    ctx.fillStyle = "#cbd5e1";
-    ctx.font = "600 9px system-ui, sans-serif";
-    ctx.fillText("Guia Público SUS", 933, 202);
-  }
-
-  private drawBenches(ctx: CanvasRenderingContext2D) {
-    for (const b of OBSTACLES) {
-      if (b.kind !== "bench" || b.type !== "rect") continue;
-      ctx.fillStyle = "rgba(0,0,0,0.22)";
-      ctx.fillRect(b.x + 2, b.y + 4, b.w, b.h);
-      ctx.fillStyle = "#92400e";
-      ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.fillStyle = "#b45309";
-      ctx.fillRect(b.x + 2, b.y + 2, b.w - 4, 6);
-      ctx.fillRect(b.x + 2, b.y + 11, b.w - 4, 6);
-    }
-  }
-
-  private drawLamps(ctx: CanvasRenderingContext2D) {
-    for (const l of LAMPS) {
-      const g = ctx.createRadialGradient(l.x, l.y - 16, 2, l.x, l.y - 16, 36);
-      g.addColorStop(0, "rgba(254, 240, 138, 0.36)");
-      g.addColorStop(1, "rgba(254, 240, 138, 0)");
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(l.x, l.y - 16, 36, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#334155";
-      ctx.fillRect(l.x - 2, l.y - 18, 4, 22);
-      ctx.fillStyle = "#fef08a";
-      ctx.fillRect(l.x - 4, l.y - 23, 8, 7);
-    }
-  }
-
-  private drawPacoca(ctx: CanvasRenderingContext2D) {
-    const { x, y } = PACOCA_POSITION;
-    const bob = Math.sin(this.decorTime * 4) * 1.2;
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(x, y + 6, 9, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#f97316";
-    ctx.fillRect(x - 7, y - 4 + bob, 14, 9);
-    ctx.fillRect(x - 5, y - 11 + bob, 10, 8);
-    ctx.fillRect(x - 5, y - 14 + bob, 3, 3);
-    ctx.fillRect(x + 2, y - 14 + bob, 3, 3);
-    ctx.fillStyle = "#0f172a";
-    ctx.fillRect(x - 3, y - 8 + bob, 2, 2);
-    ctx.fillRect(x + 1, y - 8 + bob, 2, 2);
-  }
-
-  private drawTree(ctx: CanvasRenderingContext2D, x: number, y: number) {
-    ctx.fillStyle = "rgba(0,0,0,0.24)";
-    ctx.beginPath();
-    ctx.ellipse(x, y + 18, 22, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#713f12";
-    ctx.fillRect(x - 6, y - 2, 12, 22);
-    ctx.fillStyle = "#14532d";
-    ctx.fillRect(x - 22, y - 28, 44, 28);
-    ctx.fillStyle = "#166534";
-    ctx.fillRect(x - 18, y - 36, 36, 26);
-    ctx.fillStyle = "#22c55e";
-    ctx.fillRect(x - 12, y - 40, 24, 16);
   }
 
   private drawCharacter(ctx: CanvasRenderingContext2D, ch: BotState | PlayerState, isPlayer: boolean) {

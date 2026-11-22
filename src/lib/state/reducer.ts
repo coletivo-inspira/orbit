@@ -19,6 +19,8 @@ export interface OrbitState {
   selectedProfileId: string | null;
   selectedArticleId: string | null;
   showDesktopDpad: boolean;
+  /** Room the user is walking in; null shows the Parque world map. */
+  parkRoomId: string | null;
 }
 
 export type OrbitAction =
@@ -33,6 +35,8 @@ export type OrbitAction =
   | { type: "openArticle"; id: string }
   | { type: "closeModals" }
   | { type: "toggleDesktopDpad" }
+  | { type: "enterParkRoom"; id: string }
+  | { type: "leaveParkRoom" }
   | { type: "foundPacoca" }
   | { type: "togglePrivacy" }
   | { type: "updateBio"; bio: string }
@@ -59,6 +63,7 @@ export function createInitialState(): OrbitState {
     selectedProfileId: null,
     selectedArticleId: null,
     showDesktopDpad: false,
+    parkRoomId: null,
   };
 }
 
@@ -128,6 +133,10 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
       return { ...state, ...closed };
     case "toggleDesktopDpad":
       return { ...state, showDesktopDpad: !state.showDesktopDpad };
+    case "enterParkRoom":
+      return { ...state, parkRoomId: action.id };
+    case "leaveParkRoom":
+      return { ...state, parkRoomId: null };
     case "foundPacoca":
       return state.foundPacoca ? state : { ...state, foundPacoca: true };
     case "togglePrivacy":
