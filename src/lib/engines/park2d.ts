@@ -518,6 +518,7 @@ export class Park2DEngine {
       { y: this.player.y, draw: () => this.drawCharacter(ctx, this.player, true) },
     ];
     drawables.sort((a, b) => a.y - b.y).forEach((d) => d.draw());
+    this.drawNameTag(ctx, this.player, `${this.cb.getPlayerLook().firstName} (Você)`, true);
     this.scene.drawOverlay?.(ctx, view, this.decorTime, this.player);
 
     const { pacoca } = this.scene;
@@ -599,7 +600,13 @@ export class Park2DEngine {
     ctx.fillRect(x - 4, y - 26, 2, 2);
     ctx.fillRect(x + 2, y - 26, 2, 2);
 
-    const label = look ? `${look.firstName} (Você)` : bot!.name;
+    if (!isPlayer) this.drawNameTag(ctx, ch, bot!.name, false);
+  }
+
+  /** The player's tag is drawn after the scene so a block in front never hides it. */
+  private drawNameTag(ctx: CanvasRenderingContext2D, ch: Point, label: string, isPlayer: boolean) {
+    const x = Math.round(ch.x);
+    const y = Math.round(ch.y);
     ctx.font = "bold 10px system-ui, sans-serif";
     const bw = ctx.measureText(label).width + 14;
     const by = y + 11;

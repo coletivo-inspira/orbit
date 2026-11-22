@@ -383,7 +383,7 @@ export class ClayCityScene implements ParkScene {
   readonly spawn: Point;
   readonly bots: BotDefinition[];
   readonly background = "#1c2631";
-  readonly cameraAnchorY = 0.6;
+  readonly cameraAnchorY = 0.66;
   readonly props: SceneProp[] = [];
 
   private readonly palette: Palette;
@@ -400,7 +400,7 @@ export class ClayCityScene implements ParkScene {
   private readonly rockStreaks: (Point & { a: number })[] = [];
   private readonly seaWaves: Point[] = [];
   private readonly boatLane: { y: number; x0: number; x1: number } | null = null;
-  private readonly landmark: Landmark;
+  readonly landmark: Landmark;
   private readonly tiles = new SpriteCache(4_000_000);
   private readonly sprites = new SpriteCache(5_000_000);
   private staticPaths: {
@@ -483,7 +483,7 @@ export class ClayCityScene implements ParkScene {
 
     this.pois = data.pois
       .map((p) => ({ ...p, px: px(p.x), py: px(p.y) }))
-      .filter((p) => !(clear && inRect(p.px, p.py, clear)));
+      .filter((p) => !inRect(p.px, p.py, clear ?? this.landmark.hitArea));
 
     this.buildings.forEach((b, i) => {
       const top = b.minY - b.elev - 4;
@@ -577,7 +577,7 @@ export class ClayCityScene implements ParkScene {
           minY: center.y - EIFFEL.half - EIFFEL.height,
           maxY: center.y + EIFFEL.half,
         },
-        front: { x: center.x, y: center.y + EIFFEL.half + 64 },
+        front: { x: center.x, y: center.y + EIFFEL.half + 80 },
         clearZone: { minX: center.x - reach, maxX: center.x + reach, minY: center.y - reach, maxY: center.y + reach },
       };
     }
@@ -1314,7 +1314,7 @@ function drawSummit(ctx: CanvasRenderingContext2D, x: number, y: number, label: 
  * A miniature of the tower, smaller than its 125 m base so it reads on a phone;
  * it faces the camera whatever the real orientation. Walkable between the legs.
  */
-const EIFFEL = { half: 150, height: 520 };
+const EIFFEL = { half: 140, height: 480 };
 
 function eiffelTower(center: Point) {
   const { x: cx, y: cy } = center;
