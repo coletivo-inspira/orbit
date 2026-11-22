@@ -7,6 +7,7 @@ import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import { activeAppIds, INTENTIONS } from "@/lib/data/intentions";
 import { findCityRoom } from "@/lib/data/parkRooms";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { PROFILE_VIEWS, RECEIVED_TAPS } from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { OrbitState } from "@/lib/state/reducer";
@@ -150,6 +151,9 @@ export function WatchScreen() {
               <AppTile key={id} appId={id} className="h-6 w-6 rounded-lg" iconClassName="h-3.5 w-3.5" />
             ))}
         </div>
+        <p className="mt-2 text-[10px] font-semibold text-slate-200">
+          {PROFILE_VIEWS.length} visualizações · {RECEIVED_TAPS.length} toques
+        </p>
       </div>
       <button
         type="button"

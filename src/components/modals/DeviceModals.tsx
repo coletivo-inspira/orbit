@@ -6,6 +6,7 @@ import { ArticleBody, ArticleProvenance, CommentList } from "@/components/comuni
 import { PostTrustBadge } from "@/components/comunidade/PostTrust";
 import { VoteControl } from "@/components/comunidade/VoteControl";
 import { ComposerSheet } from "@/components/modals/ComposerSheet";
+import { TapIcon } from "@/components/interesse/TapIcon";
 import { OrbitaFiltersSheet } from "@/components/orbita/OrbitaFiltersSheet";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
@@ -14,6 +15,7 @@ import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { copyText } from "@/lib/clipboard";
 import { activeAppIds, COMMUNITY_CATEGORIES, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
 import {
+  BODY_TYPES,
   CONDOM_USE,
   DEMO_MONTH,
   formatMonth,
@@ -32,6 +34,7 @@ import {
 } from "@/lib/data/profileOptions";
 import { getPost } from "@/lib/data/posts";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { formatAgo, receivedTapFrom } from "@/lib/interesse";
 import { monthsBetween, sharedTopics } from "@/lib/orbitaFilters";
 import { articleRoute, publicUrl } from "@/lib/publicUrl";
 import { useDevice } from "@/lib/state/device";
@@ -87,10 +90,18 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
   const primary = INTENTIONS[p.primaryIntention] ?? INTENTIONS.troca;
   const apps = activeAppIds(p.apps);
   const shared = sharedTopics(state.user.topics, p.topics);
+  const tappedYou = receivedTapFrom(p.id);
+  const tapped = state.sentTaps.includes(p.id);
 
   const wave = () => {
     onClose();
     showToast(`Você acenou para ${p.name}! 👋 (simulação)`, "success");
+  };
+
+  const tap = () => {
+    if (tapped) return;
+    dispatch({ type: "tapProfile", id: p.id });
+    showToast(`Você ${tappedYou ? "tocou de volta em" : "tocou em"} ${p.name}. (simulação)`, "success");
   };
 
   const onBadge = async (appId: AppId) => {
@@ -198,6 +209,13 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
             </p>
           )}
 
+          {tappedYou && (
+            <p className="mt-3 flex items-center gap-2 rounded-2xl border border-white/[0.14] bg-white/[0.06] px-3 py-2 text-xs text-white">
+              <TapIcon className="h-4 w-4 shrink-0 text-areia" />
+              {p.name} te deu um toque {formatAgo(tappedYou.minutesAgo)}.
+            </p>
+          )}
+
           <p className="mt-3 text-sm leading-relaxed text-white">{p.bio}</p>
 
           <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Intenções">
@@ -229,6 +247,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
                 ["Orientação", labelOf(ORIENTATIONS, p.orientation)],
                 ["Altura", p.heightCm && `${p.heightCm} cm`],
                 ["Peso", p.weightKg && `${p.weightKg} kg`],
+                ["Tipo de corpo", p.bodyType && labelOf(BODY_TYPES, p.bodyType)],
                 ["Relacionamento", p.relationship && relationshipLabel(p.relationship, p.pronouns)],
                 ["Tribos", p.tribes.length ? p.tribes.map((id) => labelOf(TRIBES, id)).join(", ") : "Sem tribo"],
                 ["Esportes", p.sports.map((id) => labelOf(SPORTS, id)).join(", ")],
@@ -310,13 +329,20 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
           </SheetSection>
         </div>
 
-        <div
-          className={`grid shrink-0 gap-2.5 border-t border-white/[0.12] bg-tinta px-5 py-3.5 ${p.inPark ? "grid-cols-2" : "grid-cols-1"}`}
-        >
+        <div className="flex shrink-0 gap-2.5 border-t border-white/[0.12] bg-tinta px-5 py-3.5">
+          <button
+            type="button"
+            onClick={tap}
+            aria-disabled={tapped}
+            className={`lg-pill flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold active:scale-95 aria-disabled:cursor-default aria-disabled:active:scale-100 ${tapped ? "text-areia" : "text-white"}`}
+          >
+            <TapIcon className="h-4 w-4" filled={tapped} />
+            {tapped ? "Tocado" : tappedYou ? "Tocar de volta" : "Tocar"}
+          </button>
           <button
             type="button"
             onClick={wave}
-            className="lg-btn-primary rounded-full px-4 py-2.5 text-xs font-extrabold active:scale-95"
+            className="lg-btn-primary flex-1 rounded-full px-4 py-2.5 text-xs font-extrabold active:scale-95"
           >
             Mandar um oi 👋
           </button>
@@ -324,7 +350,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
             <button
               type="button"
               onClick={() => dispatch({ type: "setTab", tab: "parque" })}
-              className="lg-pill rounded-full px-4 py-2.5 text-xs font-extrabold text-white active:scale-95"
+              className="lg-pill flex-1 rounded-full px-4 py-2.5 text-xs font-extrabold text-white active:scale-95"
             >
               🌳 Ir pro Parque
             </button>

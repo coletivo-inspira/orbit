@@ -1,4 +1,5 @@
 import type {
+  BodyTypeId,
   CondomUse,
   GenderId,
   HivStatus,
@@ -88,6 +89,15 @@ export const SPORTS: Option<SportId>[] = [
   { id: "trilha", label: "Trilha" },
   { id: "lutas", label: "Lutas" },
   { id: "skate", label: "Skate" },
+];
+
+export const BODY_TYPES: Option<BodyTypeId>[] = [
+  { id: "definido", label: "Definido" },
+  { id: "medio", label: "Médio" },
+  { id: "grande", label: "Grande" },
+  { id: "musculoso", label: "Musculoso" },
+  { id: "esbelto", label: "Esbelto(a)" },
+  { id: "robusto", label: "Robusto" },
 ];
 
 const RELATIONSHIP_FORMS: Record<RelationshipId, Record<Pronouns, string>> = {
