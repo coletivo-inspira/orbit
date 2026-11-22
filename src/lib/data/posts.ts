@@ -116,6 +116,8 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
     summary:
       "Fórum aberto da comunidade Orbit: conte suas maiores dores de usabilidade para ajudar a moldar o roadmap do MVP.",
     author: "Lucas Silva · Criador do Orbit",
+    authorProfileId: "me",
+    topics: ["tecnologia", "design"],
     date: "Há 3 dias",
     ageHours: 74,
     readTime: "2 min",
@@ -129,6 +131,7 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
     comments: [
       {
         author: "Gui",
+        profileId: "p10",
         time: "há 2 dias",
         text: "Atalhos de teclado decentes no desktop e separar claramente quem quer conversar de quem quer algo imediato!",
       },
@@ -188,6 +191,41 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         author: "Tati",
         time: "há 20 h",
         text: "Topo demais! Seria ótimo ter alguém de psicologia acompanhando de vez em quando.",
+      },
+    ],
+  },
+  {
+    id: "c7",
+    category: "debates",
+    kind: "discussao",
+    status: "publicado",
+    title: "Qual filme ou série LGBTQIA+ todo mundo deveria ver pelo menos uma vez?",
+    summary:
+      "Montando uma lista coletiva para uma sessão de cinema no Parque. Vale clássico, lançamento e série curta.",
+    author: "Thiago",
+    authorProfileId: "p3",
+    topics: ["cinema", "series"],
+    date: "Ontem",
+    ageHours: 20,
+    readTime: "1 min",
+    score: 71,
+    vote: 0,
+    content: [
+      "Montando uma lista coletiva para uma sessão de cinema no Parque. Vale clássico, lançamento e série curta.",
+      "Eu começo: Moonlight e Pose. Quem completa?",
+    ],
+    comments: [
+      {
+        author: "Leo",
+        profileId: "p7",
+        time: "há 18 h",
+        text: "Hoje Eu Quero Voltar Sozinho, sem discussão!",
+      },
+      {
+        author: "Yasmin",
+        profileId: "p32",
+        time: "há 12 h",
+        text: "Heartstopper pra quem quer algo leve, e Paris Is Burning pra entender de onde veio o ballroom.",
       },
     ],
   },

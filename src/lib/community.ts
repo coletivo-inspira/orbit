@@ -1,5 +1,35 @@
 import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
-import type { CommunityPost, PostDraft, ProfessionalCouncil, VoteDirection } from "@/lib/types";
+import type {
+  CommunityCategory,
+  CommunityPost,
+  PostDraft,
+  ProfessionalCouncil,
+  TopicId,
+  VoteDirection,
+} from "@/lib/types";
+
+/**
+ * Categories whose threads may link people by interest. Health categories never do:
+ * commenting on a PrEP or mental-health thread must not become a public tag (LGPD, sensitive data).
+ */
+export const INTEREST_CATEGORIES: readonly CommunityCategory[] = ["debates"];
+
+/** Topics each person engaged with in open discussions, keyed by profile id ("me" for the user). */
+export function communityTopics(posts: readonly CommunityPost[]): Map<string, Set<TopicId>> {
+  const byPerson = new Map<string, Set<TopicId>>();
+  const add = (who: string | undefined, topics: TopicId[]) => {
+    if (!who) return;
+    const set = byPerson.get(who) ?? new Set<TopicId>();
+    topics.forEach((t) => set.add(t));
+    byPerson.set(who, set);
+  };
+  for (const post of posts) {
+    if (!post.topics?.length || !INTEREST_CATEGORIES.includes(post.category) || post.status !== "publicado") continue;
+    add(post.authorProfileId, post.topics);
+    for (const c of post.comments) add(c.local ? "me" : c.profileId, post.topics);
+  }
+  return byPerson;
+}
 
 export type CommunitySort = "hot" | "new";
 
