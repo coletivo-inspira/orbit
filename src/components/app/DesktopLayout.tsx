@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ActiveScreen, AmbientOrbs } from "@/components/app/ActiveScreen";
-import { NAV_ITEMS } from "@/components/app/navigation";
+import { isNavActive, NAV_ITEMS } from "@/components/app/navigation";
 import { DeviceModals } from "@/components/modals/DeviceModals";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { OrbitSignature } from "@/components/ui/OrbitLogo";
@@ -28,7 +28,7 @@ export function DesktopLayout({ topBar, showStudioLink = false }: { topBar?: Rea
             />
             <nav className="flex flex-col gap-1.5" aria-label="Navegação principal">
               {NAV_ITEMS.map((item) => {
-                const active = state.activeTab === item.id;
+                const active = isNavActive(item, state.activeTab);
                 return (
                   <button
                     key={item.id}

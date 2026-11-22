@@ -71,6 +71,7 @@ const QUICK_NAV: { tab: TabId; label: string }[] = [
   { tab: "interesse", label: "Interesse" },
   { tab: "comunidade", label: "Comunidade" },
   { tab: "perfil", label: "Meu Hub" },
+  { tab: "desejos", label: "Desejos" },
 ];
 
 /** Presentation studio: the same app session rendered inside laptop, phone and watch frames. */

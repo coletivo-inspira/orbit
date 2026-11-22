@@ -1,7 +1,8 @@
 export type IntentionId = "troca" | "amizade" | "casual" | "namoro" | "apoio";
 export type AppId = "grindr" | "scruff" | "tinder" | "bumble" | "insta" | "spotify";
 export type DeviceKind = "desktop" | "mobile" | "watch";
-export type TabId = "orbita" | "parque" | "interesse" | "comunidade" | "perfil";
+/** "desejos" has no item of its own in the main navigation: it opens from Meu Perfil Hub. */
+export type TabId = "orbita" | "parque" | "interesse" | "comunidade" | "perfil" | "desejos";
 export type CommunityCategory = "vacinas" | "prevencao" | "bemestar" | "debates";
 
 export interface Intention {
