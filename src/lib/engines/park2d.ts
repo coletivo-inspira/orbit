@@ -1,5 +1,5 @@
 import type { BotDefinition, Point } from "@/lib/data/park";
-import type { ParkScene, ViewRect } from "./scenes/types";
+import type { ParkScene, SceneProp, ViewRect } from "./scenes/types";
 
 export type Direction = "up" | "down" | "left" | "right";
 
@@ -36,6 +36,8 @@ export interface RosterEntry {
 }
 
 const TALK_RANGE = 92;
+/** Opacity of a prop that stands between the camera and the player. */
+const SEE_THROUGH = 0.35;
 
 export function proximityOf(distance: number): Proximity {
   if (distance < TALK_RANGE) return "perto";
@@ -72,6 +74,7 @@ export class Park2DEngine {
   private camY = 0;
   private time = 0;
   private decorTime = 0;
+  private frameDt = 0;
   private lastFrame = performance.now();
   private rafId: number | null = null;
   private pointerWalking = false;
@@ -84,6 +87,7 @@ export class Park2DEngine {
   private rosterKey = "";
   private readonly keys: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
   private readonly dpad: Record<Direction, boolean> = { up: false, down: false, left: false, right: false };
+  private readonly fades = new Map<SceneProp, number>();
   private readonly resizeObserver: ResizeObserver;
   private readonly player: PlayerState;
   private readonly bots: BotState[];
@@ -115,6 +119,10 @@ export class Park2DEngine {
     if (!ctx) throw new Error("Canvas 2D context unavailable");
     this.ctx = ctx;
     this.resize();
+    this.ensureUnstuck();
+    const cam = this.desiredCamera();
+    this.camX = cam.x;
+    this.camY = cam.y;
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(wrap);
     canvas.addEventListener("keydown", this.onKeyDown);
@@ -445,12 +453,21 @@ export class Park2DEngine {
     }
     this.emitRoster();
 
-    const { world } = this.scene;
-    const desiredCamX = Math.max(0, Math.min(world.width - this.viewW, p.x - this.viewW / 2));
-    const desiredCamY = Math.max(0, Math.min(world.height - this.viewH, p.y - this.viewH / 2));
+    const cam = this.desiredCamera();
     const follow = this.cb.reducedMotion() ? 1 : Math.min(1, dt * 8);
-    this.camX += (desiredCamX - this.camX) * follow;
-    this.camY += (desiredCamY - this.camY) * follow;
+    this.camX += (cam.x - this.camX) * follow;
+    this.camY += (cam.y - this.camY) * follow;
+  }
+
+  /** Follows the player; a room smaller than the view sits centered instead. */
+  private desiredCamera(): Point {
+    const { world } = this.scene;
+    const axis = (pos: number, view: number, size: number, anchor: number) =>
+      view >= size ? (size - view) / 2 : Math.max(0, Math.min(size - view, pos - view * anchor));
+    return {
+      x: axis(this.player.x, this.viewW, world.width, 0.5),
+      y: axis(this.player.y, this.viewH, world.height, this.scene.cameraAnchorY ?? 0.5),
+    };
   }
 
   private emitRoster() {
@@ -468,6 +485,7 @@ export class Park2DEngine {
   private loop = (now: number) => {
     const dt = Math.min(0.05, Math.max(0.001, (now - this.lastFrame) / 1000));
     this.lastFrame = now;
+    this.frameDt = dt;
     this.update(dt);
     // Decorative motion (ripples, bobbing, pulsing marker) freezes with the OS setting.
     this.decorTime = this.cb.reducedMotion() ? 0 : this.time;
@@ -495,7 +513,7 @@ export class Park2DEngine {
         .filter(
           (pr) => pr.maxX > view.x && pr.minX < view.x + view.w && pr.y + 40 > view.y && pr.minY < view.y + view.h,
         )
-        .map((pr) => ({ y: pr.y, draw: () => pr.draw(ctx, time) })),
+        .map((pr) => ({ y: pr.y, draw: () => this.drawProp(ctx, pr, time) })),
       ...this.bots.map((b) => ({ y: b.y, draw: () => this.drawCharacter(ctx, b, false) })),
       { y: this.player.y, draw: () => this.drawCharacter(ctx, this.player, true) },
     ];
@@ -511,6 +529,24 @@ export class Park2DEngine {
     if (this.player.speech) {
       this.drawSpeechBubble(ctx, this.player.x, this.player.y - 46, this.player.speech, true);
     }
+    ctx.restore();
+  }
+
+  private drawProp(ctx: CanvasRenderingContext2D, prop: SceneProp, time: number) {
+    const p = this.player;
+    const hiding = !!prop.hides && prop.y > p.y && prop.hides(p.x, p.y);
+    const current = this.fades.get(prop) ?? 1;
+    const target = hiding ? SEE_THROUGH : 1;
+    const alpha = this.cb.reducedMotion() ? target : current + (target - current) * Math.min(1, this.frameDt * 10);
+    if (alpha > 0.99) {
+      this.fades.delete(prop);
+      prop.draw(ctx, time);
+      return;
+    }
+    this.fades.set(prop, alpha);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    prop.draw(ctx, time);
     ctx.restore();
   }
 

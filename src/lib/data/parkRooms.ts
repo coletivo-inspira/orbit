@@ -20,7 +20,11 @@ export interface ParkRoomDefinition {
     label: string;
     /** OSM element drawn as the landmark instead of a regular block (e.g. "way/5013364"). */
     osmId?: string;
+    /** Shown when someone taps the landmark. */
+    fact: string;
   };
+  /** Where people arrive, in meters from the center (x east, y south); defaults to in front of the landmark. */
+  spawn?: { x: number; y: number };
   blurb: string;
   /** Shared by the bots in this room, so every city has its own small talk. */
   botLines: string[];
@@ -39,7 +43,12 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇫🇷",
     center: { lat: 48.85826, lon: 2.2945 },
     radiusM: 100,
-    landmark: { kind: "eiffel", label: "Tour Eiffel", osmId: "way/5013364" },
+    landmark: {
+      kind: "eiffel",
+      label: "Tour Eiffel",
+      osmId: "way/5013364",
+      fact: "🗼 Tour Eiffel: 330 m de ferro pudlado, inaugurada em 1889.",
+    },
     blurb: "Debaixo da torre, entre o Champ de Mars e o Sena.",
     botLines: [
       "Bonjour! Marquei de ver a torre acender às 22h, bora? ✨",
@@ -58,7 +67,12 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇧🇷",
     center: { lat: -22.94949, lon: -43.15616 },
     radiusM: 100,
-    landmark: { kind: "peak", label: "Pão de Açúcar" },
+    landmark: {
+      kind: "peak",
+      label: "Pão de Açúcar",
+      fact: "⛰️ Pão de Açúcar: 396 m de granito; o bondinho sobe desde 1912.",
+    },
+    spawn: { x: -40, y: 17 },
     blurb: "No topo do morro, chegando de bondinho.",
     botLines: [
       "Subi de bondinho só pra ver o pôr do sol daqui 🌅",
@@ -77,7 +91,12 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇧🇷",
     center: { lat: -23.5615, lon: -46.65596 },
     radiusM: 100,
-    landmark: { kind: "museum-frame", label: "MASP", osmId: "way/1370081491" },
+    landmark: {
+      kind: "museum-frame",
+      label: "MASP",
+      osmId: "way/1370081491",
+      fact: "🏛️ MASP: o vão livre de 74 m de Lina Bo Bardi, aberto em 1968.",
+    },
     blurb: "O vão livre do MASP, onde passa a Parada do Orgulho LGBT+.",
     botLines: [
       "Ano passado a Parada passou bem aqui pelo vão do MASP 🏳️‍🌈",
@@ -96,7 +115,11 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇺🇸",
     center: { lat: 40.73382, lon: -74.00216 },
     radiusM: 100,
-    landmark: { kind: "rainbow-flag", label: "Stonewall Inn" },
+    landmark: {
+      kind: "rainbow-flag",
+      label: "Stonewall Inn",
+      fact: "🏳️‍🌈 Stonewall Inn: a revolta de junho de 1969 inspirou as primeiras Paradas do Orgulho.",
+    },
     blurb: "Christopher Street, berço do movimento moderno em 1969.",
     botLines: [
       "Foi aqui que tudo começou, em junho de 1969 ✊🏳️‍⚧️",
@@ -115,7 +138,12 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇺🇸",
     center: { lat: 37.76228, lon: -122.43561 },
     radiusM: 100,
-    landmark: { kind: "rainbow-flag", label: "Harvey Milk Plaza", osmId: "way/225526801" },
+    landmark: {
+      kind: "rainbow-flag",
+      label: "Harvey Milk Plaza",
+      osmId: "way/225526801",
+      fact: "🏳️‍🌈 Harvey Milk Plaza: a bandeira gigante homenageia Gilbert Baker, criador do arco-íris.",
+    },
     blurb: "A esquina da bandeira gigante, no coração do Castro.",
     botLines: [
       "Olha o tamanho dessa bandeira arco-íris lá em cima! 🏳️‍🌈",
@@ -134,7 +162,11 @@ export const CITY_ROOMS: ParkRoomDefinition[] = [
     flag: "🇯🇵",
     center: { lat: 35.69075, lon: 139.7074 },
     radiusM: 100,
-    landmark: { kind: "neon-sign", label: "Ni-chōme" },
+    landmark: {
+      kind: "neon-sign",
+      label: "Ni-chōme",
+      fact: "🏮 Ni-chōme: centenas de bares LGBT+ espremidos em poucas quadras de Shinjuku.",
+    },
     blurb: "As ruelas de bares minúsculos de Shinjuku.",
     botLines: [
       "Konbanwa! Tem bar aqui que cabe só 8 pessoas 🏮",
