@@ -238,3 +238,67 @@ describe("sortPosts", () => {
     expect(hot.at(-1)!.id).toBe("c4");
   });
 });
+
+describe("Desejos", () => {
+  it("começa privado e sem respostas", () => {
+    const state = createInitialState();
+    expect(state.desejosPublicos).toEqual([]);
+    expect(state.desejos).toEqual({ respostas: {}, passo: 0, concluido: false });
+    expect(state.desejosTela).toBe("intro");
+  });
+
+  it("guarda só respostas válidas e limpa ao pular", () => {
+    let state = orbitReducer(createInitialState(), {
+      type: "responderDesejo",
+      perguntaId: "rapida-carinho",
+      resposta: "sim",
+    });
+    expect(state.desejos.respostas).toEqual({ "rapida-carinho": "sim" });
+    expect(orbitReducer(state, { type: "responderDesejo", perguntaId: "rapida-carinho", resposta: 3 })).toBe(state);
+    expect(orbitReducer(state, { type: "responderDesejo", perguntaId: "inventada", resposta: "sim" })).toBe(state);
+    state = orbitReducer(state, { type: "limparRespostaDesejo", perguntaId: "rapida-carinho" });
+    expect(state.desejos.respostas).toEqual({});
+  });
+
+  it("mostra desejos no perfil só por opt-in, um por um", () => {
+    let state = orbitReducer(createInitialState(), { type: "toggleDesejoPublico", id: "baunilha" });
+    expect(state.desejosPublicos).toEqual(["baunilha"]);
+    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "baunilha" });
+    expect(state.desejosPublicos).toEqual([]);
+  });
+
+  it("refaz mantendo as escolhas e apaga tudo quando pedido", () => {
+    let state = orbitReducer(createInitialState(), {
+      type: "responderDesejo",
+      perguntaId: "rapida-caca",
+      resposta: "sim",
+    });
+    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "primal" });
+    state = orbitReducer(state, { type: "concluirDesejos" });
+    expect(state.desejosTela).toBe("resultado");
+    const refeito = orbitReducer(state, { type: "refazerDesejos" });
+    expect(refeito.desejos).toEqual({ respostas: {}, passo: 0, concluido: false });
+    expect(refeito.desejosTela).toBe("quiz");
+    const apagado = orbitReducer(state, { type: "apagarDesejos" });
+    expect(apagado.desejosPublicos).toEqual([]);
+    expect(apagado.desejos.respostas).toEqual({});
+  });
+
+  it("abre a ficha do tema fechando os outros modais", () => {
+    const opened = orbitReducer(createInitialState(), { type: "openProfile", id: "p1" });
+    const ficha = orbitReducer(opened, { type: "abrirDesejo", id: "voyeur" });
+    expect(ficha.selectedProfileId).toBeNull();
+    expect(ficha.desejoAberto).toBe("voyeur");
+    expect(orbitReducer(ficha, { type: "closeModals" }).desejoAberto).toBeNull();
+  });
+
+  it("restaura o estado salvo e abre no resultado quando concluído", () => {
+    const state = orbitReducer(createInitialState(), {
+      type: "hydrateDesejos",
+      estado: { respostas: { "rapida-caca": "sim" }, passo: 3, concluido: true, publicos: ["primal"] },
+    });
+    expect(state.desejosTela).toBe("resultado");
+    expect(state.desejosPublicos).toEqual(["primal"]);
+    expect(state.desejos.passo).toBe(3);
+  });
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, type ReactNode } from "react";
+import { Ilustracao } from "@/components/desejos/Ilustracao";
 import { HubPreviewCard } from "@/components/perfil/HubPreviewCard";
 import { AppBadgeIcon } from "@/components/ui/AppBadge";
 import { Switch } from "@/components/ui/Switch";
@@ -9,6 +10,10 @@ import { useToast } from "@/components/ui/Toasts";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { EXTERNAL_APP_LIST, EXTERNAL_APPS, INTENTION_LIST, INTENTIONS } from "@/lib/data/intentions";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
+import { CATEGORIAS } from "@/lib/desejos/categorias";
+import { PERGUNTAS } from "@/lib/desejos/perguntas";
+import type { DesejoPublico } from "@/lib/desejos/perfis";
+import { contarRespondidas, pontuar } from "@/lib/desejos/pontuacao";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import { BIO_MAX_LENGTH, TOPICS_MAX } from "@/lib/state/reducer";
@@ -39,6 +44,12 @@ export function PerfilScreen() {
   const sectionRefs = useRef<Record<string, HTMLHeadingElement | null>>({});
   const bioCountId = `${ids}-bio-count`;
   const bioAtLimit = u.bio.length >= BIO_MAX_LENGTH;
+  const resultado = pontuar(state.desejos.respostas);
+  const desejosNoCartao = state.desejosPublicos.flatMap((id): DesejoPublico[] => {
+    const pct = resultado.find((r) => r.id === id)?.pct;
+    return typeof pct === "number" ? [{ id, pct }] : [];
+  });
+  const respondidas = contarRespondidas(state.desejos.respostas);
 
   const goTo = (el: HTMLElement | null) => {
     if (!el) return;
@@ -83,6 +94,7 @@ export function PerfilScreen() {
     { id: "cartao", label: "Seu cartão" },
     { id: "intencoes", label: "Intenções e selos" },
     { id: "assuntos", label: "Assuntos" },
+    { id: "desejos", label: "Desejos" },
     { id: "visibilidade", label: "Visibilidade" },
   ];
 
@@ -149,7 +161,7 @@ export function PerfilScreen() {
             className={`${isMobile ? "" : "sticky top-0 col-span-5"} flex flex-col gap-3`}
           >
             {sectionHeading("cartao", "Seu cartão")}
-            <HubPreviewCard user={u} headingRef={previewRef} headingId={`${ids}-preview`} />
+            <HubPreviewCard user={u} headingRef={previewRef} headingId={`${ids}-preview`} desejos={desejosNoCartao} />
             <Panel>
               <label htmlFor={`${ids}-bio`} className="text-sm font-bold text-white">
                 Sua bio no cartão
@@ -313,6 +325,39 @@ export function PerfilScreen() {
                 <p className="mt-2 text-right text-[11px] text-slate-300" aria-live="polite">
                   {u.topics.length} de {TOPICS_MAX} assuntos
                 </p>
+              </Panel>
+              {backToPreview}
+            </section>
+
+            <section aria-labelledby={`${ids}-desejos`} className="flex flex-col gap-3">
+              {sectionHeading("desejos", "Desejos")}
+              <Panel>
+                <div className="flex gap-3.5">
+                  <Ilustracao id="mascaras" className="h-[72px] w-24 shrink-0 rounded-xl" />
+                  <div className="min-w-0">
+                    <h3 className="font-sans text-sm font-bold text-white">Quiz visual de desejos · 18+</h3>
+                    <p className="mt-0.5 text-xs leading-relaxed text-slate-300">
+                      Cerca de 5 minutos, sem nada explícito. As respostas ficam só neste aparelho e nada vai para o
+                      cartão sem você escolher.
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-3 text-[11px] text-slate-300" aria-live="polite">
+                  {state.desejos.concluido
+                    ? desejosNoCartao.length
+                      ? `No cartão: ${desejosNoCartao.map((d) => CATEGORIAS[d.id].nome).join(", ")}.`
+                      : "Resultado pronto. Nenhum desejo aparece no cartão."
+                    : respondidas
+                      ? `Em andamento: ${respondidas} de ${PERGUNTAS.length} respostas.`
+                      : "Você ainda não fez o quiz."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: "setTab", tab: "desejos" })}
+                  className="lg-btn-primary mt-3 rounded-full px-4 py-2 text-xs font-extrabold"
+                >
+                  {state.desejos.concluido ? "Ver meu resultado" : respondidas ? "Continuar o quiz" : "Fazer o quiz"}
+                </button>
               </Panel>
               {backToPreview}
             </section>

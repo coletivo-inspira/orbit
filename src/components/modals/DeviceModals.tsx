@@ -5,6 +5,8 @@ import { useId, useRef, useState, type FormEvent } from "react";
 import { ArticleBody, ArticleProvenance, CommentList } from "@/components/comunidade/ArticleParts";
 import { PostTrustBadge } from "@/components/comunidade/PostTrust";
 import { VoteControl } from "@/components/comunidade/VoteControl";
+import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
+import { DesejoSheet } from "@/components/desejos/DesejoSheet";
 import { ComposerSheet } from "@/components/modals/ComposerSheet";
 import { OrbitaFiltersSheet } from "@/components/orbita/OrbitaFiltersSheet";
 import { AppTile } from "@/components/ui/AppBadge";
@@ -12,6 +14,7 @@ import { RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { copyText } from "@/lib/clipboard";
+import { desejosPublicosDe } from "@/lib/desejos/perfis";
 import { activeAppIds, COMMUNITY_CATEGORIES, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
 import {
   CONDOM_USE,
@@ -46,7 +49,8 @@ export function DeviceModals() {
   const close = () => dispatch({ type: "closeModals" });
   const showFilters = state.orbitaFiltersOpen && device !== "watch";
   const composerKind = device === "watch" ? null : state.composerKind;
-  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind || showFilters);
+  const desejo = device === "watch" ? null : state.desejoAberto;
+  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind || showFilters || desejo);
 
   const profile = state.selectedProfileId
     ? SIMULATED_PROFILES.find((p) => p.id === state.selectedProfileId)
@@ -59,6 +63,7 @@ export function DeviceModals() {
       {post && <ArticleSheet key={post.id} post={post} onClose={close} />}
       {showFilters && <OrbitaFiltersSheet onClose={close} />}
       {composerKind && <ComposerSheet initialKind={composerKind} onClose={close} />}
+      {desejo && <DesejoSheet key={desejo} id={desejo} onClose={close} />}
     </div>
   );
 }
@@ -87,6 +92,7 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
   const primary = INTENTIONS[p.primaryIntention] ?? INTENTIONS.troca;
   const apps = activeAppIds(p.apps);
   const shared = sharedTopics(state.user.topics, p.topics);
+  const desejos = desejosPublicosDe(p.id);
 
   const wave = () => {
     onClose();
@@ -283,6 +289,15 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
               })}
             </ul>
           </SheetSection>
+
+          {desejos.length > 0 && (
+            <SheetSection title="Desejos">
+              <p className="mb-2 text-[11px] leading-snug text-slate-300">
+                {p.name} escolheu mostrar estes temas do quiz Desejos. São curiosidades de um dia, não rótulos.
+              </p>
+              <BarrasDesejos desejos={desejos} />
+            </SheetSection>
+          )}
 
           <SheetSection title="Presença em outros aplicativos">
             <p className="mb-2 text-[11px] text-slate-300">

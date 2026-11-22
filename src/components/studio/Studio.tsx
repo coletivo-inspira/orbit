@@ -70,6 +70,7 @@ const QUICK_NAV: { tab: TabId; label: string }[] = [
   { tab: "parque", label: "Parque 2D" },
   { tab: "comunidade", label: "Comunidade" },
   { tab: "perfil", label: "Meu Hub" },
+  { tab: "desejos", label: "Desejos" },
 ];
 
 /** Presentation studio: the same app session rendered inside laptop, phone and watch frames. */

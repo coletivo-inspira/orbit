@@ -151,14 +151,27 @@ export function WatchScreen() {
             ))}
         </div>
       </div>
-      <button
-        type="button"
-        onClick={togglePrivacy}
-        className={`lg-pill flex w-full items-center justify-between rounded-full px-3 py-2 text-xs font-bold ${u.isPublic ? "text-salvia" : "text-amber-200"}`}
-      >
-        <span>{u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}</span>
-        <span className="text-[10px] opacity-80">Alternar</span>
-      </button>
+      <div className="flex w-full flex-col gap-1.5">
+        <button
+          type="button"
+          onClick={() => {
+            dispatch({ type: "setTab", tab: "desejos" });
+            requestDevice("mobile");
+          }}
+          className="lg-pill flex w-full items-center justify-between rounded-full px-3 py-1.5 text-[11px] font-bold text-areia"
+        >
+          <span>✦ Desejos</span>
+          <span className="text-[10px] opacity-80">no celular →</span>
+        </button>
+        <button
+          type="button"
+          onClick={togglePrivacy}
+          className={`lg-pill flex w-full items-center justify-between rounded-full px-3 py-2 text-xs font-bold ${u.isPublic ? "text-salvia" : "text-amber-200"}`}
+        >
+          <span>{u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}</span>
+          <span className="text-[10px] opacity-80">Alternar</span>
+        </button>
+      </div>
       <PageDots />
     </div>
   );

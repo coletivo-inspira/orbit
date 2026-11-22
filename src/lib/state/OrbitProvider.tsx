@@ -2,10 +2,13 @@
 
 import { createContext, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from "react";
 import { createInitialState, orbitReducer, sanitizeStoredUser, type OrbitAction, type OrbitState } from "./reducer";
+import { sanitizarDesejos } from "@/lib/desejos/pontuacao";
+import type { EstadoDesejos } from "@/lib/desejos/types";
 import type { UserProfile } from "@/lib/types";
 
 const STORAGE_KEY = "orbit:user:v1";
 const REGION_KEY = "orbit:region:v1";
+const DESEJOS_KEY = "orbit:desejos:v1";
 
 interface OrbitContextValue {
   state: OrbitState;
@@ -23,10 +26,19 @@ function readStoredUser(): UserProfile | null {
   }
 }
 
+function readStoredDesejos(): EstadoDesejos | null {
+  try {
+    const raw = window.localStorage.getItem(DESEJOS_KEY);
+    return raw ? sanitizarDesejos(JSON.parse(raw)) : null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Holds the single app state shared by every device layout, so switching
  * desktop / mobile / watch in the studio keeps the session in sync.
- * Until a backend exists, only the user's hub and chosen region are persisted (localStorage).
+ * Until a backend exists, only the user's hub, chosen region and Desejos answers are persisted (localStorage).
  */
 export function OrbitProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(orbitReducer, undefined, createInitialState);
@@ -50,7 +62,17 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
   }, [state.regionId]);
 
   useEffect(() => {
+    if (!hydrated.current) return;
+    const estado: EstadoDesejos = { ...state.desejos, publicos: state.desejosPublicos };
+    try {
+      window.localStorage.setItem(DESEJOS_KEY, JSON.stringify(estado));
+    } catch {}
+  }, [state.desejos, state.desejosPublicos]);
+
+  useEffect(() => {
     const stored = readStoredUser();
+    const desejos = readStoredDesejos();
+    if (desejos) dispatch({ type: "hydrateDesejos", estado: desejos });
     if (stored) dispatch({ type: "hydrateUser", user: stored });
     try {
       const region = window.localStorage.getItem(REGION_KEY);

@@ -20,6 +20,11 @@ const iconProps = {
   "aria-hidden": true,
 };
 
+/** Desejos lives inside Meu Perfil Hub, so the Hub item stays highlighted there. */
+export function isNavActive(item: NavItem, activeTab: TabId): boolean {
+  return item.id === activeTab || (item.id === "perfil" && activeTab === "desejos");
+}
+
 export const NAV_ITEMS: NavItem[] = [
   {
     id: "orbita",

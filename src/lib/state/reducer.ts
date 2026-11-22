@@ -1,3 +1,7 @@
+import { isCategoriaId } from "@/lib/desejos/categorias";
+import { PERGUNTAS } from "@/lib/desejos/perguntas";
+import { respostaValida } from "@/lib/desejos/pontuacao";
+import type { CategoriaId, EstadoDesejos, ProgressoDesejos, Resposta } from "@/lib/desejos/types";
 import { applyVote, buildPost, MODERATION_TEAM, validateDraft, type CommunitySort } from "@/lib/community";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
@@ -42,7 +46,15 @@ export interface OrbitState {
   showDesktopDpad: boolean;
   /** Room the user is walking in; null shows the Parque world map. */
   parkRoomId: string | null;
+  desejos: ProgressoDesejos;
+  /** Desire categories shown on the profile: opt-in, one by one, empty by default. */
+  desejosPublicos: CategoriaId[];
+  desejosTela: "intro" | "quiz" | "resultado";
+  /** Category whose explanation sheet is open. */
+  desejoAberto: CategoriaId | null;
 }
+
+export type DesejosTela = OrbitState["desejosTela"];
 
 export type OrbitAction =
   | { type: "hydrateUser"; user: UserProfile }
@@ -76,7 +88,17 @@ export type OrbitAction =
   | { type: "votePost"; id: string; direction: 1 | -1 }
   | { type: "addComment"; id: string; text: string }
   | { type: "submitPost"; draft: PostDraft }
-  | { type: "approveArticle"; id: string };
+  | { type: "approveArticle"; id: string }
+  | { type: "hydrateDesejos"; estado: EstadoDesejos }
+  | { type: "setDesejosTela"; tela: DesejosTela }
+  | { type: "responderDesejo"; perguntaId: string; resposta: Resposta }
+  | { type: "limparRespostaDesejo"; perguntaId: string }
+  | { type: "irParaPergunta"; passo: number }
+  | { type: "concluirDesejos" }
+  | { type: "refazerDesejos" }
+  | { type: "apagarDesejos" }
+  | { type: "toggleDesejoPublico"; id: CategoriaId }
+  | { type: "abrirDesejo"; id: CategoriaId };
 
 export const BIO_MAX_LENGTH = 160;
 export const COMMENT_MAX_LENGTH = 500;
@@ -102,6 +124,10 @@ export function createInitialState(): OrbitState {
     composerKind: null,
     showDesktopDpad: false,
     parkRoomId: null,
+    desejos: { respostas: {}, passo: 0, concluido: false },
+    desejosPublicos: [],
+    desejosTela: "intro",
+    desejoAberto: null,
   };
 }
 
@@ -155,6 +181,7 @@ const closed = {
   selectedArticleId: null,
   composerKind: null,
   orbitaFiltersOpen: false,
+  desejoAberto: null,
 } as const;
 
 export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState {
@@ -286,6 +313,55 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
             : p,
         ),
       };
+    case "hydrateDesejos": {
+      const { publicos, ...desejos } = action.estado;
+      return { ...state, desejos, desejosPublicos: publicos, desejosTela: desejos.concluido ? "resultado" : "intro" };
+    }
+    case "setDesejosTela":
+      return { ...state, ...closed, desejosTela: action.tela };
+    case "responderDesejo": {
+      const pergunta = PERGUNTAS.find((p) => p.id === action.perguntaId);
+      if (!pergunta || !respostaValida(pergunta, action.resposta)) return state;
+      return {
+        ...state,
+        desejos: { ...state.desejos, respostas: { ...state.desejos.respostas, [pergunta.id]: action.resposta } },
+      };
+    }
+    case "limparRespostaDesejo": {
+      if (!Object.hasOwn(state.desejos.respostas, action.perguntaId)) return state;
+      const respostas = { ...state.desejos.respostas };
+      delete respostas[action.perguntaId];
+      return { ...state, desejos: { ...state.desejos, respostas } };
+    }
+    case "irParaPergunta":
+      return {
+        ...state,
+        desejos: { ...state.desejos, passo: Math.min(Math.max(action.passo, 0), PERGUNTAS.length - 1) },
+      };
+    case "concluirDesejos":
+      return { ...state, desejos: { ...state.desejos, concluido: true }, desejosTela: "resultado" };
+    case "refazerDesejos":
+      return { ...state, ...closed, desejos: { respostas: {}, passo: 0, concluido: false }, desejosTela: "quiz" };
+    case "apagarDesejos":
+      return {
+        ...state,
+        ...closed,
+        desejos: { respostas: {}, passo: 0, concluido: false },
+        desejosPublicos: [],
+        desejosTela: "intro",
+      };
+    case "toggleDesejoPublico": {
+      if (!isCategoriaId(action.id)) return state;
+      const { desejosPublicos } = state;
+      return {
+        ...state,
+        desejosPublicos: desejosPublicos.includes(action.id)
+          ? desejosPublicos.filter((id) => id !== action.id)
+          : [...desejosPublicos, action.id],
+      };
+    }
+    case "abrirDesejo":
+      return isCategoriaId(action.id) ? { ...state, ...closed, desejoAberto: action.id } : state;
     default:
       return state;
   }

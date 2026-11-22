@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { ActiveScreen, AmbientOrbs } from "@/components/app/ActiveScreen";
-import { NAV_ITEMS } from "@/components/app/navigation";
+import { isNavActive, NAV_ITEMS } from "@/components/app/navigation";
 import { DeviceModals } from "@/components/modals/DeviceModals";
 import { ToastViewport } from "@/components/ui/Toasts";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -24,7 +24,7 @@ export function MobileLayout({ statusBar, homeIndicator = false }: { statusBar?:
           className="lg-bar pointer-events-auto flex h-[60px] w-full items-center justify-around rounded-[30px] px-2"
         >
           {NAV_ITEMS.map((item) => {
-            const active = state.activeTab === item.id;
+            const active = isNavActive(item, state.activeTab);
             return (
               <button
                 key={item.id}
