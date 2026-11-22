@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CATEGORIA_LIST, CATEGORIAS } from "./categorias";
+import { CATEGORIA_LIST, CATEGORIAS, FAMILIAS, isCategoriaId } from "./categorias";
 import { NENHUMA, PERGUNTAS } from "./perguntas";
 import {
   categoriasDaPergunta,
@@ -18,15 +18,15 @@ const pct = (respostas: Respostas, id: CategoriaId, perguntas?: Pergunta[]) =>
   pontuar(respostas, perguntas).find((r) => r.id === id)!.pct;
 
 const MINI: Pergunta[] = [
-  { id: "i1", tipo: "intensidade", enunciado: "", ilustracao: "jantar", categorias: ["baunilha"] },
-  { id: "r1", tipo: "rapida", enunciado: "", categorias: ["baunilha"] },
+  { id: "i1", tipo: "intensidade", enunciado: "", ilustracao: "jantar", categorias: ["conexao"] },
+  { id: "r1", tipo: "rapida", enunciado: "", categorias: ["conexao"] },
   {
     id: "c1",
     tipo: "cenas",
     enunciado: "",
     opcoes: [
-      { id: "a", rotulo: "", ilustracao: "jantar", categorias: ["baunilha"] },
-      { id: "b", rotulo: "", ilustracao: "palco", categorias: ["exibicionista", "voyeur"] },
+      { id: "a", rotulo: "", ilustracao: "jantar", categorias: ["conexao"] },
+      { id: "b", rotulo: "", ilustracao: "palco", categorias: ["ser-visto", "olhar"] },
     ],
   },
 ];
@@ -62,8 +62,24 @@ describe("banco de perguntas", () => {
     }
   });
 
-  it("tem cerca de 16 categorias e perfis simulados só com categorias conhecidas", () => {
+  it("carrega as 16 categorias da pesquisa com todos os campos do glossário", () => {
     expect(CATEGORIA_LIST.length).toBe(16);
+    expect(new Set(CATEGORIA_LIST.map((c) => c.id)).size).toBe(16);
+    for (const c of CATEGORIA_LIST) {
+      expect(isCategoriaId(c.id), c.id).toBe(true);
+      expect(FAMILIAS[c.familia], c.id).toBeDefined();
+      expect(c.ilustracao, c.id).toBeDefined();
+      for (const campo of [c.nome, c.nomeOriginal, c.resumo, c.oQueE])
+        expect(campo.trim().length, c.id).toBeGreaterThan(0);
+      expect(c.mitosEFatos.length, c.id).toBeGreaterThan(0);
+      for (const m of c.mitosEFatos) expect(m.mito && m.fato, c.id).toBeTruthy();
+      expect(c.comoExplorarComConsentimento.length, c.id).toBeGreaterThan(0);
+      expect(c.referencias.length, c.id).toBeGreaterThan(0);
+      for (const r of c.referencias) expect(r.url ?? "", c.id).toMatch(/^(https:\/\/|$)/);
+    }
+  });
+
+  it("usa só categorias conhecidas nos perfis simulados", () => {
     for (const desejos of Object.values(DESEJOS_SIMULADOS)) {
       for (const d of desejos) expect(CATEGORIAS[d.id]).toBeDefined();
     }
@@ -73,27 +89,27 @@ describe("banco de perguntas", () => {
 describe("pontuar", () => {
   it("normaliza pelo máximo das perguntas respondidas", () => {
     // intensidade 2/3 + rápida "talvez" 1/2 + cena escolhida 2/2 = 5/7
-    expect(pct({ i1: 2, r1: "talvez", c1: "a" }, "baunilha", MINI)).toBe(71);
-    expect(pct({ i1: 3, r1: "sim", c1: "a" }, "baunilha", MINI)).toBe(100);
-    expect(pct({ i1: 0, r1: "nao", c1: NENHUMA }, "baunilha", MINI)).toBe(0);
+    expect(pct({ i1: 2, r1: "talvez", c1: "a" }, "conexao", MINI)).toBe(71);
+    expect(pct({ i1: 3, r1: "sim", c1: "a" }, "conexao", MINI)).toBe(100);
+    expect(pct({ i1: 0, r1: "nao", c1: NENHUMA }, "conexao", MINI)).toBe(0);
   });
 
   it("tira perguntas puladas do denominador", () => {
-    expect(pct({ i1: 3, r1: "sim" }, "baunilha", MINI)).toBe(100);
-    expect(pct({ i1: 3, c1: "a" }, "baunilha", MINI)).toBe(100);
+    expect(pct({ i1: 3, r1: "sim" }, "conexao", MINI)).toBe(100);
+    expect(pct({ i1: 3, c1: "a" }, "conexao", MINI)).toBe(100);
   });
 
   it("mostra 'sem dados' com menos de 2 perguntas respondidas na categoria", () => {
-    expect(pct({ i1: 3 }, "baunilha", MINI)).toBeNull();
-    expect(pct({ c1: "b" }, "voyeur", MINI)).toBeNull();
-    expect(pct({}, "baunilha", MINI)).toBeNull();
+    expect(pct({ i1: 3 }, "conexao", MINI)).toBeNull();
+    expect(pct({ c1: "b" }, "olhar", MINI)).toBeNull();
+    expect(pct({}, "conexao", MINI)).toBeNull();
   });
 
   it("dá 2 pontos a todas as categorias da cena escolhida e 0 às demais", () => {
     const resultado = pontuar({ c1: "b", i1: 1 }, MINI);
-    expect(resultado.find((r) => r.id === "exibicionista")!.respondidas).toBe(1);
+    expect(resultado.find((r) => r.id === "ser-visto")!.respondidas).toBe(1);
     // baunilha: cena não escolhida 0/2 + intensidade 1/3 = 1/5
-    expect(resultado.find((r) => r.id === "baunilha")!.pct).toBe(20);
+    expect(resultado.find((r) => r.id === "conexao")!.pct).toBe(20);
   });
 
   it("mantém as categorias independentes, sem somar 100%", () => {
@@ -105,12 +121,12 @@ describe("pontuar", () => {
   });
 
   it("ignora respostas inválidas", () => {
-    expect(pct({ i1: 7 as never, r1: "sim", c1: "zzz" }, "baunilha", MINI)).toBeNull();
+    expect(pct({ i1: 7 as never, r1: "sim", c1: "zzz" }, "conexao", MINI)).toBeNull();
   });
 
   it("ordena do maior para o menor e deixa 'sem dados' no fim", () => {
     const ordenado = resultadoOrdenado({ "rapida-carinho": "sim", "cena-conexao": "jantar", "rapida-caca": "talvez" });
-    expect(ordenado[0]).toMatchObject({ id: "baunilha", pct: 100 });
+    expect(ordenado[0]).toMatchObject({ id: "conexao", pct: 100 });
     expect(ordenado.at(-1)!.pct).toBeNull();
   });
 });
@@ -124,8 +140,8 @@ describe("ramificação", () => {
     expect(PERGUNTAS[proximo].aprofunda).toBeUndefined();
     expect(perguntaPulada(PERGUNTAS[filtro + 1], respostas)).toBe(true);
     expect(passoAnterior(proximo, respostas)).toBe(filtro);
-    expect(pct(respostas, "dominante")).toBe(0);
-    expect(pct(respostas, "submisso")).toBe(0);
+    expect(pct(respostas, "conduzir")).toBe(0);
+    expect(pct(respostas, "entregar")).toBe(0);
   });
 
   it("segue normalmente quando o filtro recebe outra resposta", () => {
@@ -137,12 +153,12 @@ describe("sanitizarDesejos", () => {
   it("descarta perguntas, respostas e categorias desconhecidas", () => {
     const estado = sanitizarDesejos({
       respostas: { "rapida-carinho": "sim", "intensidade-sentidos": 9, inventada: "sim" },
-      publicos: ["baunilha", "baunilha", "telepatia", 3],
+      publicos: ["conexao", "conexao", "telepatia", 3],
       passo: 999,
       concluido: true,
     });
     expect(estado.respostas).toEqual({ "rapida-carinho": "sim" });
-    expect(estado.publicos).toEqual(["baunilha"]);
+    expect(estado.publicos).toEqual(["conexao"]);
     expect(estado.passo).toBe(PERGUNTAS.length - 1);
     expect(estado.concluido).toBe(true);
     expect(contarRespondidas(estado.respostas)).toBe(1);

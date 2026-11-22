@@ -29,20 +29,26 @@ const CENAS: Record<IlustracaoId, ReactNode> = {
       <path d="M45 56h16M99 56h16" stroke={COBRE_ESCURO} strokeWidth="3" />
     </>
   ),
-  pena: (
+  caneca: (
     <>
-      <path d="M22 58c22-12 48-12 70 0l-3 13c-21-10-43-10-64 0z" fill={COBRE_ESCURO} />
+      <path d="M18 96c10-22 30-34 56-34h40c14 0 24 10 28 34z" fill={COBRE} />
       <path
-        d="M22 58c-6 4-9 12-6 20M92 58c5 3 8 9 8 14"
-        stroke={COBRE_ESCURO}
-        strokeWidth="4"
+        d="M30 96c8-16 24-26 44-26M48 96c6-10 16-16 28-16"
+        stroke={AREIA}
+        strokeWidth="2"
+        fill="none"
+        opacity="0.6"
+      />
+      <path d="M90 50h30v26c0 8-6 14-14 14h-2c-8 0-14-6-14-14z" fill={MARFIM} />
+      <path d="M120 56c10 0 10 16 0 16" stroke={MARFIM} strokeWidth="4" fill="none" />
+      <path
+        d="M100 42c-4-6 4-8 0-14M110 42c-4-6 4-8 0-14"
+        stroke={AREIA}
+        strokeWidth="2.5"
         fill="none"
         strokeLinecap="round"
       />
-      <path d="M100 96c3-24 15-48 38-64-3 25-15 48-38 64z" fill={MARFIM} />
-      <path d="M101 95 134 37" stroke={AREIA} strokeWidth="2" strokeLinecap="round" />
-      <path d="M112 74l-8-2M118 64l-9-3M124 54l-9-3M115 72l7 4M121 62l8 3" stroke={AREIA} strokeWidth="1.5" />
-      <rect x="40" y="82" width="16" height="14" rx="3" fill={SALVIA} opacity="0.85" transform="rotate(-12 48 89)" />
+      <path d="M105 66c-2-3-7-2-7 2 0 3 7 7 7 7s7-4 7-7c0-4-5-5-7-2z" fill={COBRE} />
     </>
   ),
   janela: (

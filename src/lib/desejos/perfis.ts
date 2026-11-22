@@ -8,35 +8,35 @@ export interface DesejoPublico {
 /** Desires a few simulated profiles chose to show; every other profile keeps them private. */
 export const DESEJOS_SIMULADOS: Record<string, DesejoPublico[]> = {
   p1: [
-    { id: "baunilha", pct: 88 },
-    { id: "sensorial", pct: 64 },
+    { id: "conexao", pct: 88 },
+    { id: "cuidado", pct: 64 },
   ],
   p2: [
-    { id: "switch", pct: 81 },
-    { id: "roleplay", pct: 70 },
-    { id: "experimental", pct: 55 },
+    { id: "alternar", pct: 81 },
+    { id: "encenacao", pct: 70 },
+    { id: "exploracao", pct: 55 },
   ],
-  p4: [{ id: "dominante", pct: 76 }],
+  p4: [{ id: "conduzir", pct: 76 }],
   p5: [
-    { id: "brat", pct: 92 },
-    { id: "submisso", pct: 61 },
+    { id: "provocacao", pct: 92 },
+    { id: "entregar", pct: 61 },
   ],
   p7: [
-    { id: "nao-monogamia", pct: 84 },
-    { id: "experimental", pct: 72 },
+    { id: "relacoes-abertas", pct: 84 },
+    { id: "exploracao", pct: 72 },
   ],
   p9: [
-    { id: "materiais", pct: 79 },
-    { id: "amarracao", pct: 58 },
+    { id: "texturas", pct: 79 },
+    { id: "cordas", pct: 58 },
   ],
-  p12: [{ id: "baunilha", pct: 95 }],
+  p12: [{ id: "conexao", pct: 95 }],
   p15: [
-    { id: "primal", pct: 74 },
-    { id: "switch", pct: 66 },
+    { id: "instinto", pct: 74 },
+    { id: "alternar", pct: 66 },
   ],
   p20: [
-    { id: "sensorial", pct: 83 },
-    { id: "voyeur", pct: 47 },
+    { id: "cuidado", pct: 83 },
+    { id: "olhar", pct: 47 },
   ],
 };
 

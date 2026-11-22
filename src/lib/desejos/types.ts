@@ -1,24 +1,24 @@
 export type CategoriaId =
-  | "baunilha"
-  | "sensorial"
-  | "voyeur"
-  | "exibicionista"
-  | "dominante"
-  | "submisso"
-  | "switch"
-  | "amarracao"
-  | "sadista"
-  | "masoquista"
-  | "brat"
-  | "primal"
-  | "roleplay"
-  | "materiais"
-  | "nao-monogamia"
-  | "experimental";
+  | "conexao"
+  | "exploracao"
+  | "olhar"
+  | "ser-visto"
+  | "conduzir"
+  | "entregar"
+  | "alternar"
+  | "cordas"
+  | "sensacoes-dar"
+  | "sensacoes-receber"
+  | "provocacao"
+  | "cuidado"
+  | "instinto"
+  | "relacoes-abertas"
+  | "encenacao"
+  | "texturas";
 
 export type IlustracaoId =
   | "jantar"
-  | "pena"
+  | "caneca"
   | "janela"
   | "palco"
   | "coroa"
@@ -40,6 +40,8 @@ export interface MitoEFato {
 }
 
 export interface Referencia {
+  autores: string;
+  ano: number;
   titulo: string;
   url?: string;
 }
@@ -57,7 +59,7 @@ export interface CategoriaDesejo {
   resumo: string;
   oQueE: string;
   mitosEFatos: MitoEFato[];
-  comoExplorarComConsentimento: string;
+  comoExplorarComConsentimento: string[];
   referencias: Referencia[];
 }
 

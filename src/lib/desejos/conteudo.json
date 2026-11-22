@@ -1,0 +1,830 @@
+[
+  {
+    "id": "conexao",
+    "nome": "Conexão e romance",
+    "nomeOriginal": "Vanilla",
+    "resumo": "Tesão que nasce da intimidade, do carinho e do clima a dois.",
+    "oQueE": "É o desejo por encontros em que vínculo, afeto, toque e atmosfera são o centro. Num grande estudo de fantasias, sentir emoções românticas durante o sexo foi o tema mais bem avaliado, e cenários e ambientes românticos também ficaram entre os seis primeiros. Em relações longas, o desejo costuma ser responsivo: aparece depois que o clima e a proximidade começam, e não antes.",
+    "mitosEFatos": [
+      {
+        "mito": "\"Vanilla\" é sinônimo de sexo sem graça.",
+        "fato": "Fantasias românticas e de intimidade estão entre as mais comuns e mais bem avaliadas por mulheres e homens, segundo a pesquisa de Joyal et al. (2015)."
+      },
+      {
+        "mito": "Se o desejo não aparece sozinho, algo está errado.",
+        "fato": "Basson (2000) mostrou que, em relações longas, o desejo muitas vezes surge em resposta à intimidade e ao estímulo. Isso é uma variação normal, não um problema."
+      },
+      {
+        "mito": "Quanto mais sexo, mais feliz o casal.",
+        "fato": "Em mais de 30 mil pessoas, o bem-estar subiu com a frequência só até cerca de uma vez por semana; acima disso, não houve ganho adicional (Muise et al., 2016)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Conversem sobre o que faz cada pessoa se sentir próxima: palavras, toque, tempo juntos.",
+      "Criem contexto: ambiente, tempo sem pressa e menos distrações.",
+      "Combinem que qualquer pessoa pode pausar ou mudar o ritmo a qualquer momento.",
+      "Depois, contem um ao outro o que foi bom e o que querem repetir."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Basson, R.",
+        "ano": 2000,
+        "titulo": "The female sexual response: A different model. Journal of Sex & Marital Therapy, 26(1), 51–65",
+        "url": "https://doi.org/10.1080/009262300278641"
+      },
+      {
+        "autores": "Muise, A.; Schimmack, U.; Impett, E. A.",
+        "ano": 2016,
+        "titulo": "Sexual frequency predicts greater well-being, but more is not always better. Social Psychological and Personality Science, 7(4), 295–302",
+        "url": "https://doi.org/10.1177/1948550615616462"
+      }
+    ],
+    "familia": "conexao"
+  },
+  {
+    "id": "exploracao",
+    "nome": "Curiosidade e novidade",
+    "nomeOriginal": "Experimentalist",
+    "resumo": "Vontade de experimentar coisas novas e descobrir do que gosta.",
+    "oQueE": "É o prazer da descoberta: testar lugares, ritmos, brincadeiras ou temas diferentes, sem precisar de um rótulo fixo. A teoria da autoexpansão explica parte disso: fazer coisas novas juntos reacende o desejo.",
+    "mitosEFatos": [
+      {
+        "mito": "Querer novidade é sinal de que a relação vai mal.",
+        "fato": "Casais que fazem atividades novas e estimulantes juntos relatam mais desejo e mais satisfação, em estudos diários, longitudinais e experimentais (Muise et al., 2019)."
+      },
+      {
+        "mito": "Curiosidade obriga a gostar.",
+        "fato": "Experimentar e não gostar é um resultado válido. Questionários de pesquisa separam \"fiz e não gostei\" de \"fiz e gostei\" justamente por isso (Holvoet et al., 2017)."
+      },
+      {
+        "mito": "Fantasiar com algo novo é raro.",
+        "fato": "Na amostra de 4.175 adultos de Lehmiller (2018), novidade e aventura estiveram entre os temas mais citados das fantasias favoritas."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Façam uma lista de \"sim\", \"talvez\" e \"não\" separadamente e comparem só os pontos em comum.",
+      "Comecem pela versão mais leve da ideia.",
+      "Combinem um sinal simples para parar ou mudar de ideia.",
+      "Conversem depois sobre o que aprenderam, sem cobrança de repetir."
+    ],
+    "referencias": [
+      {
+        "autores": "Muise, A.; Harasymchuk, C.; Day, L. C.; Bacev-Giles, C.; Gere, J.; Impett, E. A.",
+        "ano": 2019,
+        "titulo": "Broadening your horizons: Self-expanding activities promote desire and satisfaction in established romantic relationships. Journal of Personality and Social Psychology, 116(2), 237–258",
+        "url": "https://doi.org/10.1037/pspi0000148"
+      },
+      {
+        "autores": "Holvoet, L.; Huys, W.; Coppens, V.; Seeuws, J.; Goethals, K.; Morrens, M.",
+        "ano": 2017,
+        "titulo": "Fifty shades of Belgian gray: The prevalence of BDSM-related fantasies and activities in the general population. Journal of Sexual Medicine, 14(9), 1152–1159",
+        "url": "https://doi.org/10.1016/j.jsxm.2017.07.003"
+      },
+      {
+        "autores": "Lehmiller, J. J.",
+        "ano": 2018,
+        "titulo": "Tell Me What You Want: The Science of Sexual Desire and How It Can Help You Improve Your Sex Life (livro, Grand Central Publishing)",
+        "url": "https://books.google.com/books/about/Tell_Me_What_You_Want.html?id=bEk9DwAAQBAJ"
+      }
+    ],
+    "familia": "exploracao"
+  },
+  {
+    "id": "olhar",
+    "nome": "Olhar",
+    "nomeOriginal": "Voyeur",
+    "resumo": "Tesão em observar, sempre com o consentimento de quem é visto.",
+    "oQueE": "É o desejo de olhar: assistir a uma parceria se arrumando, ver uma cena combinada ou apreciar a sensualidade de alguém que quer ser vista. No Orbit, esta categoria fala só do olhar consentido. Olhar alguém sem que a pessoa saiba ou queira é violação de privacidade, e registrar a intimidade de alguém sem autorização é crime no Brasil (Código Penal, art. 216-B). Isso não é um desejo a explorar.",
+    "mitosEFatos": [
+      {
+        "mito": "Gostar de olhar é raro e preocupante.",
+        "fato": "Num levantamento com 1.040 adultos de Quebec, o interesse em olhar outras pessoas em situação íntima foi o tema mais comum entre os temas chamados de parafílicos: 46,3% (Joyal e Carpentier, 2017)."
+      },
+      {
+        "mito": "Quem gosta de olhar tem um transtorno.",
+        "fato": "O DSM-5-TR só fala em transtorno quando há sofrimento, prejuízo ou quando o desejo é posto em prática com pessoas que não consentiram. O interesse consentido não é diagnóstico."
+      },
+      {
+        "mito": "Olhar é sempre passivo e distante.",
+        "fato": "Para muitas pessoas, o olhar faz parte de uma troca combinada e cúmplice, em que quem é visto(a) também sente prazer (ver \"Ser visto(a)\")."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Só olhe quem sabe e quer ser visto(a); combine antes o que vai acontecer.",
+      "Escolha ambientes privados e sem terceiros que não concordaram.",
+      "Não grave nem fotografe sem autorização explícita e específica.",
+      "Combine como a outra pessoa pode encerrar a cena a qualquer momento."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Carpentier, J.",
+        "ano": 2017,
+        "titulo": "The prevalence of paraphilic interests and behaviors in the general population: A provincial survey. Journal of Sex Research, 54(2), 161–171",
+        "url": "https://doi.org/10.1080/00224499.2016.1139034"
+      },
+      {
+        "autores": "American Psychiatric Association",
+        "ano": 2022,
+        "titulo": "Paraphilic Disorders. Em: DSM-5-TR",
+        "url": "https://doi.org/10.1176/appi.books.9780890425787.x19_paraphilic_disorders"
+      },
+      {
+        "autores": "Långström, N.; Seto, M. C.",
+        "ano": 2006,
+        "titulo": "Exhibitionistic and voyeuristic behavior in a Swedish national population survey. Archives of Sexual Behavior, 35(4), 427–435",
+        "url": "https://doi.org/10.1007/s10508-006-9042-6"
+      },
+      {
+        "autores": "Brasil",
+        "ano": 2018,
+        "titulo": "Lei nº 13.772/2018, que inclui o art. 216-B no Código Penal (registro não autorizado da intimidade sexual)",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13772.htm"
+      }
+    ],
+    "familia": "olhar"
+  },
+  {
+    "id": "ser-visto",
+    "nome": "Ser visto(a)",
+    "nomeOriginal": "Exhibitionist",
+    "resumo": "Prazer em ser admirado(a) por quem quer olhar.",
+    "oQueE": "É o desejo de ser o centro do olhar: vestir-se para alguém, dançar, posar ou saber que uma parceria está admirando. A forma saudável é sempre com plateia que concordou. Expor-se para quem não espera nem quer é uma violação, não uma forma de desejo.",
+    "mitosEFatos": [
+      {
+        "mito": "Querer ser visto(a) é vaidade ou carência.",
+        "fato": "O prazer de ser desejado(a) é comum. No levantamento de Quebec, 30,6% relataram interesse em ter intimidade sabendo que alguém poderia estar olhando (Joyal e Carpentier, 2017)."
+      },
+      {
+        "mito": "É a mesma coisa que se expor para estranhos.",
+        "fato": "Não. O DSM-5-TR e a CID-11 tratam como problema a exposição a quem não consentiu. Exibir-se para quem quer ver, num contexto combinado, não é transtorno."
+      },
+      {
+        "mito": "Ser visto(a) com consentimento e se expor a estranhos são igualmente comuns.",
+        "fato": "Não. Na Suécia, só 3,1% relataram excitação ao se expor a um estranho (Långström e Seto, 2006), enquanto o desejo de ser observado(a) num contexto combinado é bem mais frequente (Joyal e Carpentier, 2017)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Comece com quem você confia: uma roupa nova, uma dança, uma foto que só a parceria vê.",
+      "Combine o que pode e o que não pode ser compartilhado, inclusive imagens.",
+      "Lembre que divulgar imagens íntimas sem consentimento é crime no Brasil (Código Penal, art. 218-C).",
+      "Prefira lugares privados; nunca envolva quem não concordou."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Carpentier, J.",
+        "ano": 2017,
+        "titulo": "The prevalence of paraphilic interests and behaviors in the general population: A provincial survey. Journal of Sex Research, 54(2), 161–171",
+        "url": "https://doi.org/10.1080/00224499.2016.1139034"
+      },
+      {
+        "autores": "Långström, N.; Seto, M. C.",
+        "ano": 2006,
+        "titulo": "Exhibitionistic and voyeuristic behavior in a Swedish national population survey. Archives of Sexual Behavior, 35(4), 427–435",
+        "url": "https://doi.org/10.1007/s10508-006-9042-6"
+      },
+      {
+        "autores": "Krueger, R. B.; Reed, G. M.; First, M. B.; et al.",
+        "ano": 2017,
+        "titulo": "Proposals for paraphilic disorders in the ICD-11. Archives of Sexual Behavior, 46(5), 1529–1545",
+        "url": "https://doi.org/10.1007/s10508-017-0944-2"
+      },
+      {
+        "autores": "Brasil",
+        "ano": 2018,
+        "titulo": "Lei nº 13.718/2018, que inclui o art. 218-C no Código Penal (divulgação de cena de sexo ou nudez sem consentimento)",
+        "url": "https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13718.htm"
+      }
+    ],
+    "familia": "olhar"
+  },
+  {
+    "id": "conduzir",
+    "nome": "Conduzir",
+    "nomeOriginal": "Dominant",
+    "resumo": "Gosto por guiar a cena, tomar decisões e cuidar de quem se entrega.",
+    "oQueE": "É o desejo de assumir a condução: propor, decidir o ritmo, dar instruções combinadas e ser responsável pelo bem-estar da outra pessoa. Em entrevistas, pessoas que preferem esse papel se descrevem como atentas, empáticas e responsáveis, e dizem que o prazer vem também de dar prazer.",
+    "mitosEFatos": [
+      {
+        "mito": "Quem gosta de conduzir é autoritário na vida.",
+        "fato": "Estudos qualitativos mostram que o papel na intimidade nem sempre corresponde à personalidade do dia a dia; pessoas dominantes se descrevem como cuidadosas e atentas (Hébert e Weaver, 2015)."
+      },
+      {
+        "mito": "Dinâmicas de poder indicam problemas psicológicos.",
+        "fato": "Num estudo com 902 praticantes e 434 pessoas de comparação, praticantes de BDSM tiveram menos neuroticismo e mais bem-estar; o grupo de papel dominante teve os escores mais favoráveis (Wismeijer e van Assen, 2013)."
+      },
+      {
+        "mito": "Fantasiar com dominação é coisa rara.",
+        "fato": "Temas de dominação e submissão foram comuns em homens e mulheres e muito correlacionados entre si (Joyal et al., 2015)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Negocie antes: o que a outra pessoa quer, o que está fora de questão e o que é \"talvez\".",
+      "Combine uma palavra de segurança ou o sistema de semáforo (vermelho, amarelo, verde).",
+      "Observe a outra pessoa o tempo todo; conduzir é também cuidar.",
+      "Reserve um tempo depois para acolher e conversar (cuidado posterior)."
+    ],
+    "referencias": [
+      {
+        "autores": "Hébert, A.; Weaver, A.",
+        "ano": 2015,
+        "titulo": "Perks, problems, and the people who play: A qualitative exploration of dominant and submissive BDSM roles. Canadian Journal of Human Sexuality, 24(1), 49–62",
+        "url": "https://doi.org/10.3138/cjhs.2467"
+      },
+      {
+        "autores": "Wismeijer, A. A. J.; van Assen, M. A. L. M.",
+        "ano": 2013,
+        "titulo": "Psychological characteristics of BDSM practitioners. Journal of Sexual Medicine, 10(8), 1943–1952",
+        "url": "https://doi.org/10.1111/jsm.12192"
+      },
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Dunkley, C. R.; Brotto, L. A.",
+        "ano": 2020,
+        "titulo": "The role of consent in the context of BDSM. Sexual Abuse, 32(6), 657–678",
+        "url": "https://doi.org/10.1177/1079063219842847"
+      }
+    ],
+    "familia": "poder"
+  },
+  {
+    "id": "entregar",
+    "nome": "Entregar o controle",
+    "nomeOriginal": "Submissive",
+    "resumo": "Prazer em confiar, seguir e deixar a outra pessoa conduzir.",
+    "oQueE": "É o desejo de, por um tempo combinado, soltar as rédeas: seguir instruções, ser guiado(a) e se permitir não decidir. Muitas pessoas descrevem alívio e liberdade em sair dos papéis de todo dia. A entrega é sempre uma escolha revogável: quem se entrega pode parar tudo a qualquer momento.",
+    "mitosEFatos": [
+      {
+        "mito": "Gostar de se entregar é falta de autoestima.",
+        "fato": "Na pesquisa de Joyal et al. (2015), a fantasia de ser dominado(a) foi relatada por 64,6% das mulheres e 53,3% dos homens. É um dos temas mais comuns, não um sinal de fragilidade."
+      },
+      {
+        "mito": "A pessoa que se entrega não tem poder.",
+        "fato": "É ela quem define os limites e pode encerrar a cena com a palavra de segurança, que se sobrepõe a qualquer dinâmica (Dunkley e Brotto, 2020)."
+      },
+      {
+        "mito": "Esse desejo afasta o casal.",
+        "fato": "Num estudo com casais, cenas consensuais que correram bem foram seguidas de menos estresse fisiológico e mais proximidade relatada (Sagarin et al., 2009)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Diga com clareza seus limites firmes e os \"talvez\".",
+      "Combine palavra de segurança e um sinal sem voz, caso não possa falar.",
+      "Comece com combinados leves, como deixar a outra pessoa escolher o ritmo.",
+      "Peça o cuidado de que precisa depois: abraço, água, conversa."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Dunkley, C. R.; Brotto, L. A.",
+        "ano": 2020,
+        "titulo": "The role of consent in the context of BDSM. Sexual Abuse, 32(6), 657–678",
+        "url": "https://doi.org/10.1177/1079063219842847"
+      },
+      {
+        "autores": "Sagarin, B. J.; Cutler, B.; Cutler, N.; Lawler-Sagarin, K. A.; Matuszewich, L.",
+        "ano": 2009,
+        "titulo": "Hormonal changes and couple bonding in consensual sadomasochistic activity. Archives of Sexual Behavior, 38(2), 186–200",
+        "url": "https://doi.org/10.1007/s10508-008-9374-5"
+      },
+      {
+        "autores": "Holvoet, L.; Huys, W.; Coppens, V.; Seeuws, J.; Goethals, K.; Morrens, M.",
+        "ano": 2017,
+        "titulo": "Fifty shades of Belgian gray: The prevalence of BDSM-related fantasies and activities in the general population. Journal of Sexual Medicine, 14(9), 1152–1159",
+        "url": "https://doi.org/10.1016/j.jsxm.2017.07.003"
+      }
+    ],
+    "familia": "poder"
+  },
+  {
+    "id": "alternar",
+    "nome": "Alternar papéis",
+    "nomeOriginal": "Switch",
+    "resumo": "Gosta dos dois lados: às vezes conduz, às vezes se entrega.",
+    "oQueE": "É o desejo de transitar entre conduzir e se entregar, conforme o dia, a parceria ou o clima. As pesquisas mostram que essa flexibilidade é comum e que poucos perfis cabem num único eixo de \"dominante\" a \"submisso(a)\".",
+    "mitosEFatos": [
+      {
+        "mito": "Quem alterna ainda não se decidiu.",
+        "fato": "Alternar é uma preferência própria. Num estudo português, 37% dos praticantes se identificaram como switch (Marujo et al., 2024)."
+      },
+      {
+        "mito": "Dominação e submissão são opostos que se excluem.",
+        "fato": "Interesses dominantes e submissos são muito correlacionados na população geral (Holvoet et al., 2017), e a análise de 236 mil perfis propôs um modelo de duas dimensões, não uma linha única (La Corte, 2023)."
+      },
+      {
+        "mito": "Papel é identidade fixa.",
+        "fato": "Estudos qualitativos descrevem mudanças de papel ao longo do tempo, do lugar e da parceria (Martinez, 2018)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Combinem antes de cada encontro quem conduz, para evitar mal-entendidos.",
+      "Usem as mesmas regras de segurança nos dois papéis.",
+      "Experimentem trocar de papel em cenas curtas e conversem depois.",
+      "Respeitem que a outra pessoa pode preferir um papel só."
+    ],
+    "referencias": [
+      {
+        "autores": "Marujo, C.; Cardoso, D.; Oliveira, A.",
+        "ano": 2024,
+        "titulo": "Sexual fluidity, BDSM and gender: An exploratory study on Portuguese BDSM practitioners. Sexuality & Culture, 28(3), 983–1007",
+        "url": "https://doi.org/10.1007/s12119-023-10159-y"
+      },
+      {
+        "autores": "Holvoet, L.; Huys, W.; Coppens, V.; Seeuws, J.; Goethals, K.; Morrens, M.",
+        "ano": 2017,
+        "titulo": "Fifty shades of Belgian gray: The prevalence of BDSM-related fantasies and activities in the general population. Journal of Sexual Medicine, 14(9), 1152–1159",
+        "url": "https://doi.org/10.1016/j.jsxm.2017.07.003"
+      },
+      {
+        "autores": "La Corte, J. C.",
+        "ano": 2023,
+        "titulo": "Classifying D/s profiles without prior assumptions: An application of cluster analysis to social data. Journal of Homosexuality, 70(8), 1549–1584",
+        "url": "https://doi.org/10.1080/00918369.2022.2036534"
+      },
+      {
+        "autores": "Martinez, K.",
+        "ano": 2018,
+        "titulo": "BDSM role fluidity: A mixed-methods approach to investigating switches within dominant/submissive binaries. Journal of Homosexuality, 65(10), 1299–1324",
+        "url": "https://doi.org/10.1080/00918369.2017.1374062"
+      }
+    ],
+    "familia": "poder"
+  },
+  {
+    "id": "cordas",
+    "nome": "Cordas e contenção",
+    "nomeOriginal": "Rigger / Rope bunny",
+    "resumo": "Fascínio por amarrar ou ser amarrado(a), como estética, confiança e sensação.",
+    "oQueE": "É o desejo ligado à contenção: o abraço da corda, a imobilidade combinada, a estética das amarrações (como o shibari) e a confiança que isso exige. Para muitas pessoas a prática nem é sexual; é arte, meditação ou conexão.",
+    "mitosEFatos": [
+      {
+        "mito": "Amarração é sempre sobre dor.",
+        "fato": "Praticantes descrevem sobretudo sensação de segurança, presença no corpo e estado de fluxo; para alguns, a corda é \"como um abraço\" (Niebudek e Iniewicz, 2023; Harris, 2023)."
+      },
+      {
+        "mito": "É um interesse de nicho.",
+        "fato": "Ser amarrado(a) por prazer apareceu nas fantasias de 52,1% das mulheres e 46,2% dos homens na pesquisa de Joyal et al. (2015)."
+      },
+      {
+        "mito": "Qualquer pessoa pode fazer sem aprender.",
+        "fato": "Contenção envolve riscos físicos reais, e praticantes entrevistados descrevem o risco de lesão como algo que aceitam e administram, o que torna técnica e atenção indispensáveis (Jones, 2020)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Aprenda com materiais ou cursos confiáveis antes de amarrar alguém.",
+      "Tenha sempre uma tesoura de segurança à mão e nunca deixe a pessoa sozinha.",
+      "Pergunte com frequência sobre formigamento, dormência ou dor.",
+      "Comece com contenções simples e fáceis de soltar."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Niebudek, A.; Iniewicz, G.",
+        "ano": 2023,
+        "titulo": "Between a role and identification. Understanding BDSM practices from practitioners' perspective. Psychiatria Polska, 57(1), 121–146",
+        "url": "https://doi.org/10.12740/PP/144162"
+      },
+      {
+        "autores": "Harris, E.",
+        "ano": 2023,
+        "titulo": "Healing experiences in Japanese rope bondage practice: A phenomenological study. Consciousness, Spirituality & Transpersonal Psychology",
+        "url": "https://www.journal.aleftrust.org/index.php/cstp/article/view/46"
+      },
+      {
+        "autores": "Jones, Z.",
+        "ano": 2020,
+        "titulo": "Pleasure, community, and marginalization in rope bondage: A qualitative investigation into a BDSM subculture (tese, Carleton University)",
+        "url": "https://doi.org/10.22215/etd/2020-14247"
+      }
+    ],
+    "familia": "poder"
+  },
+  {
+    "id": "sensacoes-dar",
+    "nome": "Intensidade: dar",
+    "nomeOriginal": "Sadist",
+    "resumo": "Prazer em provocar sensações intensas em quem pediu por elas.",
+    "oQueE": "É o desejo de oferecer estímulos fortes e combinados (temperatura, pressão, palmadas leves, arranhões) a alguém que quer recebê-los, prestando atenção total às reações. O prazer está na resposta e na confiança da outra pessoa, nunca em causar sofrimento a quem não quer.",
+    "mitosEFatos": [
+      {
+        "mito": "Quem gosta disso quer machucar pessoas.",
+        "fato": "A CID-11 retirou o sadomasoquismo consensual da classificação e só considera transtorno o padrão focado em pessoas que não consentiram (Krueger et al., 2017; Reed et al., 2016)."
+      },
+      {
+        "mito": "É uma prática sem regras.",
+        "fato": "A comunidade usa estruturas como SSC, RACK e os \"4Cs\" (cuidado, comunicação, consentimento e cautela) para negociar cada cena (Williams et al., 2014)."
+      },
+      {
+        "mito": "Quem dá não sente nada.",
+        "fato": "Num estudo experimental, quem conduzia a cena relatou estado de fluxo, semelhante ao de atividades de alta concentração (Ambler et al., 2017)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Negocie a intensidade, as partes do corpo permitidas e os limites firmes.",
+      "Use o semáforo: verde continua, amarelo diminui, vermelho para.",
+      "Comece leve e aumente aos poucos, checando a reação.",
+      "Ofereça cuidado posterior e pergunte no dia seguinte como a pessoa está."
+    ],
+    "referencias": [
+      {
+        "autores": "Krueger, R. B.; Reed, G. M.; First, M. B.; et al.",
+        "ano": 2017,
+        "titulo": "Proposals for paraphilic disorders in the ICD-11. Archives of Sexual Behavior, 46(5), 1529–1545",
+        "url": "https://doi.org/10.1007/s10508-017-0944-2"
+      },
+      {
+        "autores": "Reed, G. M.; Drescher, J.; Krueger, R. B.; et al.",
+        "ano": 2016,
+        "titulo": "Disorders related to sexuality and gender identity in the ICD-11. World Psychiatry, 15(3), 205–221",
+        "url": "https://doi.org/10.1002/wps.20354"
+      },
+      {
+        "autores": "Williams, D. J.; Thomas, J. N.; Prior, E. E.; Christensen, M. C.",
+        "ano": 2014,
+        "titulo": "From \"SSC\" and \"RACK\" to the \"4Cs\": Introducing a new framework for negotiating BDSM participation. Electronic Journal of Human Sexuality, 17",
+        "url": "https://www.researchgate.net/publication/271854517_From_SSC_and_RACK_to_the_4Cs_Introducing_a_New_Framework_for_Negotiating_BDSM_Participation"
+      },
+      {
+        "autores": "Ambler, J. K.; Lee, E. M.; Klement, K. R.; et al.",
+        "ano": 2017,
+        "titulo": "Consensual BDSM facilitates role-specific altered states of consciousness: A preliminary study. Psychology of Consciousness, 4(1), 75–91",
+        "url": "https://doi.org/10.1037/cns0000097"
+      }
+    ],
+    "familia": "sensacoes"
+  },
+  {
+    "id": "sensacoes-receber",
+    "nome": "Intensidade: receber",
+    "nomeOriginal": "Masochist",
+    "resumo": "Prazer em receber sensações fortes, num contexto seguro e escolhido.",
+    "oQueE": "É o desejo de sentir estímulos intensos (pressão, calor, frio, palmadas) que, no contexto certo, viram prazer, descarga ou foco total no presente. A diferença entre dor indesejada e sensação desejada está no consentimento, no controle e no significado.",
+    "mitosEFatos": [
+      {
+        "mito": "Gostar de sensação forte é autodestrutivo.",
+        "fato": "No levantamento de Quebec, o interesse masoquista foi associado a maior satisfação com a vida sexual (Joyal e Carpentier, 2017)."
+      },
+      {
+        "mito": "É coisa de pouquíssima gente.",
+        "fato": "Ser palmado(a) ou chicoteado(a) apareceu nas fantasias de 36,3% das mulheres e 28,5% dos homens (Joyal et al., 2015)."
+      },
+      {
+        "mito": "É a mesma coisa que sofrer.",
+        "fato": "Estudos mostram que, em cenas consensuais, quem recebe pode entrar num estado alterado de absorção e, depois de uma cena boa, relatar mais proximidade (Ambler et al., 2017; Sagarin et al., 2009)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Defina antes o que é bem-vindo e o que está fora de questão.",
+      "Combine palavra de segurança e um sinal sem voz.",
+      "Comece com intensidade baixa; o corpo muda de resposta ao longo da cena.",
+      "Peça cuidado posterior e observe seu humor nos dias seguintes."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Carpentier, J.",
+        "ano": 2017,
+        "titulo": "The prevalence of paraphilic interests and behaviors in the general population: A provincial survey. Journal of Sex Research, 54(2), 161–171",
+        "url": "https://doi.org/10.1080/00224499.2016.1139034"
+      },
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Ambler, J. K.; Lee, E. M.; Klement, K. R.; et al.",
+        "ano": 2017,
+        "titulo": "Consensual BDSM facilitates role-specific altered states of consciousness: A preliminary study. Psychology of Consciousness, 4(1), 75–91",
+        "url": "https://doi.org/10.1037/cns0000097"
+      },
+      {
+        "autores": "Sagarin, B. J.; Cutler, B.; Cutler, N.; Lawler-Sagarin, K. A.; Matuszewich, L.",
+        "ano": 2009,
+        "titulo": "Hormonal changes and couple bonding in consensual sadomasochistic activity. Archives of Sexual Behavior, 38(2), 186–200",
+        "url": "https://doi.org/10.1007/s10508-008-9374-5"
+      }
+    ],
+    "familia": "sensacoes"
+  },
+  {
+    "id": "provocacao",
+    "nome": "Provocação e desafio",
+    "nomeOriginal": "Brat / Brat tamer",
+    "resumo": "Graça de provocar, resistir de brincadeira e ser \"posto(a) no lugar\" (ou pôr).",
+    "oQueE": "É o desejo de transformar a dinâmica de poder num jogo: uma pessoa provoca e desafia de propósito, a outra se diverte em responder e retomar o controle. O humor e a cumplicidade são centrais. A resistência é encenada e combinada, nunca real.",
+    "mitosEFatos": [
+      {
+        "mito": "Provocar é desrespeito.",
+        "fato": "Na dinâmica combinada, a provocação é parte do jogo e foi descrita por praticantes como um papel próprio de quem gosta de resistir e \"perder a disputa\" (Mitchell, 2026; Niebudek e Iniewicz, 2023)."
+      },
+      {
+        "mito": "Se a pessoa resiste, não há consentimento.",
+        "fato": "A resistência encenada exige combinados claros e uma palavra de segurança, porque \"não\" pode fazer parte do jogo; por isso pesquisadores insistem em consentimento explícito e negociado (Dunkley e Brotto, 2020)."
+      },
+      {
+        "mito": "É só uma moda da internet.",
+        "fato": "O papel aparece em estudos acadêmicos sobre identidade e papéis no BDSM em vários países (Marujo et al., 2024; Mitchell, 2026)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Combine o que é provocação de brincadeira e o que é um \"não\" de verdade.",
+      "Use uma palavra de segurança que não possa ser confundida com o jogo.",
+      "Mantenha o humor: se deixar de ser divertido para alguém, pare.",
+      "Conversem depois sobre o que funcionou."
+    ],
+    "referencias": [
+      {
+        "autores": "Mitchell, R. C.",
+        "ano": 2026,
+        "titulo": "A qualitative exploration of self-identity within BDSM/kink sexuality. Archives of Sexual Behavior",
+        "url": "https://doi.org/10.1007/s10508-026-03569-0"
+      },
+      {
+        "autores": "Niebudek, A.; Iniewicz, G.",
+        "ano": 2023,
+        "titulo": "Between a role and identification. Understanding BDSM practices from practitioners' perspective. Psychiatria Polska, 57(1), 121–146",
+        "url": "https://doi.org/10.12740/PP/144162"
+      },
+      {
+        "autores": "Dunkley, C. R.; Brotto, L. A.",
+        "ano": 2020,
+        "titulo": "The role of consent in the context of BDSM. Sexual Abuse, 32(6), 657–678",
+        "url": "https://doi.org/10.1177/1079063219842847"
+      },
+      {
+        "autores": "Marujo, C.; Cardoso, D.; Oliveira, A.",
+        "ano": 2024,
+        "titulo": "Sexual fluidity, BDSM and gender: An exploratory study on Portuguese BDSM practitioners. Sexuality & Culture, 28(3), 983–1007",
+        "url": "https://doi.org/10.1007/s12119-023-10159-y"
+      }
+    ],
+    "familia": "poder"
+  },
+  {
+    "id": "cuidado",
+    "nome": "Cuidado e acolhimento",
+    "nomeOriginal": "Caregiver / Little",
+    "resumo": "Dinâmica entre adultos em que uma pessoa protege e a outra é acolhida.",
+    "oQueE": "É o desejo, entre adultos que consentem, por uma dinâmica de cuidado: uma pessoa assume o papel protetor e afetuoso, a outra se permite ser cuidada, mimada e leve. Pesquisas descrevem sensação de conforto, segurança e vulnerabilidade compartilhada. Envolve somente adultos; qualquer conteúdo com menores é crime e está fora deste tema.",
+    "mitosEFatos": [
+      {
+        "mito": "Tem a ver com interesse por crianças.",
+        "fato": "Não. Estudos qualitativos descrevem papéis arquetípicos entre adultos, ligados a cuidado, conforto e entrega, e não a interesse por menores (Tiidenberg e Paasonen, 2019; Bauer, 2018)."
+      },
+      {
+        "mito": "Quem cuida é quem tem todo o poder.",
+        "fato": "Participantes descrevem poder fluindo nos dois sentidos, com quem cuida assumindo responsabilidade e trabalho emocional intenso (Bauer, 2018)."
+      },
+      {
+        "mito": "É sempre sexual.",
+        "fato": "Para muitas pessoas o centro é o acolhimento e o descanso dos papéis adultos; a parte sexual é opcional."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Conversem sobre o que \"cuidar\" e \"ser cuidado(a)\" significa para cada pessoa.",
+      "Definam limites e uma palavra de segurança, como em qualquer dinâmica de poder.",
+      "Reservem tempo para sair do papel e conversar como adultos depois.",
+      "Mantenham tudo restrito a adultos e a espaços privados."
+    ],
+    "referencias": [
+      {
+        "autores": "Tiidenberg, K.; Paasonen, S.",
+        "ano": 2019,
+        "titulo": "Littles: Affects and aesthetics in sexual age-play. Sexuality & Culture, 23(2), 375–393",
+        "url": "https://doi.org/10.1007/s12119-018-09580-5"
+      },
+      {
+        "autores": "Bauer, R.",
+        "ano": 2018,
+        "titulo": "Bois and grrrls meet their daddies and mommies on gender playgrounds: Gendered age play in the les-bi-trans-queer BDSM communities. Sexualities, 21(1–2), 139–155",
+        "url": "https://doi.org/10.1177/1363460716676987"
+      },
+      {
+        "autores": "Kink Clinical Practice Guidelines Project",
+        "ano": 2019,
+        "titulo": "Clinical practice guidelines for working with people with kink interests",
+        "url": "https://www.kinkguidelines.com/_files/ugd/3cd6ea_bea576f57132462fa80265b4524b702d.pdf"
+      }
+    ],
+    "familia": "fantasia"
+  },
+  {
+    "id": "instinto",
+    "nome": "Instinto e perseguição",
+    "nomeOriginal": "Primal (Hunter / Prey)",
+    "resumo": "Desejo pelo lado mais instintivo: caçar, fugir, disputar de brincadeira.",
+    "oQueE": "É o desejo de soltar o lado físico e instintivo, em brincadeiras combinadas de perseguição, luta leve ou \"captura\", com sons e movimentos menos controlados. A pesquisa específica ainda é escassa; o tema aparece em estudos sobre papéis no BDSM.",
+    "mitosEFatos": [
+      {
+        "mito": "É violência disfarçada.",
+        "fato": "Como em qualquer dinâmica de poder consensual, a diferença está na negociação, nos limites e na palavra de segurança (Dunkley e Brotto, 2020)."
+      },
+      {
+        "mito": "Existe muita pesquisa sobre isso.",
+        "fato": "Não: há poucos estudos dedicados. Papéis de \"caçador(a)\" e \"presa\" aparecem em pesquisas sobre identidades no BDSM, como a de Marujo et al. (2024)."
+      },
+      {
+        "mito": "Quem gosta disso é agressivo no dia a dia.",
+        "fato": "Não há evidência disso; praticantes de BDSM, em geral, não mostram mais traços negativos que outras pessoas (Wismeijer e van Assen, 2013)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Escolha um espaço seguro, sem quinas e sem objetos perigosos.",
+      "Combine sinais de parada que funcionem mesmo ofegante (bater duas vezes, por exemplo).",
+      "Defina as regras do jogo: onde pode tocar, até onde vai a disputa.",
+      "Faça uma pausa depois para checar machucados e emoções."
+    ],
+    "referencias": [
+      {
+        "autores": "Marujo, C.; Cardoso, D.; Oliveira, A.",
+        "ano": 2024,
+        "titulo": "Sexual fluidity, BDSM and gender: An exploratory study on Portuguese BDSM practitioners. Sexuality & Culture, 28(3), 983–1007",
+        "url": "https://doi.org/10.1007/s12119-023-10159-y"
+      },
+      {
+        "autores": "Dunkley, C. R.; Brotto, L. A.",
+        "ano": 2020,
+        "titulo": "The role of consent in the context of BDSM. Sexual Abuse, 32(6), 657–678",
+        "url": "https://doi.org/10.1177/1079063219842847"
+      },
+      {
+        "autores": "Wismeijer, A. A. J.; van Assen, M. A. L. M.",
+        "ano": 2013,
+        "titulo": "Psychological characteristics of BDSM practitioners. Journal of Sexual Medicine, 10(8), 1943–1952",
+        "url": "https://doi.org/10.1111/jsm.12192"
+      }
+    ],
+    "familia": "fantasia"
+  },
+  {
+    "id": "relacoes-abertas",
+    "nome": "Relações abertas",
+    "nomeOriginal": "Non-monogamist",
+    "resumo": "Interesse em vínculos ou encontros com mais pessoas, de forma combinada.",
+    "oQueE": "É o desejo por arranjos consensuais além da monogamia: relação aberta, poliamor, encontros a três ou outros acordos em que todas as pessoas sabem e concordam. A palavra-chave é \"consensual\"; isso é diferente de traição. Na pesquisa de Lehmiller (2018), sexo com mais de uma pessoa foi o tema mais citado entre as fantasias favoritas.",
+    "mitosEFatos": [
+      {
+        "mito": "Quase ninguém vive isso.",
+        "fato": "Em duas amostras nacionais nos EUA, mais de 1 em cada 5 adultos solteiros já tinha vivido uma relação não monogâmica consensual (Haupert et al., 2017)."
+      },
+      {
+        "mito": "Não monogamia é o mesmo que traição.",
+        "fato": "A não monogamia consensual pressupõe acordo de todas as partes; traição é quebrar um acordo de exclusividade (Conley et al., 2013)."
+      },
+      {
+        "mito": "Relações monogâmicas são melhores em tudo.",
+        "fato": "Em quatro estudos, pessoas avaliaram casais monogâmicos como melhores até em traços sem relação com o relacionamento, sinal de um \"efeito halo\" e de estigma, não de dados sobre a qualidade das relações (Conley et al., 2013)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Conversem com calma sobre expectativas, ciúme e limites antes de qualquer passo.",
+      "Façam acordos claros e revisem com frequência.",
+      "Cuidem da saúde sexual: testagem regular e prevenção combinada.",
+      "Lembrem que qualquer pessoa pode pedir para rever o acordo."
+    ],
+    "referencias": [
+      {
+        "autores": "Haupert, M. L.; Gesselman, A. N.; Moors, A. C.; Fisher, H. E.; Garcia, J. R.",
+        "ano": 2017,
+        "titulo": "Prevalence of experiences with consensual nonmonogamous relationships: Findings from two national samples of single Americans. Journal of Sex & Marital Therapy, 43(5), 424–440",
+        "url": "https://doi.org/10.1080/0092623X.2016.1178675"
+      },
+      {
+        "autores": "Conley, T. D.; Moors, A. C.; Matsick, J. L.; Ziegler, A.",
+        "ano": 2013,
+        "titulo": "The fewer the merrier?: Assessing stigma surrounding consensually non-monogamous romantic relationships. Analyses of Social Issues and Public Policy, 13(1), 1–30",
+        "url": "https://doi.org/10.1111/j.1530-2415.2012.01286.x"
+      },
+      {
+        "autores": "Lehmiller, J. J.",
+        "ano": 2018,
+        "titulo": "What I learned by asking 4,000 Americans about their biggest sex fantasies (Sex and Psychology)",
+        "url": "https://www.sexandpsychology.com/blog/2018/7/6/what-i-learned-by-asking-4000-americans-about-their-biggest-sex-fantasies/"
+      }
+    ],
+    "familia": "exploracao"
+  },
+  {
+    "id": "encenacao",
+    "nome": "Fantasia e encenação",
+    "nomeOriginal": "Roleplay",
+    "resumo": "Tesão em interpretar personagens e criar histórias juntos.",
+    "oQueE": "É o desejo de brincar de ser outra pessoa: inventar um primeiro encontro, usar figurinos ou criar um enredo. A encenação dá permissão para explorar fantasias num espaço protegido, em que todos sabem que é uma história.",
+    "mitosEFatos": [
+      {
+        "mito": "Encenar é coisa de casal em crise.",
+        "fato": "Num estudo nacional na Noruega (4.148 pessoas), já ter feito encenação esteve associado a maior satisfação sexual (Strizzi et al., 2022)."
+      },
+      {
+        "mito": "Fantasia é o mesmo que vontade de fazer na vida real.",
+        "fato": "Fantasiar não significa querer realizar; muitas fantasias ficam melhor na imaginação (Joyal et al., 2015)."
+      },
+      {
+        "mito": "Só funciona com roteiro elaborado.",
+        "fato": "O que reacende o desejo é a novidade compartilhada, não a complexidade: atividades novas e estimulantes feitas a dois já aumentam o desejo (Muise et al., 2019). Fingir um primeiro encontro já é encenação."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Combinem o enredo, os personagens e o que fica fora da história.",
+      "Tenham uma palavra que \"sai do personagem\" na hora.",
+      "Comecem com cenas curtas e leves.",
+      "Depois, voltem a ser vocês e conversem sobre a experiência."
+    ],
+    "referencias": [
+      {
+        "autores": "Strizzi, J. M.; Øverup, C. S.; Ciprić, A.; Hald, G. M.; Træen, B.",
+        "ano": 2022,
+        "titulo": "BDSM: Does it hurt or help sexual satisfaction, relationship satisfaction, and relationship closeness? Journal of Sex Research, 59(2), 248–257",
+        "url": "https://doi.org/10.1080/00224499.2021.1950116"
+      },
+      {
+        "autores": "Joyal, C. C.; Cossette, A.; Lapierre, V.",
+        "ano": 2015,
+        "titulo": "What exactly is an unusual sexual fantasy? Journal of Sexual Medicine, 12(2), 328–340",
+        "url": "https://doi.org/10.1111/jsm.12734"
+      },
+      {
+        "autores": "Muise, A.; Harasymchuk, C.; Day, L. C.; Bacev-Giles, C.; Gere, J.; Impett, E. A.",
+        "ano": 2019,
+        "titulo": "Broadening your horizons: Self-expanding activities promote desire and satisfaction in established romantic relationships. Journal of Personality and Social Psychology, 116(2), 237–258",
+        "url": "https://doi.org/10.1037/pspi0000148"
+      }
+    ],
+    "familia": "fantasia"
+  },
+  {
+    "id": "texturas",
+    "nome": "Objetos, roupas e texturas",
+    "nomeOriginal": "Fetishist",
+    "resumo": "Tesão por materiais, peças, partes do corpo ou objetos específicos.",
+    "oQueE": "É o desejo concentrado em algo específico: um tecido (couro, renda, látex), uma peça de roupa, sapatos, os pés ou outra parte do corpo. É um dos interesses mais comuns entre os temas considerados \"incomuns\". A CID-11 deixou de classificá-lo como transtorno.",
+    "mitosEFatos": [
+      {
+        "mito": "É raríssimo.",
+        "fato": "No levantamento de Quebec, 44,5% relataram interesse nesse tipo de desejo: 40,4% dos homens e 47,9% das mulheres (Joyal e Carpentier, 2017)."
+      },
+      {
+        "mito": "É uma doença.",
+        "fato": "A CID-11 removeu essa categoria da classificação de transtornos; só há transtorno se houver sofrimento marcado ou risco (Reed et al., 2016; Krueger et al., 2017)."
+      },
+      {
+        "mito": "Cada desejo é único e estranho.",
+        "fato": "Num estudo com grupos on-line, pés e objetos ligados aos pés foram o foco mais frequente (Scorolli et al., 2007)."
+      }
+    ],
+    "comoExplorarComConsentimento": [
+      "Conte para a parceria de forma leve, como uma preferência, sem pressão.",
+      "Encontrem formas em que as duas pessoas se sintam bem.",
+      "Respeitem quando a outra pessoa não quiser participar.",
+      "Cuidem da higiene e da segurança dos materiais (alergias, calor, respiração)."
+    ],
+    "referencias": [
+      {
+        "autores": "Joyal, C. C.; Carpentier, J.",
+        "ano": 2017,
+        "titulo": "The prevalence of paraphilic interests and behaviors in the general population: A provincial survey. Journal of Sex Research, 54(2), 161–171",
+        "url": "https://doi.org/10.1080/00224499.2016.1139034"
+      },
+      {
+        "autores": "Reed, G. M.; Drescher, J.; Krueger, R. B.; et al.",
+        "ano": 2016,
+        "titulo": "Disorders related to sexuality and gender identity in the ICD-11. World Psychiatry, 15(3), 205–221",
+        "url": "https://doi.org/10.1002/wps.20354"
+      },
+      {
+        "autores": "Krueger, R. B.; Reed, G. M.; First, M. B.; et al.",
+        "ano": 2017,
+        "titulo": "Proposals for paraphilic disorders in the ICD-11. Archives of Sexual Behavior, 46(5), 1529–1545",
+        "url": "https://doi.org/10.1007/s10508-017-0944-2"
+      },
+      {
+        "autores": "Scorolli, C.; Ghirlanda, S.; Enquist, M.; Zattoni, S.; Jannini, E. A.",
+        "ano": 2007,
+        "titulo": "Relative prevalence of different fetishes. International Journal of Impotence Research, 19(4), 432–437",
+        "url": "https://doi.org/10.1038/sj.ijir.3901547"
+      }
+    ],
+    "familia": "sensacoes"
+  }
+]

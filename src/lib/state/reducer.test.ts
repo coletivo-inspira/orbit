@@ -261,9 +261,9 @@ describe("Desejos", () => {
   });
 
   it("mostra desejos no perfil só por opt-in, um por um", () => {
-    let state = orbitReducer(createInitialState(), { type: "toggleDesejoPublico", id: "baunilha" });
-    expect(state.desejosPublicos).toEqual(["baunilha"]);
-    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "baunilha" });
+    let state = orbitReducer(createInitialState(), { type: "toggleDesejoPublico", id: "conexao" });
+    expect(state.desejosPublicos).toEqual(["conexao"]);
+    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "conexao" });
     expect(state.desejosPublicos).toEqual([]);
   });
 
@@ -273,7 +273,7 @@ describe("Desejos", () => {
       perguntaId: "rapida-caca",
       resposta: "sim",
     });
-    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "primal" });
+    state = orbitReducer(state, { type: "toggleDesejoPublico", id: "instinto" });
     state = orbitReducer(state, { type: "concluirDesejos" });
     expect(state.desejosTela).toBe("resultado");
     const refeito = orbitReducer(state, { type: "refazerDesejos" });
@@ -286,19 +286,19 @@ describe("Desejos", () => {
 
   it("abre a ficha do tema fechando os outros modais", () => {
     const opened = orbitReducer(createInitialState(), { type: "openProfile", id: "p1" });
-    const ficha = orbitReducer(opened, { type: "abrirDesejo", id: "voyeur" });
+    const ficha = orbitReducer(opened, { type: "abrirDesejo", id: "olhar" });
     expect(ficha.selectedProfileId).toBeNull();
-    expect(ficha.desejoAberto).toBe("voyeur");
+    expect(ficha.desejoAberto).toBe("olhar");
     expect(orbitReducer(ficha, { type: "closeModals" }).desejoAberto).toBeNull();
   });
 
   it("restaura o estado salvo e abre no resultado quando concluído", () => {
     const state = orbitReducer(createInitialState(), {
       type: "hydrateDesejos",
-      estado: { respostas: { "rapida-caca": "sim" }, passo: 3, concluido: true, publicos: ["primal"] },
+      estado: { respostas: { "rapida-caca": "sim" }, passo: 3, concluido: true, publicos: ["instinto"] },
     });
     expect(state.desejosTela).toBe("resultado");
-    expect(state.desejosPublicos).toEqual(["primal"]);
+    expect(state.desejosPublicos).toEqual(["instinto"]);
     expect(state.desejos.passo).toBe(3);
   });
 });

@@ -80,7 +80,11 @@ export function DesejoSheet({ id, onClose }: { id: CategoriaId; onClose: () => v
           )}
 
           <Bloco titulo="Como explorar com consentimento">
-            <p>{c.comoExplorarComConsentimento}</p>
+            <ul className="flex list-disc flex-col gap-1.5 pl-5">
+              {c.comoExplorarComConsentimento.map((passo) => (
+                <li key={passo}>{passo}</li>
+              ))}
+            </ul>
           </Bloco>
 
           {c.referencias.length > 0 && (
@@ -88,6 +92,9 @@ export function DesejoSheet({ id, onClose }: { id: CategoriaId; onClose: () => v
               <ul className="flex list-disc flex-col gap-1 pl-4 text-xs">
                 {c.referencias.map((r) => (
                   <li key={r.titulo}>
+                    <span className="text-slate-300">
+                      {r.autores} ({r.ano}).{" "}
+                    </span>
                     {r.url ? (
                       <a
                         href={r.url}
