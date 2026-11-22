@@ -62,6 +62,8 @@ export class ForceLayout {
   /** Nodes taking part in the simulation; inactive ones are frozen and ignored (timelapse). */
   readonly active: Uint8Array;
   alpha = 1;
+  /** Kept above 0 while a node is dragged, so neighbours keep reacting (d3's alphaTarget). */
+  alphaTarget = 0;
   forces: LayoutForces;
   radiusScale = 1;
 
@@ -153,7 +155,11 @@ export class ForceLayout {
   }
 
   get settled(): boolean {
-    return this.alpha < ALPHA_MIN;
+    return this.alpha < ALPHA_MIN && this.alphaTarget === 0;
+  }
+
+  isPinned(i: number): boolean {
+    return this.pinned[i] === 1;
   }
 
   reheat(alpha = 0.3): void {
@@ -264,7 +270,7 @@ export class ForceLayout {
       y[i] += vy[i];
     }
 
-    this.alpha += (0 - this.alpha) * ALPHA_DECAY;
+    this.alpha += (this.alphaTarget - this.alpha) * ALPHA_DECAY;
   }
 
   /** Runs to rest synchronously (reduced motion, tests). */

@@ -4,6 +4,8 @@ import type { GraphViewDisplay } from "./graphView";
 /** Obsidian-style display panel ("Tela" and "Forças") shared by the graph views. */
 export interface GraphDisplay {
   arrows: boolean;
+  /** Dragged nodes stay where they are dropped (Obsidian-like manual arrangement). */
+  pinOnDrag: boolean;
   /** -1 shows labels even zoomed out; +1 only close up. */
   textFade: number;
   nodeSize: number;
@@ -14,7 +16,7 @@ export interface GraphDisplay {
   distance: number;
 }
 
-type NumericKey = Exclude<keyof GraphDisplay, "arrows">;
+type NumericKey = Exclude<keyof GraphDisplay, "arrows" | "pinOnDrag">;
 
 export const GRAPH_DISPLAY_LIMITS: Record<NumericKey, { min: number; max: number; step: number }> = {
   textFade: { min: -1, max: 1, step: 0.05 },
@@ -27,7 +29,8 @@ export const GRAPH_DISPLAY_LIMITS: Record<NumericKey, { min: number; max: number
 };
 
 export const DEFAULT_GRAPH_DISPLAY: GraphDisplay = {
-  arrows: false,
+  arrows: true,
+  pinOnDrag: true,
   textFade: 0,
   nodeSize: 1,
   linkWidth: 1,
@@ -37,14 +40,20 @@ export const DEFAULT_GRAPH_DISPLAY: GraphDisplay = {
   distance: 1,
 };
 
-const BASE_LABEL_ZOOM = 0.62;
+const BASE_LABEL_ZOOM = 0.8;
 
 export function labelZoomFor(textFade: number): number {
   return BASE_LABEL_ZOOM * Math.pow(2, textFade * 1.3);
 }
 
 export function viewDisplayOf(d: GraphDisplay): GraphViewDisplay {
-  return { linkWidth: d.linkWidth, arrows: d.arrows, labelZoom: labelZoomFor(d.textFade) };
+  return {
+    linkWidth: d.linkWidth,
+    arrows: d.arrows,
+    labelZoom: labelZoomFor(d.textFade),
+    nodeSize: d.nodeSize,
+    pinOnDrag: d.pinOnDrag,
+  };
 }
 
 export function forcesOf(d: GraphDisplay): LayoutForces {
@@ -62,9 +71,33 @@ export function sanitizeGraphDisplay(raw: unknown): GraphDisplay {
   if (typeof raw !== "object" || raw === null) return out;
   const data = raw as Record<string, unknown>;
   if (typeof data.arrows === "boolean") out.arrows = data.arrows;
+  if (typeof data.pinOnDrag === "boolean") out.pinOnDrag = data.pinOnDrag;
   for (const key of Object.keys(GRAPH_DISPLAY_LIMITS) as NumericKey[]) {
     const v = data[key];
     if (typeof v === "number" && Number.isFinite(v)) out[key] = clamp(v, key);
   }
+  return out;
+}
+
+const MAX_PINS = 1000;
+
+/** Pinned positions restored from storage: `{ id: [x, y] }`, finite numbers only, capped. */
+export function sanitizePins(raw: unknown): Map<string, { x: number; y: number }> {
+  const out = new Map<string, { x: number; y: number }>();
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw)) return out;
+  for (const [id, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (out.size >= MAX_PINS) break;
+    if (!Array.isArray(value) || value.length !== 2) continue;
+    const [x, y] = value;
+    if (typeof x !== "number" || typeof y !== "number" || !Number.isFinite(x) || !Number.isFinite(y)) continue;
+    if (Math.abs(x) > 1e5 || Math.abs(y) > 1e5) continue;
+    out.set(id.slice(0, 80), { x, y });
+  }
+  return out;
+}
+
+export function serializePins(pins: ReadonlyMap<string, { x: number; y: number }>): Record<string, [number, number]> {
+  const out: Record<string, [number, number]> = {};
+  pins.forEach((p, id) => (out[id] = [Math.round(p.x * 10) / 10, Math.round(p.y * 10) / 10]));
   return out;
 }
