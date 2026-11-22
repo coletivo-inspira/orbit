@@ -57,7 +57,7 @@ export function ToastViewport({ className, compact = false }: { className: strin
         <div
           key={t.id}
           role="status"
-          className={`${compact ? "max-w-[230px] px-3 py-1.5 text-[10px]" : "max-w-[300px] px-4 py-2.5 text-xs"} pointer-events-auto rounded-2xl border text-center font-medium shadow-[0_14px_34px_rgb(10_14_19/50%)] transition-all duration-300 ${
+          className={`${compact ? "max-w-[230px] px-3 py-1.5 text-xs" : "max-w-[300px] px-4 py-2.5 text-xs"} pointer-events-auto rounded-cartao border text-center font-medium shadow-[0_14px_34px_rgb(10_14_19/50%)] transition-all duration-300 ${
             t.visible ? "translate-y-0 opacity-100" : "translate-y-2 opacity-0"
           } ${t.type === "success" ? "border-salvia bg-salvia text-presenca" : "border-white/25 bg-noite text-white"}`}
         >

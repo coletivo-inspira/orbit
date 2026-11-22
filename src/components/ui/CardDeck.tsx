@@ -323,7 +323,7 @@ export function CardDeck<T>({
           <div className="min-w-0 flex-1 text-center">
             {renderCaption?.(front)}
             <p
-              className={`font-semibold text-slate-400 tabular-nums ${compact ? "text-[10px]" : "mt-0.5 text-[11px]"}`}
+              className={`font-semibold text-marfim-apagado tabular-nums ${compact ? "text-xs" : "mt-0.5 text-xs"}`}
               aria-hidden="true"
             >
               {index + 1} de {count}
