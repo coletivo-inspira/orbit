@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GraphSettingsPanel } from "@/components/graph/GraphSettingsPanel";
+import { PinButton } from "@/components/graph/PinButton";
 import { useGraphDisplay } from "@/components/graph/useGraphDisplay";
-import { Avatar, ProfileImage } from "@/components/ui/Avatar";
+import { useGraphPins } from "@/components/graph/useGraphPins";
+
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import {
@@ -18,16 +20,23 @@ import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
 import { profileById } from "@/lib/data/profiles";
 import { forcesOf, viewDisplayOf } from "@/lib/engines/graphDisplay";
 import { ForceLayout } from "@/lib/engines/forceLayout";
-import { GraphViewEngine, type EdgeStyle, type GraphViewState } from "@/lib/engines/graphView";
+import {
+  GraphViewEngine,
+  type EdgeStyle,
+  type GraphViewState,
+  type PinMap,
+  type VisualNode,
+} from "@/lib/engines/graphView";
 import { normalizeSearch } from "@/lib/keywords";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
-import type { CommunityCategory, CommunityPost } from "@/lib/types";
+import type { AvatarConfig, CommunityCategory, CommunityPost } from "@/lib/types";
 import { CloseButton } from "@/components/ui/Button";
 
 const STEP_MS = 900;
 const SPEEDS = [1, 2, 4] as const;
 const DISPLAY_KEY = "orbit:graph:linha-do-tempo:v1";
+const PINS_KEY = "orbit:graph:linha-do-tempo:pins:v1";
 
 const CATEGORY_COLOR: Record<CommunityCategory, string> = {
   vacinas: "#d9e4d6",
@@ -49,6 +58,41 @@ function charge(node: TimelineNode): number {
   if (node.kind === "post") return -320;
   if (node.kind === "tag") return -90 - Math.min(node.uses, 8) * 12;
   return node.kind === "comment" ? -170 : -140;
+}
+
+function visualOf(node: TimelineNode, userAvatar: AvatarConfig): VisualNode {
+  const radius = RADIUS[node.kind];
+  const label = nodeLabel(node);
+  if (node.kind === "tag") return { id: node.id, kind: "dot", radius, fill: "#dec9a8", label, labelColor: "#dec9a8" };
+  if (node.kind === "post") {
+    return {
+      id: node.id,
+      kind: "badge",
+      radius,
+      fill: "#27323d",
+      ring: CATEGORY_COLOR[node.category],
+      ringWidth: 3,
+      glyph: COMMUNITY_CATEGORIES[node.category].label.split(" ")[0],
+      label,
+      alwaysLabel: true,
+    };
+  }
+  const ring = node.kind === "reply" ? "#c4b5fd" : "rgb(245 240 231 / 80%)";
+  const profile = node.profileId && node.profileId !== "me" ? profileById(node.profileId) : undefined;
+  const cfg = node.profileId === "me" || node.local ? userAvatar : profile?.avatar;
+  if (cfg) {
+    return { id: node.id, kind: "avatar", radius, avatar: { cfg, photo: profile?.photo }, ring, ringWidth: 2, label };
+  }
+  return {
+    id: node.id,
+    kind: "badge",
+    radius,
+    fill: "#313d49",
+    ring,
+    ringWidth: 2,
+    glyph: node.author.charAt(0),
+    label,
+  };
 }
 
 function nodeLabel(node: TimelineNode): string {
@@ -84,6 +128,7 @@ export function CommunityTimelapse({
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { display, update: updateDisplay, reset: resetDisplay } = useGraphDisplay(DISPLAY_KEY);
+  const { pins, setPins } = useGraphPins(PINS_KEY);
   const timeline = useMemo(() => buildCommunityTimeline(posts, { tags: showTags }), [posts, showTags]);
   const last = timeline.steps.length - 1;
   const [step, setStep] = useState(() => (prefersReducedMotion() ? last : -1));
@@ -96,16 +141,19 @@ export function CommunityTimelapse({
   const titleId = useId();
   const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
   const containerRef = useRef<HTMLDivElement>(null);
-  const worldRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
   const engineRef = useRef<GraphViewEngine<TimelineEdge> | null>(null);
   const positionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
   const viewRef = useRef<GraphViewState | null>(null);
-  const latest = useRef({ display, step });
+  const latest = useRef({ display, step, pins });
   useLayoutEffect(() => {
-    latest.current = { display, step };
+    latest.current = { display, step, pins };
   });
+  const visuals = useMemo(
+    () => timeline.nodes.map((n) => visualOf(n, state.user.avatar)),
+    [timeline, state.user.avatar],
+  );
+  const toggleFocus = useCallback((i: number) => setFocus((f) => (f === i ? null : i)), []);
 
   // A rebuilt timeline (tags on/off, new comment) invalidates the focused index.
   const [timelineForFocus, setTimelineForFocus] = useState(timeline);
@@ -116,10 +164,9 @@ export function CommunityTimelapse({
 
   useEffect(() => {
     const container = containerRef.current;
-    const world = worldRef.current;
     const canvas = canvasRef.current;
-    if (!container || !world || !canvas) return;
-    const { display: d, step: s } = latest.current;
+    if (!container || !canvas) return;
+    const { display: d, step: s, pins: storedPins } = latest.current;
     const layout = new ForceLayout(timeline, {
       charge: (i) => charge(timeline.nodes[i]),
       radius: (i) => RADIUS[timeline.nodes[i].kind],
@@ -130,19 +177,22 @@ export function CommunityTimelapse({
     layout.active.set(activeAt(timeline, s));
     const engine = new GraphViewEngine({
       container,
-      world,
       canvas,
-      nodeEls: nodeRefs.current.slice(0, timeline.nodes.length),
+      nodes: visuals,
       edges: timeline.edges,
+      incident: timeline.incident,
       edgeStyles: EDGE_STYLES,
       styleOf,
       layout,
       getScale,
       reducedMotion: prefersReducedMotion,
       centerOffsetY: 0,
+      onNodeClick: toggleFocus,
       onBackgroundTap: () => setFocus(null),
+      onPinsChange: (next: PinMap) => setPins(next),
       display: viewDisplayOf(d),
       initialView: viewRef.current,
+      pins: storedPins,
     });
     engineRef.current = engine;
     return () => {
@@ -151,7 +201,7 @@ export function CommunityTimelapse({
       engine.destroy();
       engineRef.current = null;
     };
-  }, [timeline, getScale]);
+  }, [timeline, visuals, getScale, toggleFocus, setPins]);
 
   useEffect(() => {
     engineRef.current?.setActive(activeAt(timeline, step), timeline.near);
@@ -173,16 +223,6 @@ export function CommunityTimelapse({
     return () => window.clearTimeout(id);
   }, [playing, step, last, speed]);
 
-  const lit = useMemo(() => {
-    if (focus === null) return null;
-    const nodes = new Set([focus]);
-    const direct = new Set(timeline.incident[focus]);
-    direct.forEach((e) => {
-      nodes.add(timeline.edges[e].source);
-      nodes.add(timeline.edges[e].target);
-    });
-    return { nodes, direct };
-  }, [timeline, focus]);
   const matches = useMemo(() => {
     const q = normalizeSearch(search);
     if (!q) return null;
@@ -190,10 +230,8 @@ export function CommunityTimelapse({
     timeline.nodes.forEach((n, i) => normalizeSearch(searchText(n)).includes(q) && out.add(i));
     return out;
   }, [timeline, search]);
-  useEffect(() => {
-    const direct = lit?.direct ?? (matches ? new Set([...matches].flatMap((i) => timeline.incident[i])) : null);
-    engineRef.current?.setHighlight(direct ? { direct, shared: new Set(), color: "#dec9a8" } : null);
-  }, [lit, matches, timeline]);
+  useEffect(() => engineRef.current?.setSearch(matches), [matches, timeline]);
+  useEffect(() => engineRef.current?.setFocus(focus), [focus, timeline]);
 
   const restart = () => {
     setFocus(null);
@@ -205,8 +243,8 @@ export function CommunityTimelapse({
     if (step >= last) restart();
     else setPlaying((p) => !p);
   };
-  const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
   const current = step >= 0 ? timeline.steps[step] : null;
+  useEffect(() => engineRef.current?.setFresh(current ? new Set(current.nodes) : null), [current, timeline]);
   const counts = useMemo(() => {
     let comments = 0;
     let tags = 0;
@@ -250,61 +288,30 @@ export function CommunityTimelapse({
 
       <div
         ref={containerRef}
-        className="group/graph relative min-h-0 flex-1 cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing"
-        style={{
-          background: "radial-gradient(circle at center, #2a3644 0%, rgb(28 38 49 / 0) 75%)",
-          ["--node-scale" as string]: display.nodeSize,
-        }}
+        className="relative min-h-0 flex-1 cursor-grab touch-none overflow-hidden select-none"
+        style={{ background: "radial-gradient(circle at center, #2a3644 0%, rgb(28 38 49 / 0) 75%)" }}
       >
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
-        <div ref={worldRef} className="absolute top-0 left-0 origin-top-left will-change-transform">
-          {timeline.nodes.map((node, i) => {
-            const active = timeline.stepOf[i] <= step;
-            const dim = (lit && !lit.nodes.has(i)) || (!lit && matches && !matches.has(i));
-            const emphasized = Boolean(lit?.nodes.has(i) || matches?.has(i));
-            const fresh = current?.nodes.includes(i) ?? false;
-            return (
-              <div
-                key={node.id}
-                ref={(el) => {
-                  nodeRefs.current[i] = el;
-                }}
-                data-node-index={i}
-                data-active={active}
-                className="absolute top-0 left-0 will-change-transform data-[active=false]:invisible"
-                style={{ opacity: dim ? 0.2 : 1, zIndex: focus === i ? 3 : node.kind === "tag" ? 1 : 2 }}
-              >
+        {/* The canvas is not accessible: one button per visible node for keyboard and screen readers. */}
+        <ul className="sr-only" aria-label="Publicações, comentários e tags na linha do tempo">
+          {timeline.nodes.map((node, i) =>
+            timeline.stepOf[i] <= step ? (
+              <li key={node.id}>
                 <button
                   type="button"
-                  tabIndex={active ? 0 : -1}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!ignoreIfDragged()) setFocus(focus === i ? null : i);
+                  onFocus={() => {
+                    engineRef.current?.setKeyboardFocus(i);
+                    engineRef.current?.reveal(i);
                   }}
-                  className="timelapse-pop relative block origin-center cursor-pointer rounded-full"
-                  style={{ transform: "scale(var(--node-scale, 1))" }}
+                  onBlur={() => engineRef.current?.setKeyboardFocus(null)}
+                  onClick={() => toggleFocus(i)}
                 >
-                  <TimelineDot node={node} selected={focus === i} fresh={fresh} userAvatar={state.user.avatar} />
-                  <span
-                    className={`pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 whitespace-nowrap ${
-                      emphasized || fresh || node.kind === "post" ? "" : "group-data-[zoom=far]/graph:hidden"
-                    } ${
-                      node.kind === "tag"
-                        ? "text-xs font-semibold text-areia"
-                        : node.kind === "post"
-                          ? "rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-xs font-bold text-white"
-                          : "text-xs font-semibold text-marfim-suave"
-                    }`}
-                    aria-hidden="true"
-                  >
-                    {nodeLabel(node)}
-                  </span>
-                  <span className="sr-only">{a11yLabel(node)}</span>
+                  {a11yLabel(node)}
                 </button>
-              </div>
-            );
-          })}
-        </div>
+              </li>
+            ) : null,
+          )}
+        </ul>
 
         {last < 0 && (
           <p className="absolute inset-0 flex items-center justify-center p-6 text-center text-xs text-marfim-suave">
@@ -320,6 +327,8 @@ export function CommunityTimelapse({
             timeline={timeline}
             index={focus}
             compact={compact}
+            pinned={pins.has(timeline.nodes[focus].id)}
+            onTogglePin={focus > 0 ? () => engineRef.current?.togglePin(focus) : undefined}
             onOpenPost={onOpenPost}
             onClear={() => setFocus(null)}
           />
@@ -372,6 +381,8 @@ export function CommunityTimelapse({
             onChange={updateDisplay}
             onReset={resetDisplay}
             onAnimate={restart}
+            pinnedCount={timeline.nodes.filter((n) => pins.has(n.id)).length}
+            onUnpinAll={() => engineRef.current?.unpinAll()}
             search={search}
             onSearch={setSearch}
             toggles={[{ id: "tags", label: "Tags", checked: showTags, onToggle: () => setShowTags((v) => !v) }]}
@@ -451,60 +462,6 @@ export function CommunityTimelapse({
   );
 }
 
-function TimelineDot({
-  node,
-  selected,
-  fresh,
-  userAvatar,
-}: {
-  node: TimelineNode;
-  selected: boolean;
-  fresh: boolean;
-  userAvatar: Parameters<typeof Avatar>[0]["cfg"];
-}) {
-  const glow = selected ? ", 0 0 0 6px rgb(222 201 168 / 45%)" : fresh ? ", 0 0 0 5px rgb(222 201 168 / 30%)" : "";
-  if (node.kind === "tag") {
-    return (
-      <span
-        className="block h-3 w-3 rounded-full bg-areia"
-        style={{ boxShadow: `0 0 0 2px rgb(28 38 49 / 70%)${glow}` }}
-        aria-hidden="true"
-      />
-    );
-  }
-  if (node.kind === "post") {
-    const color = CATEGORY_COLOR[node.category];
-    return (
-      <span
-        className="flex h-9 w-9 items-center justify-center rounded-full bg-noite text-base"
-        style={{ boxShadow: `0 0 0 3px ${color}, 0 8px 18px rgba(0,0,0,0.45)${glow}` }}
-        aria-hidden="true"
-      >
-        {COMMUNITY_CATEGORIES[node.category].label.split(" ")[0]}
-      </span>
-    );
-  }
-  const size = node.kind === "comment" ? "h-7 w-7" : "h-6 w-6";
-  const profile = node.profileId && node.profileId !== "me" ? profileById(node.profileId) : undefined;
-  return (
-    <span
-      className={`flex ${size} items-center justify-center overflow-hidden rounded-full bg-noite-elevada text-xs font-extrabold text-white`}
-      style={{
-        boxShadow: `0 0 0 2px ${node.kind === "reply" ? "#f2b8b5" : "rgb(245 240 231 / 80%)"}, 0 6px 12px rgba(0,0,0,0.4)${glow}`,
-      }}
-      aria-hidden="true"
-    >
-      {node.profileId === "me" || node.local ? (
-        <Avatar cfg={userAvatar} />
-      ) : profile ? (
-        <ProfileImage cfg={profile.avatar} photo={profile.photo} />
-      ) : (
-        node.author.charAt(0)
-      )}
-    </span>
-  );
-}
-
 function a11yLabel(node: TimelineNode): string {
   switch (node.kind) {
     case "post":
@@ -550,6 +507,8 @@ function FocusCard({
   timeline,
   index,
   compact,
+  pinned,
+  onTogglePin,
   onOpenPost,
   onClear,
 }: {
@@ -557,6 +516,8 @@ function FocusCard({
   timeline: CommunityTimeline;
   index: number;
   compact: boolean;
+  pinned: boolean;
+  onTogglePin?: () => void;
   onOpenPost: (id: string) => void;
   onClear: () => void;
 }) {
@@ -578,6 +539,7 @@ function FocusCard({
         <div className="truncate text-xs font-bold text-white">{title}</div>
         <div className="line-clamp-2 text-xs leading-snug text-marfim-suave">{detail}</div>
       </div>
+      {onTogglePin && <PinButton pinned={pinned} onToggle={onTogglePin} />}
       {node.kind !== "tag" && (
         <button
           type="button"

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { GraphSettingsPanel } from "@/components/graph/GraphSettingsPanel";
 import { useGraphDisplay } from "@/components/graph/useGraphDisplay";
-import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
+import { PinButton } from "@/components/graph/PinButton";
+import { useGraphPins } from "@/components/graph/useGraphPins";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
-import { Avatar, ProfileImage } from "@/components/ui/Avatar";
 import { ToggleChip } from "@/components/ui/ToggleChip";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { communityTopics } from "@/lib/community";
@@ -14,7 +14,13 @@ import { INTENTIONS } from "@/lib/data/intentions";
 import { MUSIC_GENRES, profileGenres, userGenres } from "@/lib/data/music";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
 import { forcesOf, viewDisplayOf } from "@/lib/engines/graphDisplay";
-import { GraphViewEngine, type EdgeStyle, type GraphViewState } from "@/lib/engines/graphView";
+import {
+  GraphViewEngine,
+  type EdgeStyle,
+  type GraphViewState,
+  type PinMap,
+  type VisualNode,
+} from "@/lib/engines/graphView";
 import {
   buildInterestGraph,
   focusSets,
@@ -36,6 +42,7 @@ const SPOTIFY_GREEN = "#1db954";
 const GRAPH_BATCH = 150;
 const GRAPH_MAX = 450;
 const DISPLAY_KEY = "orbit:graph:conexoes:v1";
+const PINS_KEY = "orbit:graph:conexoes:pins:v1";
 
 const ORIGIN_STYLE: Record<LinkOrigin, EdgeStyle> = {
   perfil: { color: "rgb(245 240 231)", alpha: 0.2, dash: [] },
@@ -73,6 +80,51 @@ function nodeLabel(node: GraphNode): string {
 
 const ORIGIN_LABEL: Record<LinkOrigin, string> = { perfil: "perfil", comunidade: "Comunidade", musica: "Spotify" };
 
+function visualOf(node: GraphNode, user: Profile["avatar"], userRing: string): VisualNode {
+  const label = nodeLabel(node);
+  switch (node.kind) {
+    case "me":
+      return {
+        id: node.id,
+        kind: "avatar",
+        radius: 28,
+        avatar: { cfg: user },
+        ring: userRing,
+        ringWidth: 3.5,
+        label,
+        alwaysLabel: true,
+      };
+    case "person":
+      return {
+        id: node.id,
+        kind: "avatar",
+        radius: 20,
+        avatar: { cfg: node.profile.avatar, photo: node.profile.photo },
+        ring: INTENTIONS[node.profile.primaryIntention].color,
+        ringWidth: 2.5,
+        label,
+      };
+    case "topic":
+      return {
+        id: node.id,
+        kind: "dot",
+        radius: hubSize(node.degree) / 2,
+        fill: "#ded6ca",
+        label,
+        labelColor: "#cbd5e1",
+      };
+    case "genre":
+      return {
+        id: node.id,
+        kind: "dot",
+        radius: hubSize(node.degree) / 2,
+        fill: SPOTIFY_GREEN,
+        label,
+        labelColor: "#a7f3d0",
+      };
+  }
+}
+
 /** Obsidian-style graph of people linked by the interests they share. */
 export function InterestGraph({
   profiles,
@@ -96,17 +148,17 @@ export function InterestGraph({
   const [search, setSearch] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { display, update: updateDisplay, reset: resetDisplay } = useGraphDisplay(DISPLAY_KEY);
-  const displayRef = useRef(display);
+  const { pins, setPins } = useGraphPins(PINS_KEY);
+  const latest = useRef({ display, pins });
   useLayoutEffect(() => {
-    displayRef.current = display;
+    latest.current = { display, pins };
   });
   /** Positions and camera of the previous engine: a rebuild (filter, chip, "Mostrar mais") warm starts from them. */
   const positionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
   const viewRef = useRef<GraphViewState | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const worldRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const balloonRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<GraphViewEngine<GraphEdge> | null>(null);
 
   // The nearest people (in the current sort) only: a graph of 1000+ nodes is neither readable nor light on a phone.
@@ -127,6 +179,11 @@ export function InterestGraph({
     const linked = people.filter((_, i) => full.incident[i + 1].length > 0);
     return linked.length === people.length ? full : buildInterestGraph({ ...input, profiles: linked });
   }, [people, state.user, community, sources, showOrphans]);
+  const userRing = INTENTIONS[state.user.primaryIntention]?.color ?? "#dec9a8";
+  const visuals = useMemo(
+    () => graph.nodes.map((n) => visualOf(n, state.user.avatar, userRing)),
+    [graph, state.user.avatar, userRing],
+  );
 
   // A new graph invalidates the focused index; resetting during render avoids a stale highlight frame.
   const [graphForFocus, setGraphForFocus] = useState(graph);
@@ -135,12 +192,27 @@ export function InterestGraph({
     setFocus(null);
   }
 
+  const focusRef = useRef(focus);
+  useLayoutEffect(() => {
+    focusRef.current = focus;
+  });
+  const onNodeClick = useCallback(
+    (i: number) => {
+      const node = graph.nodes[i];
+      if (node.kind === "person" && focusRef.current === i) {
+        dispatch({ type: "openProfile", id: node.id });
+        return;
+      }
+      setFocus(focusRef.current === i ? null : i);
+    },
+    [graph, dispatch],
+  );
+
   useEffect(() => {
     const container = containerRef.current;
-    const world = worldRef.current;
     const canvas = canvasRef.current;
-    if (!container || !world || !canvas) return;
-    const d = displayRef.current;
+    if (!container || !canvas) return;
+    const { display: d, pins: storedPins } = latest.current;
     const layout = new ForceLayout(graph, {
       radius: (i) => interestNodeRadius(graph.nodes[i]),
       initial: positionsRef.current ?? undefined,
@@ -149,19 +221,29 @@ export function InterestGraph({
     layout.radiusScale = d.nodeSize;
     const engine = new GraphViewEngine({
       container,
-      world,
       canvas,
-      nodeEls: nodeRefs.current.slice(0, graph.nodes.length),
+      nodes: visuals,
       edges: graph.edges,
+      incident: graph.incident,
       edgeStyles: ORIGIN_STYLE,
       styleOf,
       layout,
       getScale,
       reducedMotion: prefersReducedMotion,
       centerOffsetY,
+      onNodeClick,
       onBackgroundTap: () => setFocus(null),
+      onPinsChange: (next: PinMap) => {
+        // Keep pins of people not shown right now (another filter may bring them back).
+        const merged: PinMap = new Map(latest.current.pins);
+        graph.nodes.forEach((n) => merged.delete(n.id));
+        next.forEach((p, id) => merged.set(id, p));
+        setPins(merged);
+      },
+      neighborhood: (i) => focusSets(graph, i),
       display: viewDisplayOf(d),
       initialView: viewRef.current,
+      pins: storedPins,
     });
     engineRef.current = engine;
     return () => {
@@ -170,7 +252,7 @@ export function InterestGraph({
       engine.destroy();
       engineRef.current = null;
     };
-  }, [graph, getScale, centerOffsetY]);
+  }, [graph, visuals, getScale, centerOffsetY, onNodeClick, setPins]);
 
   useEffect(() => {
     engineRef.current?.setDisplay(viewDisplayOf(display));
@@ -184,117 +266,62 @@ export function InterestGraph({
     graph.nodes.forEach((node, i) => normalizeSearch(nodeLabel(node)).includes(q) && out.add(i));
     return out;
   }, [graph, search]);
+  useEffect(() => engineRef.current?.setSearch(matches), [matches, graph]);
+  useEffect(() => engineRef.current?.setFocus(focus), [focus, graph]);
 
-  const lit = useMemo(() => (focus === null ? null : focusSets(graph, focus)), [graph, focus]);
-  const focusColor =
-    focus !== null && graph.nodes[focus]?.kind === "person"
-      ? INTENTIONS[(graph.nodes[focus] as Extract<GraphNode, { kind: "person" }>).profile.primaryIntention].color
-      : "#dec9a8";
-  useEffect(() => {
-    if (lit) engineRef.current?.setHighlight({ direct: lit.direct, shared: lit.shared, color: focusColor });
-    else if (matches) {
-      const direct = new Set<number>();
-      matches.forEach((i) => graph.incident[i].forEach((e) => direct.add(e)));
-      engineRef.current?.setHighlight({ direct, shared: new Set(), color: "#dec9a8" });
-    } else engineRef.current?.setHighlight(null);
-  }, [lit, matches, focusColor, graph]);
-  const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
+  const focusedNode = focus !== null ? graph.nodes[focus] : undefined;
+  const conversation = focusedNode?.kind === "person" ? state.conversations[focusedNode.id] : undefined;
+  const showBalloon = Boolean(focusedNode?.kind === "person" && conversation && hasTalked(conversation));
+  useLayoutEffect(() => {
+    engineRef.current?.setAnchor(showBalloon ? balloonRef.current : null, focus ?? -1);
+  }, [showBalloon, focus, graph]);
 
   const hubsOf = (i: number) =>
     graph.incident[i].map((e) => {
       const edge = graph.edges[e];
       return `${nodeLabel(graph.nodes[edge.target])}${edge.origin === "perfil" ? "" : ` (via ${ORIGIN_LABEL[edge.origin]})`}`;
     });
-
-  const onNodeClick = (i: number) => {
-    if (ignoreIfDragged()) return;
-    const node = graph.nodes[i];
-    if (node.kind === "person" && focus === i) {
-      dispatch({ type: "openProfile", id: node.id });
-      return;
-    }
-    setFocus(focus === i ? null : i);
-  };
+  const pinnedHere = graph.nodes.filter((n) => pins.has(n.id)).length;
+  const focusPinned = focus !== null && focusedNode ? pins.has(focusedNode.id) : false;
 
   return (
     <div
       ref={containerRef}
-      className={`group/graph relative cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing ${className}`}
-      style={{ ...style, ["--node-scale" as string]: display.nodeSize }}
+      className={`relative cursor-grab touch-none overflow-hidden select-none ${className}`}
+      style={style}
     >
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none absolute inset-0 h-full w-full group-data-[settling=true]/graph:invisible"
-        aria-hidden="true"
-      />
-      <div
-        role="status"
-        className="pointer-events-none absolute inset-0 hidden items-center justify-center group-data-[settling=true]/graph:flex"
-      >
-        <span className="lg-bar flex items-center gap-2 rounded-full px-3.5 py-2 text-xs font-semibold text-white">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-areia" aria-hidden="true" />
-          Organizando conexões…
-        </span>
-      </div>
-      <div
-        ref={worldRef}
-        className="absolute top-0 left-0 origin-top-left will-change-transform group-data-[settling=true]/graph:invisible"
-      >
-        {graph.nodes.map((node, i) => {
-          const dim = (lit && !lit.nodes.has(i)) || (!lit && matches && !matches.has(i));
-          const emphasized = Boolean(lit?.nodes.has(i) || matches?.has(i));
-          const selected = focus === i;
-          const conversation = node.kind === "person" ? state.conversations[node.id] : undefined;
-          return (
-            <div
-              key={node.id}
-              ref={(el) => {
-                nodeRefs.current[i] = el;
+      <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden="true" />
+
+      {/* The canvas is not accessible: one button per node for keyboard and screen readers. */}
+      <ul className="sr-only" aria-label="Pessoas e interesses no grafo">
+        {graph.nodes.map((node, i) => (
+          <li key={node.id}>
+            <button
+              type="button"
+              onFocus={() => {
+                engineRef.current?.setKeyboardFocus(i);
+                engineRef.current?.reveal(i);
               }}
-              data-node-index={i}
-              className="absolute top-0 left-0 transition-opacity duration-200 will-change-transform"
-              style={{ opacity: dim ? 0.22 : 1, zIndex: selected ? 3 : node.kind === "me" ? 2 : 1 }}
+              onBlur={() => engineRef.current?.setKeyboardFocus(null)}
+              onClick={() => onNodeClick(i)}
             >
-              <button
-                type="button"
-                onFocus={(e) => {
-                  if (!e.currentTarget.matches(":focus-visible")) return;
-                  setFocus(i);
-                  engineRef.current?.reveal(i);
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNodeClick(i);
-                }}
-                className="relative block origin-center cursor-pointer rounded-full"
-                style={{ transform: "scale(var(--node-scale, 1))" }}
-              >
-                <NodeDot node={node} selected={selected} userAvatar={state.user.avatar} />
-                <span
-                  className={`pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 whitespace-nowrap ${
-                    emphasized || node.kind === "me" ? "" : "group-data-[zoom=far]/graph:hidden"
-                  } ${
-                    node.kind === "person" || node.kind === "me"
-                      ? "rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-xs font-bold text-white"
-                      : `text-xs font-semibold ${node.kind === "genre" ? "text-salvia" : "text-marfim-suave"}`
-                  }`}
-                  aria-hidden="true"
-                >
-                  {nodeLabel(node)}
-                </span>
-                <span className="sr-only">{nodeA11yLabel(node, hubsOf(i), selected)}</span>
-              </button>
-              {selected && conversation && hasTalked(conversation) && node.kind === "person" && (
-                <ConversationBalloon
-                  name={node.profile.name}
-                  conversation={conversation}
-                  onOpen={(origin) => !ignoreIfDragged() && dispatch({ type: "openMiniChat", id: node.id, origin })}
-                  className="-top-6 left-[62%]"
-                />
-              )}
-            </div>
-          );
-        })}
+              {nodeA11yLabel(node, hubsOf(i), focus === i)}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      <div ref={balloonRef} className="pointer-events-none absolute top-0 left-0 z-10" hidden={!showBalloon}>
+        {showBalloon && focusedNode?.kind === "person" && conversation && (
+          <ConversationBalloon
+            name={focusedNode.profile.name}
+            conversation={conversation}
+            onOpen={(origin) =>
+              !engineRef.current?.wasDragged() && dispatch({ type: "openMiniChat", id: focusedNode.id, origin })
+            }
+            className="pointer-events-auto"
+          />
+        )}
       </div>
 
       <div
@@ -341,11 +368,13 @@ export function InterestGraph({
         </div>
       )}
 
-      {focus !== null && graph.nodes[focus] && (
+      {focusedNode && (
         <FocusCard
-          node={graph.nodes[focus]}
-          hubs={hubsOf(focus)}
+          node={focusedNode}
+          hubs={hubsOf(focus!)}
           compact={compact}
+          pinned={focusPinned}
+          onTogglePin={focus! > 0 ? () => engineRef.current?.togglePin(focus!) : undefined}
           onOpenProfile={(id) => dispatch({ type: "openProfile", id })}
           onClear={() => setFocus(null)}
         />
@@ -398,6 +427,8 @@ export function InterestGraph({
           onChange={updateDisplay}
           onReset={resetDisplay}
           onAnimate={() => engineRef.current?.replay()}
+          pinnedCount={pinnedHere}
+          onUnpinAll={() => engineRef.current?.unpinAll()}
           search={search}
           onSearch={setSearch}
           toggles={[
@@ -413,51 +444,6 @@ export function InterestGraph({
         />
       )}
     </div>
-  );
-}
-
-function NodeDot({
-  node,
-  selected,
-  userAvatar,
-}: {
-  node: GraphNode;
-  selected: boolean;
-  userAvatar: Profile["avatar"];
-}) {
-  if (node.kind === "me") {
-    return (
-      <MolduraDoUsuario size={56} sombra="0 10px 24px rgba(0,0,0,0.5)">
-        <Avatar cfg={userAvatar} />
-      </MolduraDoUsuario>
-    );
-  }
-  if (node.kind === "person") {
-    const color = INTENTIONS[node.profile.primaryIntention].color;
-    return (
-      <span
-        className="block h-10 w-10 overflow-hidden rounded-full"
-        style={{
-          boxShadow: `0 0 0 2px ${color}${selected ? `, 0 0 0 6px ${color}55` : ""}, 0 6px 14px rgba(0,0,0,0.45)`,
-        }}
-        aria-hidden="true"
-      >
-        <ProfileImage cfg={node.profile.avatar} photo={node.profile.photo} />
-      </span>
-    );
-  }
-  const size = hubSize(node.degree);
-  return (
-    <span
-      className="block rounded-full"
-      style={{
-        width: size,
-        height: size,
-        background: node.kind === "genre" ? SPOTIFY_GREEN : "rgb(222 214 202)",
-        boxShadow: selected ? "0 0 0 4px rgb(222 201 168 / 45%)" : "0 0 0 2px rgb(28 38 49 / 70%)",
-      }}
-      aria-hidden="true"
-    />
   );
 }
 
@@ -479,12 +465,16 @@ function FocusCard({
   node,
   hubs,
   compact,
+  pinned,
+  onTogglePin,
   onOpenProfile,
   onClear,
 }: {
   node: GraphNode;
   hubs: string[];
   compact: boolean;
+  pinned: boolean;
+  onTogglePin?: () => void;
   onOpenProfile: (id: string) => void;
   onClear: () => void;
 }) {
@@ -504,6 +494,7 @@ function FocusCard({
         <div className="truncate text-xs font-bold text-white">{title}</div>
         <div className="line-clamp-2 text-xs leading-snug text-marfim-suave">{detail}</div>
       </div>
+      {onTogglePin && <PinButton pinned={pinned} onToggle={onTogglePin} />}
       {node.kind === "person" && (
         <button
           type="button"

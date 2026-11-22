@@ -352,10 +352,6 @@
   .hq-speech-pop {
     animation: hqPop 0.42s cubic-bezier(0.22, 1.4, 0.36, 1) both;
   }
-  /* Timelapse: a node pops in when its moment of the community timeline plays. */
-  [data-active="true"] > .timelapse-pop {
-    animation: timelapsePop 0.5s cubic-bezier(0.22, 1.4, 0.36, 1) both;
-  }
   /* Radar balloons only show on bubbles touching the user's own (data-near is set by the engine). */
   .orbit-balloon {
     transition:
@@ -366,6 +362,15 @@
     opacity: 0;
     scale: 0.6;
     pointer-events: none;
+  }
+  /* The few MapLibre rules the radar needs; its full stylesheet styles controls the radar does not use. */
+  .orbit-map {
+    overflow: hidden;
+  }
+  .orbit-map .maplibregl-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   /* ---------------------------------------------------------------------------
@@ -850,17 +855,6 @@
   to {
     opacity: 1;
     transform: none;
-  }
-}
-
-@keyframes timelapsePop {
-  from {
-    opacity: 0;
-    scale: 0.2;
-  }
-  to {
-    opacity: 1;
-    scale: 1;
   }
 }
 

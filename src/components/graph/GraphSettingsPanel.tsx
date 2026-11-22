@@ -3,6 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { Switch } from "@/components/ui/Switch";
 import { GRAPH_DISPLAY_LIMITS, type GraphDisplay } from "@/lib/engines/graphDisplay";
+import { buttonClass } from "@/components/ui/Button";
 
 export interface GraphFilterToggle {
   id: string;
@@ -17,6 +18,9 @@ interface GraphSettingsPanelProps {
   onReset: () => void;
   /** Replays the layout from scratch, like Obsidian's "Animar". */
   onAnimate: () => void;
+  /** Nodes pinned in the current view. */
+  pinnedCount: number;
+  onUnpinAll: () => void;
   search: string;
   onSearch: (value: string) => void;
   toggles: GraphFilterToggle[];
@@ -32,6 +36,8 @@ export function GraphSettingsPanel({
   onChange,
   onReset,
   onAnimate,
+  pinnedCount,
+  onUnpinAll,
   search,
   onSearch,
   toggles,
@@ -118,13 +124,30 @@ export function GraphSettingsPanel({
           limits={GRAPH_DISPLAY_LIMITS.linkWidth}
           onChange={(v) => onChange({ linkWidth: v })}
         />
-        <button
-          type="button"
-          onClick={onAnimate}
-          className="lg-btn-primary mt-1 self-end rounded-full px-3.5 min-h-9 py-1.5 text-xs font-bold"
-        >
-          Animar
-        </button>
+        <Row label="Fixar nós ao arrastar">
+          <Switch
+            size="sm"
+            checked={display.pinOnDrag}
+            onChange={() => onChange({ pinOnDrag: !display.pinOnDrag })}
+            label="Fixar nós ao arrastar"
+          />
+        </Row>
+        <p className="-mt-1 text-xs leading-snug text-marfim-suave">
+          Arraste para organizar: o nó fica onde você soltar (📌). Dois cliques nele, ou “Soltar”, devolvem à física.
+        </p>
+        <div className="mt-1 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onUnpinAll}
+            disabled={pinnedCount === 0}
+            className={buttonClass({ size: "compacto", className: "disabled:opacity-40" })}
+          >
+            Soltar todos{pinnedCount ? ` (${pinnedCount})` : ""}
+          </button>
+          <button type="button" onClick={onAnimate} className={buttonClass({ variant: "primario", size: "compacto" })}>
+            Animar
+          </button>
+        </div>
       </Group>
 
       <Group title="Forças" defaultOpen={!compact}>
