@@ -5,3 +5,4 @@ next-env.d.ts
 docs/design
 src/lib/data/park-rooms/*.json
 src/lib/data/worldLand.json
+agents
