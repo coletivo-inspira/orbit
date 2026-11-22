@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BIO_MAX_LENGTH, createInitialState, orbitReducer } from "./reducer";
+import { BIO_MAX_LENGTH, createInitialState, orbitReducer, sanitizeStoredUser } from "./reducer";
 
 describe("orbitReducer", () => {
   it("closes modals when switching tabs", () => {
@@ -56,5 +56,30 @@ describe("orbitReducer", () => {
     const a = createInitialState();
     orbitReducer(a, { type: "toggleApp", id: "bumble" });
     expect(createInitialState().user.apps.bumble.active).toBe(false);
+  });
+});
+
+describe("sanitizeStoredUser", () => {
+  it("rejects payloads without valid intentions", () => {
+    expect(sanitizeStoredUser(null)).toBeNull();
+    expect(sanitizeStoredUser({ intentions: ["hack"] })).toBeNull();
+  });
+
+  it("keeps editable fields and fills missing apps with defaults", () => {
+    const user = sanitizeStoredUser({
+      bio: "oi",
+      isPublic: false,
+      intentions: ["casual", "casual", "bogus"],
+      primaryIntention: "troca",
+      apps: { insta: { active: false, handle: "@eu" } },
+      name: "Injected",
+    })!;
+    expect(user.bio).toBe("oi");
+    expect(user.isPublic).toBe(false);
+    expect(user.intentions).toEqual(["casual"]);
+    expect(user.primaryIntention).toBe("casual");
+    expect(user.apps.insta).toEqual({ active: false, handle: "@eu" });
+    expect(user.apps.spotify).toEqual(createInitialState().user.apps.spotify);
+    expect(user.name).toBe(createInitialState().user.name);
   });
 });

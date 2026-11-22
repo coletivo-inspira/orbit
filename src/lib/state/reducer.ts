@@ -1,3 +1,4 @@
+import { INTENTIONS } from "@/lib/data/intentions";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
 import { DEMO_USER } from "@/lib/data/user";
 import type { AppId, CommunityCategory, CommunityPost, IntentionId, TabId, UserProfile } from "@/lib/types";
@@ -58,6 +59,46 @@ export function createInitialState(): OrbitState {
     selectedProfileId: null,
     selectedArticleId: null,
     showDesktopDpad: false,
+  };
+}
+
+function isIntention(value: unknown): value is IntentionId {
+  return typeof value === "string" && Object.hasOwn(INTENTIONS, value);
+}
+
+/**
+ * Validates a hub restored from storage and fills anything missing with demo
+ * defaults, so older or tampered payloads can't break the UI.
+ */
+export function sanitizeStoredUser(raw: unknown): UserProfile | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const data = raw as Record<string, unknown>;
+  const base = structuredClone(DEMO_USER);
+  const intentions = Array.isArray(data.intentions) ? [...new Set(data.intentions.filter(isIntention))] : [];
+  if (!intentions.length) return null;
+  const primaryIntention =
+    isIntention(data.primaryIntention) && intentions.includes(data.primaryIntention)
+      ? data.primaryIntention
+      : intentions[0];
+
+  const storedApps = typeof data.apps === "object" && data.apps !== null ? (data.apps as Record<string, unknown>) : {};
+  const apps = { ...base.apps };
+  for (const id of Object.keys(apps) as AppId[]) {
+    const app = storedApps[id] as { active?: unknown; handle?: unknown } | undefined;
+    if (!app || typeof app !== "object") continue;
+    apps[id] = {
+      active: typeof app.active === "boolean" ? app.active : apps[id].active,
+      handle: typeof app.handle === "string" ? app.handle.slice(0, 40) : apps[id].handle,
+    };
+  }
+
+  return {
+    ...base,
+    isPublic: typeof data.isPublic === "boolean" ? data.isPublic : base.isPublic,
+    bio: typeof data.bio === "string" ? data.bio.slice(0, BIO_MAX_LENGTH) : base.bio,
+    intentions,
+    primaryIntention,
+    apps,
   };
 }
 
