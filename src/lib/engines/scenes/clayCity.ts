@@ -483,7 +483,11 @@ export class ClayCityScene implements ParkScene {
 
     this.pois = data.pois
       .map((p) => ({ ...p, px: px(p.x), py: px(p.y) }))
-      .filter((p) => !inRect(p.px, p.py, clear ?? this.landmark.hitArea));
+      .filter((p) => !inRect(p.px, p.py, clear ?? this.landmark.hitArea))
+      .map((p) => {
+        const spot = this.signSpot({ x: p.px, y: p.py });
+        return spot ? { ...p, px: spot.x, py: spot.y } : p;
+      });
 
     this.buildings.forEach((b, i) => {
       const top = b.minY - b.elev - 4;
@@ -748,6 +752,21 @@ export class ClayCityScene implements ParkScene {
       for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
         const p = { x: from.x + Math.cos(a) * d, y: from.y + Math.sin(a) * d };
         if (!this.collides(p.x, p.y, PLAYER_RADIUS + 2)) return p;
+      }
+    }
+    return null;
+  }
+
+  /** Shops are often mapped inside or behind their block; their sign goes to the nearest spot where it shows. */
+  private signSpot(from: Point): Point | null {
+    const shows = (x: number, y: number) =>
+      !this.collides(x, y, 10) &&
+      !this.buildings.some((b) => !b.isRoof && b.maxY > y && behindExtrusion(x, y, b, 0, b.elev));
+    if (shows(from.x, from.y)) return from;
+    for (let d = 12; d <= 160; d += 12) {
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 12) {
+        const p = { x: from.x + Math.cos(a) * d, y: from.y + Math.sin(a) * d };
+        if (shows(p.x, p.y)) return p;
       }
     }
     return null;
