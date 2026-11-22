@@ -5,6 +5,7 @@ import { usePrivacyToggle } from "@/components/screens/PerfilScreen";
 import { AppTile } from "@/components/ui/AppBadge";
 import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import { activeAppIds, INTENTIONS } from "@/lib/data/intentions";
+import { findCityRoom } from "@/lib/data/parkRooms";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
@@ -87,15 +88,21 @@ export function WatchScreen() {
   }
 
   if (state.watchPage === 1) {
+    const room = findCityRoom(state.parkRoomId);
+    const roomEmoji = room ? room.flag : state.parkRoomId ? "🌳" : "🌍";
+    const roomName = room ? room.name : state.parkRoomId ? "Parque Central" : "Parque pelo mundo";
+    const walking = room ? room.botCount : IN_PARK.length;
     return (
       <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-presenca/40 to-[#121921] px-4 pt-9 pb-9">
         <TopClock />
         <div className="mt-1 flex flex-col items-center text-center">
-          <div className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl text-2xl">🌳</div>
-          <div className="mt-2 text-sm font-extrabold text-white">Parque Central</div>
+          <div className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl text-2xl" aria-hidden="true">
+            {roomEmoji}
+          </div>
+          <div className="mt-2 text-sm font-extrabold text-white">{roomName}</div>
           <div className="mt-0.5 flex items-center gap-1 text-[11px] font-semibold text-salvia">
             <span className="h-1.5 w-1.5 rounded-full bg-salvia" />
-            {IN_PARK.length} pessoas andando agora
+            {walking} pessoas andando agora
           </div>
           <div className="mt-3 flex items-center justify-center -space-x-2">
             {IN_PARK.slice(0, 5).map((p) => (
