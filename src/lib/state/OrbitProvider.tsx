@@ -61,8 +61,13 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, [state.regionId]);
 
+  // Strict Mode replays this effect before the hydration dispatch lands; the untouched
+  // initial objects must never overwrite stored answers.
+  const desejosIniciais = useRef({ desejos: state.desejos, publicos: state.desejosPublicos });
   useEffect(() => {
     if (!hydrated.current) return;
+    const inicial = desejosIniciais.current;
+    if (state.desejos === inicial.desejos && state.desejosPublicos === inicial.publicos) return;
     const estado: EstadoDesejos = { ...state.desejos, publicos: state.desejosPublicos };
     try {
       window.localStorage.setItem(DESEJOS_KEY, JSON.stringify(estado));
