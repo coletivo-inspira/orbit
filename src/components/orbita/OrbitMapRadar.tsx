@@ -7,7 +7,9 @@ import { RadarBaseMap, type BaseMapController, type BaseMapStatus } from "@/comp
 import { RadarLocationControl } from "@/components/orbita/RadarLocationControl";
 import { RadarMapBackdrop } from "@/components/orbita/RadarMapBackdrop";
 import { RecenterContext } from "@/components/orbita/recenter";
+import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
+import { OrbeVidro } from "@/components/ui/OrbeVidro";
 import { hasTalked } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { formatDistance } from "@/lib/data/profileOptions";
@@ -364,40 +366,20 @@ export function OrbitMapRadar({
                     className="flex cursor-pointer flex-col items-center rounded-2xl"
                   >
                     <div className="relative" data-avatar aria-hidden="true">
-                      <div
-                        className="overflow-hidden rounded-full"
-                        style={{
-                          width: DIAMETER,
-                          height: DIAMETER,
-                          boxShadow: `0 0 0 2.5px ${intention.color}, 0 0 0 5px rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45)`,
-                        }}
+                      <OrbeVidro
+                        cor={intention.color}
+                        online={p.online}
+                        size={DIAMETER}
+                        sombra="0 10px 22px -6px rgb(6 10 15 / 55%)"
                       >
                         <ProfileImage cfg={p.avatar} photo={p.photo} />
-                      </div>
+                      </OrbeVidro>
                       {shared > 0 && (
                         <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
                           {shared}
                         </span>
                       )}
-                      {p.online && (
-                        <span className="absolute right-0.5 bottom-0.5 h-3 w-3 rounded-full border-2 border-tinta bg-emerald-400" />
-                      )}
-                      {p.visitingFrom && (
-                        <span
-                          title={`De passagem, mora em ${p.visitingFrom}`}
-                          className="absolute -bottom-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-noite text-[10px] shadow"
-                        >
-                          ✈️
-                        </span>
-                      )}
-                      {p.inPark && (
-                        <span
-                          title="Está no Parque 2D"
-                          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-salvia text-[10px] shadow"
-                        >
-                          🌳
-                        </span>
-                      )}
+                      <SelosStatus profile={p} variant="orbe" />
                     </div>
                     <div
                       data-label
