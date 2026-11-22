@@ -20,14 +20,49 @@
   --color-salvia: #d9e4d6;
   --color-presenca: #30483d;
   --color-linha: #bdb4a7;
+  /* Secondary and meta text on dark surfaces: 8.1:1 and 6.4:1 on noite, ≥4.5:1 on level-2 glass. */
+  --color-marfim-suave: #d3cbbe;
+  --color-marfim-apagado: #bdb5a9;
+  --color-alerta: #f2b8b5;
+  /* Community categories (badges and timeline): two sages, rosé and light copper, all ≥4.9:1 on level-2 glass. */
+  --color-salvia-funda: #9fc1a8;
+  --color-cobre-claro: #e2b293;
+  /* Online dot only (non-text, 8.4:1 on tinta): a livelier sage so presence doesn't read as grey. */
+  --color-presenca-viva: #8fcf9c;
+
+  /* Shape scale (brandbook v2 "Forma"): controls are pills or circles, containers use large radii. */
+  --radius-pilula: 9999px;
+  --radius-cartao: 24px;
+  --radius-folha: 32px;
 }
 
 /*
   The prototype was drawn with Tailwind v3. Tailwind v4 ships unitless line-heights
-  (inherited as a ratio by children with arbitrary font sizes) and an oklch palette,
-  so both are pinned to the v3 values to keep the Liquid Glass look pixel-faithful.
+  (inherited as a ratio by children with arbitrary font sizes), so they are pinned to v3.
+  Off-brand palettes are switched off; emerald/amber/rose stay only for the Studio's
+  device mockup (window buttons, battery) and are not for app UI.
 */
 @theme {
+  --color-slate-*: initial;
+  --color-gray-*: initial;
+  --color-zinc-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
+  --color-violet-*: initial;
+  --color-indigo-*: initial;
+  --color-purple-*: initial;
+  --color-fuchsia-*: initial;
+  --color-pink-*: initial;
+  --color-cyan-*: initial;
+  --color-sky-*: initial;
+  --color-blue-*: initial;
+  --color-teal-*: initial;
+  --color-green-*: initial;
+  --color-lime-*: initial;
+  --color-yellow-*: initial;
+  --color-orange-*: initial;
+  --color-red-*: initial;
+
   --text-xs--line-height: 1rem;
   --text-sm--line-height: 1.25rem;
   --text-base--line-height: 1.5rem;
@@ -36,54 +71,6 @@
   --text-2xl--line-height: 2rem;
   --text-3xl--line-height: 2.25rem;
   --text-4xl--line-height: 2.5rem;
-
-  --color-slate-50: #f8fafc;
-  --color-slate-100: #f1f5f9;
-  --color-slate-200: #e2e8f0;
-  --color-slate-300: #cbd5e1;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
-  --color-slate-700: #334155;
-  --color-slate-800: #1e293b;
-  --color-slate-900: #0f172a;
-  --color-slate-950: #020617;
-
-  --color-violet-50: #f5f3ff;
-  --color-violet-100: #ede9fe;
-  --color-violet-200: #ddd6fe;
-  --color-violet-300: #c4b5fd;
-  --color-violet-400: #a78bfa;
-  --color-violet-500: #8b5cf6;
-  --color-violet-600: #7c3aed;
-  --color-violet-700: #6d28d9;
-  --color-violet-800: #5b21b6;
-  --color-violet-900: #4c1d95;
-  --color-violet-950: #2e1065;
-
-  --color-indigo-50: #eef2ff;
-  --color-indigo-100: #e0e7ff;
-  --color-indigo-200: #c7d2fe;
-  --color-indigo-300: #a5b4fc;
-  --color-indigo-400: #818cf8;
-  --color-indigo-500: #6366f1;
-  --color-indigo-600: #4f46e5;
-  --color-indigo-700: #4338ca;
-  --color-indigo-800: #3730a3;
-  --color-indigo-900: #312e81;
-  --color-indigo-950: #1e1b4b;
-
-  --color-cyan-50: #ecfeff;
-  --color-cyan-100: #cffafe;
-  --color-cyan-200: #a5f3fc;
-  --color-cyan-300: #67e8f9;
-  --color-cyan-400: #22d3ee;
-  --color-cyan-500: #06b6d4;
-  --color-cyan-600: #0891b2;
-  --color-cyan-700: #0e7490;
-  --color-cyan-800: #155e75;
-  --color-cyan-900: #164e63;
-  --color-cyan-950: #083344;
 
   --color-emerald-50: #ecfdf5;
   --color-emerald-100: #d1fae5;
@@ -125,7 +112,7 @@
 @layer base {
   :root {
     --foco: var(--color-marfim);
-    --vidro: rgb(39 50 61 / 88%);
+    --vidro: rgb(39 50 61 / 84%);
     --vidro-borda: rgb(245 240 231 / 35%);
   }
 
@@ -171,8 +158,11 @@
   }
 
   /* ---------------------------------------------------------------------------
-     Surfaces. Glass is reserved for navigation bars and floating actions; long
-     reading and editing happen on opaque surfaces (brandbook "Vidro e leitura").
+     Surfaces (brandbook v2 "Vidro"), three levels:
+       1. .lg-glass       floating layer (nav, FAB, sheet header/footer): blur + saturation
+       2. .lg-glass-tint  interactive items (chips, buttons, cards): translucent, no blur
+       3. .lg-panel/.lg-sheet  long reading and editing: opaque
+     One blur layer per area; every level falls back to solid noite.
      --------------------------------------------------------------------------- */
   .app-ambient-bg {
     background:
@@ -187,28 +177,84 @@
     pointer-events: none;
   }
 
-  /* Navigation bars and floating action strips: one blur layer per area. */
+  /* Level 1. .lg-bar and .lg-header are the original names and stay as aliases. */
+  .lg-glass,
   .lg-bar,
   .lg-header {
     position: relative;
     background: var(--color-noite);
     border: 1px solid var(--vidro-borda);
-    box-shadow: 0 12px 30px rgb(10 14 19 / 45%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 18%),
+      inset 0 -1px 0 rgb(10 14 19 / 30%),
+      0 12px 30px rgb(10 14 19 / 45%);
   }
   .lg-header {
     border-width: 0 0 1px;
-    box-shadow: none;
+    box-shadow: inset 0 -1px 0 rgb(255 255 255 / 4%);
+  }
+  .lg-glass-footer {
+    border-width: 1px 0 0;
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 10%);
   }
   @supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+    .lg-glass,
     .lg-bar,
     .lg-header {
-      background: var(--vidro);
-      -webkit-backdrop-filter: blur(12px);
-      backdrop-filter: blur(12px);
+      background: linear-gradient(180deg, rgb(245 240 231 / 7%), transparent 55%), var(--vidro);
+      -webkit-backdrop-filter: blur(18px) saturate(165%);
+      backdrop-filter: blur(18px) saturate(165%);
     }
   }
 
-  /* Opaque reading/editing surfaces. */
+  /*
+    Level 2: glass look without backdrop-filter, so lists of hundreds of cards stay cheap.
+    The rim is a second background clipped to the border box (bright top-left, dim bottom-right).
+  */
+  .lg-glass-tint,
+  .lg-pill {
+    position: relative;
+    border: 1px solid transparent;
+    background:
+      linear-gradient(180deg, rgb(245 240 231 / 10%), rgb(245 240 231 / 4%) 55%, rgb(245 240 231 / 6%)) padding-box,
+      linear-gradient(var(--color-noite), var(--color-noite)) padding-box,
+      linear-gradient(
+          145deg,
+          rgb(245 240 231 / 42%),
+          rgb(245 240 231 / 10%) 38%,
+          rgb(245 240 231 / 8%) 62%,
+          rgb(245 240 231 / 26%)
+        )
+        border-box;
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 14%),
+      0 8px 22px rgb(10 14 19 / 28%);
+    transition:
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.16s ease;
+  }
+  .lg-pill {
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 12%);
+  }
+  :is(.lg-glass-tint, .lg-pill):is(button, a, [role="button"], label):hover {
+    background:
+      linear-gradient(180deg, rgb(245 240 231 / 16%), rgb(245 240 231 / 7%) 55%, rgb(245 240 231 / 10%)) padding-box,
+      linear-gradient(var(--color-noite), var(--color-noite)) padding-box,
+      linear-gradient(
+          145deg,
+          rgb(245 240 231 / 55%),
+          rgb(245 240 231 / 16%) 38%,
+          rgb(245 240 231 / 12%) 62%,
+          rgb(245 240 231 / 34%)
+        )
+        border-box;
+  }
+  :is(.lg-glass, .lg-glass-tint, .lg-pill, .lg-btn-primary):is(button, a, [role="button"]):active {
+    transform: scale(0.97);
+  }
+
+  /* Level 3: opaque reading/editing surfaces. */
   .lg-panel {
     position: relative;
     background: var(--color-noite);
@@ -223,28 +269,14 @@
     box-shadow: 0 24px 60px rgb(10 14 19 / 60%);
   }
 
-  /* Controls sitting on a bar or panel: tinted, no extra blur layer. */
-  .lg-pill {
-    position: relative;
-    background: rgb(245 240 231 / 8%);
-    border: 1px solid rgb(245 240 231 / 24%);
-    transition:
-      background 0.2s ease,
-      border-color 0.2s ease,
-      transform 0.16s ease;
-  }
-
-  .lg-pill:hover {
-    background: rgb(245 240 231 / 14%);
-    border-color: rgb(245 240 231 / 36%);
-  }
-
   .lg-btn-primary {
     position: relative;
-    background: var(--color-areia);
+    background: linear-gradient(180deg, #e9d8bc, var(--color-areia) 60%);
     color: var(--color-tinta);
     border: 1px solid #ecdcc2;
-    box-shadow: 0 8px 20px rgb(10 14 19 / 35%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 55%),
+      0 8px 20px rgb(10 14 19 / 35%);
     transition:
       background 0.2s ease,
       transform 0.16s ease;
@@ -255,9 +287,18 @@
   }
 
   .lg-active-lens {
-    background: rgb(222 201 168 / 22%);
+    background: linear-gradient(180deg, rgb(222 201 168 / 30%), rgb(222 201 168 / 18%));
     border: 1px solid rgb(222 201 168 / 60%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
     color: var(--color-marfim);
+  }
+
+  /* Online marker: sage with a dark rim so it reads on photos; always paired with text nearby. */
+  .presenca-ponto {
+    background: var(--color-presenca-viva);
+    box-shadow:
+      0 0 0 2px var(--color-tinta),
+      0 0 8px rgb(143 207 156 / 60%);
   }
 
   .presenca-chip {
@@ -862,14 +903,35 @@
   .lg-sheen::before {
     display: none;
   }
+  :is(.lg-glass, .lg-glass-tint, .lg-pill, .lg-btn-primary):is(button, a, [role="button"]):active {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .lg-glass,
+  .lg-bar,
+  .lg-header,
+  .lg-glass-tint,
+  .lg-pill {
+    background: var(--color-tinta) !important;
+    border-color: var(--color-marfim);
+  }
 }
 
 @media (prefers-reduced-transparency: reduce) {
+  .lg-glass,
   .lg-bar,
   .lg-header {
     background: var(--color-noite) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+  .lg-glass-tint,
+  .lg-pill,
+  :is(.lg-glass-tint, .lg-pill):is(button, a, [role="button"], label):hover {
+    background: var(--color-noite-elevada);
+    border-color: rgb(245 240 231 / 30%);
   }
   .backdrop-blur-md,
   .backdrop-blur-xl,

@@ -11,6 +11,7 @@ import type { Point } from "@/lib/data/park";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
+import { buttonClass, CloseButton } from "@/components/ui/Button";
 
 const QUICK_REPLIES = ["Oi! 👋", "Tudo bem por aí?", "Curti seu perfil ✨", "Bora conversar no Parque? 🌳"];
 
@@ -90,13 +91,11 @@ export function MiniChat({
         tabIndex={-1}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
-        className="lg-sheet orbit-scroll flex max-h-full w-full max-w-[440px] flex-col overflow-y-auto rounded-[28px] outline-none"
+        className="lg-sheet orbit-scroll flex max-h-full w-full max-w-[440px] flex-col overflow-y-auto rounded-cartao outline-none"
       >
-        <div className="flex items-center gap-2.5 border-b border-white/[0.12] px-4 py-3">
+        <div className="lg-glass lg-header sticky top-0 z-10 flex items-center gap-2.5 px-4 py-3">
           <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} online={p.online} size={40} halo={false}>
-            {p.online && (
-              <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-noite bg-emerald-400" />
-            )}
+            {p.online && <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full presenca-ponto" />}
           </RingedAvatar>
           <div className="min-w-0 flex-1">
             <h2
@@ -107,7 +106,7 @@ export function MiniChat({
             >
               Você e {p.name}
             </h2>
-            <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-slate-300">
+            <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-marfim-suave">
               <span style={{ color: intention.text }}>
                 {intention.emoji} {intention.label}
               </span>
@@ -119,18 +118,11 @@ export function MiniChat({
           <button
             type="button"
             onClick={() => dispatch({ type: "openProfile", id: p.id })}
-            className="lg-pill shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white"
+            className={buttonClass({ size: "compacto" })}
           >
             Perfil
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar mini chat"
-            className="lg-pill flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm text-white"
-          >
-            ✕
-          </button>
+          <CloseButton onClose={onClose} label="Fechar mini chat" size="compacto" />
         </div>
 
         <div ref={stageRef} className="grid grid-cols-2 items-stretch gap-3 px-4 pt-4 pb-2">
@@ -162,7 +154,7 @@ export function MiniChat({
           />
         </div>
 
-        <div className="sticky bottom-0 flex flex-col gap-2 border-t border-white/[0.12] bg-tinta/95 px-3 pt-2.5 pb-3">
+        <div className="lg-glass lg-glass-footer sticky bottom-0 flex flex-col gap-2 px-3 pt-2.5 pb-3">
           <div
             role="group"
             aria-label="Respostas rápidas"
@@ -173,7 +165,7 @@ export function MiniChat({
                 key={text}
                 type="button"
                 onClick={() => say(text)}
-                className="lg-pill shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap text-white"
+                className={buttonClass({ size: "compacto", className: "font-semibold" })}
               >
                 {text}
               </button>
@@ -193,11 +185,11 @@ export function MiniChat({
               aria-label={`Responder para ${p.name}. Sua nova fala substitui a anterior.`}
               aria-describedby={counterId}
               enterKeyHint="send"
-              className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-slate-300 focus-visible:outline-none"
+              className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-marfim-apagado focus-visible:outline-none"
             />
             <span
               id={counterId}
-              className={`shrink-0 text-[10px] tabular-nums ${left <= 10 ? "text-amber-200" : "text-slate-300"} ${draft ? "" : "invisible"}`}
+              className={`shrink-0 text-xs tabular-nums ${left <= 10 ? "text-areia" : "text-marfim-suave"} ${draft ? "" : "invisible"}`}
             >
               {left}
               <span className="sr-only"> caracteres restantes</span>
@@ -205,7 +197,7 @@ export function MiniChat({
             <button
               type="submit"
               disabled={!draft.trim()}
-              className="lg-btn-primary shrink-0 rounded-full px-4 py-1.5 text-xs font-bold disabled:opacity-40"
+              className="lg-btn-primary min-h-8 shrink-0 rounded-full px-4 text-xs font-bold disabled:opacity-40"
             >
               Enviar
             </button>
@@ -246,7 +238,7 @@ function ComicSpeaker({
     <div className="grid grid-rows-[1fr_auto_auto] justify-items-center gap-3">
       <p
         key={line ?? "vazio"}
-        className={`hq-speech hq-speech-pop flex min-h-[64px] w-full items-center justify-center self-end rounded-[20px] px-3 py-2.5 text-center text-sm leading-snug font-semibold ${
+        className={`hq-speech hq-speech-pop flex min-h-[64px] w-full items-center justify-center self-end rounded-cartao px-3 py-2.5 text-center text-sm leading-snug font-semibold ${
           line ? "hq-speech-filled text-tinta" : "hq-speech-empty"
         }`}
         style={{ animationDelay: `${delay}ms` }}
@@ -257,10 +249,10 @@ function ComicSpeaker({
         {avatar}
       </div>
       <div className="flex flex-col items-center gap-0.5">
-        <span className="rounded-full border border-white/25 bg-noite px-2.5 py-0.5 text-[11px] font-extrabold text-white">
+        <span className="rounded-full border border-white/25 bg-noite px-2.5 py-0.5 text-xs font-extrabold text-white">
           {label}
         </span>
-        <span className={`min-h-[15px] text-[10px] text-slate-300 ${line ? "invisible" : ""}`} aria-hidden="true">
+        <span className={`min-h-[15px] text-xs text-marfim-suave ${line ? "invisible" : ""}`} aria-hidden="true">
           {emptyNote}
         </span>
       </div>
@@ -272,7 +264,7 @@ function SecurityNote() {
   const [open, setOpen] = useState(false);
   const detailsId = useId();
   return (
-    <section aria-label="Privacidade da conversa" className="px-1 text-[11px] leading-relaxed text-slate-300">
+    <section aria-label="Privacidade da conversa" className="px-1 text-xs leading-relaxed text-marfim-suave">
       <p className="flex items-start gap-2">
         <svg
           className="mt-0.5 h-4 w-4 shrink-0 text-areia"

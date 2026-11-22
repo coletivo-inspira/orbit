@@ -36,6 +36,7 @@ import { normalizeSearch } from "@/lib/keywords";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
+import { CloseButton } from "@/components/ui/Button";
 
 const SPOTIFY_GREEN = "#1db954";
 const GRAPH_BATCH = 150;
@@ -346,7 +347,7 @@ export function InterestGraph({
       {profiles.length > GRAPH_BATCH && (
         <div
           data-graph-control
-          className="lg-bar absolute top-12 left-2.5 z-20 flex max-w-[calc(100%-20px)] items-center gap-2 rounded-full py-1 pr-1 pl-3 text-[11px] text-white"
+          className="lg-bar absolute top-12 left-2.5 z-20 flex max-w-[calc(100%-20px)] items-center gap-2 rounded-full py-1 pr-1 pl-3 text-xs text-white"
         >
           <span role="status">
             {shownPeople} de {profiles.length} pessoas, as mais próximas
@@ -360,7 +361,9 @@ export function InterestGraph({
               Mostrar mais
             </button>
           ) : (
-            shownPeople < profiles.length && <span className="pr-2 text-slate-300">Use os filtros para ver outras</span>
+            shownPeople < profiles.length && (
+              <span className="pr-2 text-marfim-suave">Use os filtros para ver outras</span>
+            )
           )}
         </div>
       )}
@@ -385,7 +388,7 @@ export function InterestGraph({
           type="button"
           onClick={() => engineRef.current?.zoomBy(1 / 1.25)}
           aria-label="Afastar"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-base font-bold text-white hover:bg-white/10"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-base font-bold text-white hover:bg-white/10"
         >
           −
         </button>
@@ -393,14 +396,14 @@ export function InterestGraph({
           type="button"
           onClick={() => engineRef.current?.zoomBy(1.25)}
           aria-label="Aproximar"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-base font-bold text-white hover:bg-white/10"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-base font-bold text-white hover:bg-white/10"
         >
           +
         </button>
         <button
           type="button"
           onClick={() => engineRef.current?.fit()}
-          className="rounded-full px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
+          className="rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold text-white hover:bg-white/10"
         >
           Ajustar
         </button>
@@ -411,7 +414,7 @@ export function InterestGraph({
             aria-expanded={settingsOpen}
             aria-label="Configurações do grafo"
             title="Configurações do grafo"
-            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm text-white ${settingsOpen ? "bg-white/15" : "hover:bg-white/10"}`}
+            className={`relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-sm text-white ${settingsOpen ? "bg-white/15" : "hover:bg-white/10"}`}
           >
             ⚙
           </button>
@@ -485,30 +488,23 @@ function FocusCard({
   return (
     <div
       data-graph-control
-      className={`lg-bar absolute z-20 flex items-center gap-2 rounded-2xl px-3 py-2 ${compact ? "right-3.5 bottom-[136px] left-3.5" : "bottom-4 left-4 max-w-[60%]"}`}
+      className={`lg-bar absolute z-20 flex items-center gap-2 rounded-cartao px-3 py-2 ${compact ? "right-3.5 bottom-[136px] left-3.5" : "bottom-4 left-4 max-w-[60%]"}`}
     >
       <div className="min-w-0 flex-1">
         <div className="truncate text-xs font-bold text-white">{title}</div>
-        <div className="line-clamp-2 text-[11px] leading-snug text-slate-300">{detail}</div>
+        <div className="line-clamp-2 text-xs leading-snug text-marfim-suave">{detail}</div>
       </div>
       {onTogglePin && <PinButton pinned={pinned} onToggle={onTogglePin} />}
       {node.kind === "person" && (
         <button
           type="button"
           onClick={() => onOpenProfile(node.id)}
-          className="lg-btn-primary shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold"
+          className="lg-btn-primary shrink-0 rounded-full px-3 min-h-9 py-1.5 text-xs font-bold"
         >
           Ver perfil
         </button>
       )}
-      <button
-        type="button"
-        onClick={onClear}
-        aria-label="Limpar destaque"
-        className="lg-pill flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs text-white"
-      >
-        ✕
-      </button>
+      <CloseButton onClose={onClear} label="Limpar destaque" size="compacto" />
     </div>
   );
 }

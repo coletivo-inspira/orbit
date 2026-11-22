@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { requestDeviceLocation, resetToDefaultLocation, useUserLocation } from "@/lib/geo/userLocation";
+import { buttonClass } from "@/components/ui/Button";
 
 const LABEL = {
   padrao: "Savassi, BH",
@@ -47,7 +48,7 @@ export function RadarLocationControl({ compact }: { compact: boolean }) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
-        className="lg-bar flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold text-white"
+        className="lg-glass flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-xs font-semibold text-white"
       >
         <span aria-hidden="true">📍</span>
         <span className={compact ? "max-w-[112px] truncate" : ""}>{LABEL[status]}</span>
@@ -59,15 +60,15 @@ export function RadarLocationControl({ compact }: { compact: boolean }) {
           id={panelId}
           role="dialog"
           aria-label="Localização no mapa"
-          className="lg-panel absolute top-full right-0 mt-2 w-[min(280px,calc(100vw-40px))] rounded-[20px] p-3.5 text-left"
+          className="lg-glass absolute top-full right-0 mt-2 w-[min(280px,calc(100vw-40px))] rounded-cartao p-3.5 text-left"
         >
           {status === "aparelho" ? (
-            <p className="text-[11px] leading-relaxed text-slate-200">
+            <p className="text-xs leading-relaxed text-marfim-suave">
               O mapa está centralizado perto de você, com a posição arredondada (uns 100 m). Ela fica só neste aparelho,
               não é salva nem enviada, e some quando você recarrega a página.
             </p>
           ) : (
-            <p className="text-[11px] leading-relaxed text-slate-200">
+            <p className="text-xs leading-relaxed text-marfim-suave">
               {status === "negada"
                 ? "O navegador não deu acesso à localização. Para usar, permita a localização para este site nas configurações do navegador."
                 : status === "indisponivel"
@@ -77,16 +78,12 @@ export function RadarLocationControl({ compact }: { compact: boolean }) {
               (uns 100 m), fica só neste aparelho e nunca é enviada.
             </p>
           )}
-          <p className="mt-2 text-[10px] leading-snug text-slate-400">
+          <p className="mt-2 text-xs leading-snug text-marfim-apagado">
             As pessoas no mapa são simuladas: cada uma aparece num ponto aproximado, na distância dela, nunca no lugar
             exato.
           </p>
           <div className="mt-3 flex flex-wrap justify-end gap-2">
-            <button
-              type="button"
-              onClick={close}
-              className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-bold text-white"
-            >
+            <button type="button" onClick={close} className={buttonClass({ size: "compacto" })}>
               Agora não
             </button>
             {status === "aparelho" ? (
@@ -96,7 +93,7 @@ export function RadarLocationControl({ compact }: { compact: boolean }) {
                   resetToDefaultLocation();
                   close();
                 }}
-                className="lg-btn-primary rounded-full px-3 py-1.5 text-[11px] font-bold"
+                className={buttonClass({ variant: "primario", size: "compacto" })}
               >
                 Voltar para a Savassi
               </button>
@@ -108,7 +105,7 @@ export function RadarLocationControl({ compact }: { compact: boolean }) {
                   requestDeviceLocation();
                   close();
                 }}
-                className="lg-btn-primary rounded-full px-3 py-1.5 text-[11px] font-bold disabled:opacity-60"
+                className={buttonClass({ variant: "primario", size: "compacto", className: "disabled:opacity-60" })}
               >
                 Usar minha localização
               </button>

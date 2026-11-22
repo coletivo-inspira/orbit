@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1c2631">
   <link rel="icon" href="orbit-marca.svg" type="image/svg+xml">
-  <title>Orbit · Guia de identidade</title>
+  <title>Orbit · Guia de identidade v2</title>
   <style>
     @font-face {
       font-family: Bricolage;
@@ -17,49 +17,90 @@
       color-scheme: light;
       --tinta: #1c2631;
       --noite: #27323d;
+      --noite-elevada: #313d49;
       --papel: #f5f0e7;
+      --leitura: #ece4d8;
       --areia: #dec9a8;
       --cobre: #a87356;
       --cobre-texto: #754b38;
+      --cobre-claro: #e2b293;
       --texto-suave: #4d5964;
+      --marfim-suave: #d3cbbe;
+      --marfim-apagado: #bdb5a9;
       --sálvia: #d9e4d6;
+      --sálvia-funda: #9fc1a8;
       --presença: #30483d;
+      --presença-viva: #8fcf9c;
+      --alerta: #f2b8b5;
       --linha: #bdb4a7;
+      --vidro: rgb(39 50 61 / 84%);
+      --vidro-borda: rgb(245 240 231 / 35%);
+      --raio-pílula: 9999px;
+      --raio-cartão: 24px;
+      --raio-folha: 32px;
       --passo: 8px;
       --largura: 74rem;
     }
     *, *::before, *::after { box-sizing: border-box; }
     html { scroll-padding-top: 5.75rem; }
     body { margin: 0; background: var(--papel); color: var(--tinta); font: 1rem/1.62 system-ui, sans-serif; }
-    h1, h2, h3, .assinatura { font-family: Bricolage, Georgia, serif; letter-spacing: -.035em; }
-    h1, h2, h3, p, figure { margin: 0; }
+    h1, h2, h3, h4, .assinatura, .rotulo { font-family: Bricolage, Georgia, serif; letter-spacing: -.035em; }
+    h1, h2, h3, h4, p, figure { margin: 0; }
     h1 { font-size: clamp(4.5rem, 11vw, 9rem); line-height: .95; font-weight: 650; }
     h2 { font-size: clamp(2.35rem, 5vw, 4rem); line-height: 1; font-weight: 650; }
     h3 { font-size: 1.35rem; line-height: 1.18; font-weight: 700; }
+    h4 { font-size: 1.05rem; line-height: 1.2; font-weight: 700; }
     p + p { margin-top: 1rem; }
     p { max-width: 70ch; }
     img { display: block; height: auto; }
     a { color: inherit; text-underline-offset: .23em; }
     a:hover { text-decoration-thickness: .15em; }
-    :focus-visible { outline: .15rem solid currentColor; outline-offset: .2rem; border-radius: .15rem; }
+    code { font-size: .9em; }
+    :focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
     ::selection { color: var(--tinta); background: var(--areia); }
     .margem { width: min(var(--largura), calc(100% - 2 * clamp(1rem, 5vw, 4rem))); margin-inline: auto; }
-    .pular { position: fixed; top: .5rem; left: .5rem; z-index: 5; padding: .6rem; transform: translateY(-200%); background: var(--papel); color: var(--tinta); }
+    .pular { position: fixed; top: .5rem; left: .5rem; z-index: 5; padding: .6rem 1rem; border-radius: var(--raio-pílula); transform: translateY(-200%); background: var(--papel); color: var(--tinta); }
     .pular:focus { transform: none; }
-    .barra {
-      position: sticky; top: 0; z-index: 4; background: var(--noite); color: var(--papel);
-      border-bottom: 1px solid #ffffff35;
+    .rotulo { display: block; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--cobre-texto); }
+
+    /* Vidro nível 1: barras e ações flutuantes. */
+    .vidro { color: var(--papel); background: var(--noite); border: 1px solid var(--vidro-borda); box-shadow: inset 0 1px 0 rgb(255 255 255 / 18%), 0 12px 30px rgb(10 14 19 / 45%); }
+    @supports (backdrop-filter: blur(12px)) or (-webkit-backdrop-filter: blur(12px)) {
+      .vidro { background: linear-gradient(180deg, rgb(245 240 231 / 7%), transparent 55%), var(--vidro); -webkit-backdrop-filter: blur(18px) saturate(165%); backdrop-filter: blur(18px) saturate(165%); }
     }
+    /* Vidro nível 2: itens interativos, sem desfoque. */
+    .vidro-tinta {
+      border: 1px solid transparent;
+      background:
+        linear-gradient(180deg, rgb(245 240 231 / 10%), rgb(245 240 231 / 4%) 55%, rgb(245 240 231 / 6%)) padding-box,
+        linear-gradient(var(--noite), var(--noite)) padding-box,
+        linear-gradient(145deg, rgb(245 240 231 / 42%), rgb(245 240 231 / 10%) 38%, rgb(245 240 231 / 8%) 62%, rgb(245 240 231 / 26%)) border-box;
+      box-shadow: inset 0 1px 0 rgb(255 255 255 / 14%), 0 8px 22px rgb(10 14 19 / 28%);
+      color: var(--papel);
+    }
+    .opaco { background: var(--noite); border: 1px solid rgb(245 240 231 / 14%); color: var(--papel); }
+    @media (prefers-reduced-transparency: reduce) {
+      .vidro { background: var(--noite) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+      .vidro-tinta { background: var(--noite-elevada); border-color: rgb(245 240 231 / 30%); }
+    }
+
+    .barra { position: sticky; top: 0; z-index: 4; border-width: 0 0 1px; box-shadow: none; }
     .barra .margem { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding-block: .5rem; }
-    .identificador { display: flex; align-items: center; gap: .45rem; text-decoration: none; font-family: Bricolage, Georgia, serif; font-weight: 750; }
-    .barra nav { display: flex; flex-wrap: wrap; gap: .3rem .9rem; }
-    .barra nav a { display: inline-grid; align-items: center; min-height: 2.5rem; font-size: .875rem; font-weight: 650; }
+    .identificador { display: flex; align-items: center; gap: .45rem; min-height: 2.75rem; padding-inline: .25rem .75rem; border-radius: var(--raio-pílula); text-decoration: none; font-family: Bricolage, Georgia, serif; font-weight: 750; }
+    .barra nav { display: flex; gap: .25rem; overflow-x: auto; scrollbar-width: none; mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent); padding-right: 1.5rem; }
+    .barra nav a { display: inline-grid; align-items: center; min-height: 2.75rem; padding-inline: .85rem; border-radius: var(--raio-pílula); font-size: .875rem; font-weight: 650; white-space: nowrap; text-decoration: none; }
+    .barra nav a:hover { background: rgb(245 240 231 / 12%); }
+
     .hero { background: var(--tinta); color: var(--papel); }
     .hero .margem { min-height: 35rem; display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: 2rem; }
     .hero .texto { padding-block: 3rem; }
     .hero .subtitulo { font: 650 clamp(1.25rem, 2.4vw, 2rem)/1.16 Bricolage, Georgia, serif; color: var(--areia); margin-block: 1rem; }
-    .hero p { color: #e8dfd2; max-width: 38ch; }
-    .download { display: inline-flex; align-items: center; min-height: 2.75rem; margin-top: 1.45rem; padding: .45rem 1rem; border: 1px solid #d8bc9bb5; border-radius: 2rem; font-weight: 650; }
+    .hero p { color: #e8dfd2; max-width: 40ch; }
+    .hero .acoes { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.45rem; }
+    .pilula { display: inline-flex; align-items: center; justify-content: center; gap: .4rem; min-height: 2.75rem; padding: .45rem 1.15rem; border-radius: var(--raio-pílula); font-weight: 750; text-decoration: none; white-space: nowrap; }
+    .pilula.compacta { min-height: 2.25rem; padding-inline: .9rem; font-size: .8rem; }
+    .pilula.primaria { background: linear-gradient(180deg, #e9d8bc, var(--areia) 60%); color: var(--tinta); border: 1px solid #ecdcc2; box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), 0 8px 20px rgb(10 14 19 / 35%); }
+    .pilula.contorno { border: 1px solid #d8bc9bb5; color: var(--papel); }
     .gravura {
       aspect-ratio: 1.15; display: grid; place-items: center; position: relative; isolation: isolate;
       background: radial-gradient(circle at 50% 52%, #344252, var(--tinta) 70%);
@@ -67,11 +108,20 @@
     .gravura::before, .gravura::after { content: ""; position: absolute; z-index: -1; width: 92%; height: 38%; border: 1px solid #dec9a854; border-radius: 50%; transform: rotate(-27deg); }
     .gravura::after { width: 76%; height: 29%; border-color: #dec9a844; }
     .gravura img { width: 58%; }
+
     main section.area { padding-block: clamp(3.25rem, 8vw, 6rem); border-bottom: 1px solid var(--linha); }
     .cabecalho { display: grid; grid-template-columns: .9fr 1.1fr; gap: 1.5rem; align-items: start; margin-bottom: 2rem; }
     .cabecalho p { color: var(--texto-suave); }
+    .cabecalho .rotulo { margin-bottom: .6rem; }
+
+    .principios { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; list-style: none; margin: 0; padding: 0; }
+    .principios li { background: var(--leitura); border-radius: var(--raio-cartão); padding: 1.4rem; }
+    .principios .icone { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%; background: var(--tinta); color: var(--areia); font-size: 1.35rem; margin-bottom: .9rem; }
+    .principios h3 { margin-bottom: .35rem; }
+    .principios p { color: var(--texto-suave); }
+
     .variantes { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
-    .placa { min-height: 11rem; display: grid; align-content: center; justify-items: center; gap: .35rem; border: 1px solid var(--linha); border-radius: 1rem; padding: 1rem; }
+    .placa { min-height: 11rem; display: grid; align-content: center; justify-items: center; gap: .35rem; border: 1px solid var(--linha); border-radius: var(--raio-cartão); padding: 1rem; }
     .placa small { font-size: .875rem; }
     .placa.escura { border-color: var(--tinta); color: var(--papel); background: var(--tinta); }
     .assinatura { display: flex; align-items: center; gap: .35rem; font-size: 2.6rem; font-weight: 700; line-height: 1; }
@@ -80,44 +130,131 @@
     .medidas { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; align-items: start; }
     .medidas h3 { margin-bottom: .5rem; }
     .construcao { display: flex; align-items: center; flex-wrap: wrap; gap: 1rem; }
-    .respiro { display: grid; place-items: center; width: 9rem; aspect-ratio: 1; border: 1px dashed var(--cobre-texto); }
-    .respiro img { width: 6rem; border: 1px solid var(--linha); }
+    .respiro { display: grid; place-items: center; width: 9rem; aspect-ratio: 1; border: 1px dashed var(--cobre-texto); border-radius: var(--raio-cartão); }
+    .respiro img { width: 6rem; }
     .escala { display: flex; min-height: 4rem; align-items: end; gap: 1.25rem; margin-bottom: .55rem; }
-    .escala .amostra-colorida { background: var(--tinta); border-radius: .45rem; }
+    .escala .amostra-colorida { background: var(--tinta); border-radius: 50%; }
     .escala figure { display: grid; justify-items: center; gap: .35rem; font-size: .875rem; }
-    .amostras { display: grid; grid-template-columns: repeat(5, 1fr); gap: .75rem; }
-    .amostras dt { padding: .75rem; min-height: 5.25rem; display: grid; align-content: end; font-weight: 750; border-radius: .65rem .65rem 0 0; }
+
+    .amostras { display: grid; grid-template-columns: repeat(5, 1fr); gap: .75rem; margin: 0; }
+    .amostras + .amostras { margin-top: .75rem; }
+    .amostras dt { padding: .75rem; min-height: 5.25rem; display: grid; align-content: end; font-weight: 750; border-radius: var(--raio-cartão) var(--raio-cartão) .5rem .5rem; }
     .amostras dd { margin: 0; font-size: .875rem; color: var(--texto-suave); }
     .amostras code { display: block; color: var(--tinta); padding-block: .38rem; }
     .contraste { margin-top: 1.65rem; }
     .contraste h3 { margin-bottom: .5rem; }
-    .contraste dl { max-width: 45rem; margin: 0; }
+    .contraste dl { max-width: 48rem; margin: 0; }
     .contraste dl div { display: grid; grid-template-columns: 1fr 5.1rem; gap: .65rem; padding: .35rem 0; border-top: 1px solid var(--linha); }
     .contraste dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; }
-    .specimens { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .specimens figure { min-width: 0; }
-    .specimens figcaption { margin-top: .6rem; color: var(--texto-suave); }
-    .visor { aspect-ratio: 1.7; position: relative; overflow: hidden; border-radius: 1rem; isolation: isolate; }
-    .visor svg { display: block; width: 100%; height: 100%; }
-    .vidro { color: var(--papel); background: var(--noite); }
-    @supports (backdrop-filter: blur(12px)) {
-      .vidro { background: rgb(39 50 61 / 88%); backdrop-filter: blur(12px); }
-    }
-    @media (prefers-reduced-transparency: reduce) {
-      .vidro { background: var(--noite); backdrop-filter: none; }
-    }
-    .controles { position: absolute; bottom: .7rem; left: .7rem; right: .7rem; display: flex; justify-content: space-between; gap: .5rem; flex-wrap: wrap; padding: .55rem .8rem; border: 1px solid #f5f0e759; border-radius: 1rem; font-weight: 650; font-size: .875rem; }
-    .presenca { color: var(--presença); background: var(--sálvia); padding: .05rem .45rem; border-radius: 1rem; }
-    .publico { grid-column: 1 / -1; }
-    .leitura { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; background: #ece4d8; padding: clamp(1.25rem, 5vw, 2.5rem); border-radius: 1rem; }
+
+    /* Palco escuro para amostras vivas de interface. */
+    .palco { position: relative; overflow: hidden; isolation: isolate; border-radius: var(--raio-folha); background: radial-gradient(90% 60% at 15% 10%, rgb(222 201 168 / 14%), transparent 62%), radial-gradient(75% 60% at 50% 92%, rgb(168 115 86 / 16%), transparent 62%), var(--tinta); color: var(--papel); padding: clamp(1rem, 4vw, 2rem); }
+    .palco + .palco { margin-top: 1rem; }
+    .palco .legenda { color: var(--marfim-suave); font-size: .875rem; margin-top: .9rem; max-width: 62ch; }
+    .palco .legenda strong { color: var(--papel); }
+
+    .raios { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; align-items: end; }
+    .raios figure { display: grid; gap: .6rem; justify-items: start; }
+    .raios .forma { width: 100%; background: var(--tinta); color: var(--papel); display: grid; place-items: center; font-weight: 700; }
+    .raios .f-pilula { height: 3rem; border-radius: var(--raio-pílula); }
+    .raios .f-cartao { height: 7rem; border-radius: var(--raio-cartão); }
+    .raios .f-folha { height: 9rem; border-radius: var(--raio-folha) var(--raio-folha) 0 0; }
+    .raios figcaption { font-size: .875rem; color: var(--texto-suave); }
+    .fazer { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem; }
+    .fazer > div { border-radius: var(--raio-cartão); padding: 1.2rem 1.3rem; background: var(--leitura); }
+    .fazer h4 { margin-bottom: .5rem; }
+    .fazer ul { margin: 0; padding-left: 1.15rem; }
+    .fazer li + li { margin-top: .35rem; }
+    .fazer .sim h4::before { content: "✓ "; color: var(--presença); }
+    .fazer .nao h4::before { content: "✕ "; color: var(--cobre-texto); }
+
+    /* Cena com cores para mostrar o desfoque do nível 1. */
+    .cena { position: relative; min-height: 15rem; border-radius: var(--raio-cartão); overflow: hidden; background: #212c38; }
+    .cena .bolha { position: absolute; border-radius: 50%; }
+    .cena .b1 { width: 7rem; height: 7rem; left: 8%; top: 18%; background: #a78bfa; }
+    .cena .b2 { width: 6rem; height: 6rem; left: 44%; top: 8%; background: #34d399; }
+    .cena .b3 { width: 8rem; height: 8rem; right: 6%; top: 30%; background: #fb923c; }
+    .cena .b4 { width: 5rem; height: 5rem; left: 26%; bottom: 8%; background: var(--areia); }
+    .cena .barra-demo { position: absolute; left: 1rem; right: 1rem; bottom: 1rem; display: flex; justify-content: space-around; align-items: center; min-height: 3.75rem; border-radius: var(--raio-pílula); padding: .35rem; font-size: .8rem; font-weight: 650; }
+    .cena .barra-demo span { display: grid; place-items: center; min-height: 2.9rem; padding-inline: 1rem; border-radius: var(--raio-pílula); }
+    .cena .barra-demo .ativo { background: linear-gradient(180deg, rgb(222 201 168 / 30%), rgb(222 201 168 / 18%)); border: 1px solid rgb(222 201 168 / 60%); }
+    .niveis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 1rem; }
+    .niveis > div { border-radius: var(--raio-cartão); padding: 1.1rem; }
+    .niveis h4 { margin: .35rem 0 .3rem; }
+    .niveis p { font-size: .875rem; color: var(--marfim-suave); }
+    .niveis code { color: var(--areia); }
+
+    /* Componentes vivos. */
+    .grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .grade > figure { min-width: 0; }
+    .grade figcaption, .componente-legenda { margin-top: .65rem; font-size: .875rem; color: var(--marfim-suave); }
+    .grade figcaption strong { color: var(--papel); }
+    .linha-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+    .pilula.vidro-tinta, .icone-botao.vidro-tinta { color: var(--papel); }
+    .icone-botao { display: inline-grid; place-items: center; width: 2.75rem; height: 2.75rem; border-radius: 50%; font-size: 1rem; }
+    .icone-botao.compacto { width: 2.25rem; height: 2.25rem; position: relative; }
+    .icone-botao.compacto::after { content: ""; position: absolute; inset: -.25rem; border: 1px dashed rgb(245 240 231 / 35%); border-radius: 50%; }
+    .chip { display: inline-flex; align-items: center; gap: .4rem; min-height: 2.25rem; padding-inline: .9rem; border-radius: var(--raio-pílula); font-size: .75rem; font-weight: 650; color: var(--marfim-suave); }
+    .chip .ponto { width: .5rem; height: .5rem; border-radius: 50%; }
+    .chip.ativo { color: var(--papel); background: linear-gradient(180deg, rgb(222 201 168 / 30%), rgb(222 201 168 / 18%)); border: 1px solid rgb(222 201 168 / 60%); box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%); }
+    .fileira { display: flex; gap: .45rem; overflow: hidden; mask-image: linear-gradient(to right, #000 calc(100% - 2rem), transparent); }
+    .segmentado { display: inline-flex; padding: .25rem; border-radius: var(--raio-pílula); }
+    .segmentado span { display: grid; place-items: center; min-height: 2.25rem; padding-inline: 1rem; border-radius: var(--raio-pílula); font-size: .75rem; font-weight: 700; color: var(--marfim-suave); }
+    .segmentado .ativo { color: var(--papel); background: linear-gradient(180deg, rgb(222 201 168 / 30%), rgb(222 201 168 / 18%)); border: 1px solid rgb(222 201 168 / 60%); }
+
+    .perfil { display: grid; justify-items: center; gap: .55rem; text-align: center; border-radius: var(--raio-cartão); padding: 1.1rem; max-width: 15rem; }
+    .orbe { position: relative; width: 4.75rem; height: 4.75rem; border-radius: 50%; padding: 4px; background: conic-gradient(from 205deg, #bdefff, #34d399 16%, #f6d3f4 31%, #1c2631 46%, #fff0cf 60%, #34d399 74%, #c9d8ff 88%, #bdefff); box-shadow: inset 0 1px .5px rgb(255 255 255 / 70%), 0 8px 18px -8px rgb(6 10 15 / 70%); }
+    .orbe .foto { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #f0c3a6, #a87356 70%); color: var(--tinta); font: 700 1.35rem Bricolage, Georgia, serif; }
+    .orbe .online { position: absolute; right: 2px; bottom: 2px; width: .8rem; height: .8rem; border-radius: 50%; background: var(--presença-viva); box-shadow: 0 0 0 2px var(--tinta); }
+    .perfil .nome { font: 700 1.05rem Bricolage, Georgia, serif; }
+    .perfil .pronome { font-size: .75rem; color: var(--marfim-apagado); margin-top: -.4rem; }
+    .intencao { display: inline-flex; gap: .3rem; align-items: center; border-radius: var(--raio-pílula); padding: .25rem .75rem; font-size: .75rem; font-weight: 700; background: rgb(52 211 153 / 18%); color: #6ee7b7; border: 1px solid rgb(52 211 153 / 45%); }
+    .metricas { font-size: .75rem; color: var(--marfim-suave); }
+    .metricas .on { color: var(--sálvia); }
+    .metricas .on::before { content: ""; display: inline-block; width: .5rem; height: .5rem; margin-right: .3rem; border-radius: 50%; background: var(--presença-viva); }
+    .rodape-perfil { display: flex; justify-content: space-between; align-items: center; width: 100%; padding-top: .6rem; border-top: 1px solid rgb(245 240 231 / 10%); }
+    .selos { display: flex; }
+    .selos span { display: grid; place-items: center; width: 1.5rem; height: 1.5rem; border-radius: 50%; margin-left: -.25rem; box-shadow: 0 0 0 1px rgb(255 255 255 / 25%); font-size: .7rem; font-weight: 800; }
+    .selos span:first-child { margin-left: 0; }
+    .seta { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; border: 1px solid rgb(222 201 168 / 50%); color: var(--areia); }
+
+    .desafio { border-radius: var(--raio-cartão); padding: 1.25rem; text-align: center; }
+    .desafio .icone { display: grid; place-items: center; width: 3rem; height: 3rem; margin: 0 auto; border-radius: 50%; font-size: 1.4rem; }
+    .desafio .rotulo { color: var(--areia); margin-top: .8rem; }
+    .desafio h4 { font-size: 1.15rem; margin-top: .25rem; }
+    .desafio p { color: var(--marfim-suave); font-size: .875rem; margin: .4rem auto 0; }
+    .desafio .linha-acoes { justify-content: center; margin-top: 1rem; }
+
+    .passos { list-style: none; margin: 0; padding: 0; display: grid; gap: .6rem; }
+    .passos li { display: flex; gap: .75rem; align-items: center; font-weight: 700; }
+    .passos .numero { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; font-size: .75rem; font-weight: 800; color: var(--areia); font-variant-numeric: tabular-nums; }
+
+    .leitura { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; background: var(--leitura); color: var(--tinta); padding: clamp(1.25rem, 5vw, 2.5rem); border-radius: var(--raio-cartão); }
     .leitura aside { color: var(--cobre-texto); font-weight: 700; font-size: .875rem; }
-    .leitura h3 { margin-bottom: .35rem; }
+    .leitura h4 { font-size: 1.35rem; margin-bottom: .35rem; }
+    .leitura dl { display: grid; grid-template-columns: auto 1fr; gap: .25rem .9rem; margin: 1rem 0 0; font-size: .875rem; }
+    .leitura dt { font-weight: 700; }
+    .leitura dd { margin: 0; color: var(--texto-suave); }
+    .leitura a { color: var(--cobre-texto); font-weight: 650; }
+
     .regras { margin: 1.7rem 0 0; padding-left: 1.3rem; max-width: 76ch; }
     .regras li + li { margin-top: .55rem; }
+    .tabela { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .tabela th, .tabela td { text-align: left; padding: .55rem .6rem; border-top: 1px solid var(--linha); vertical-align: top; }
+    .tabela th { font-family: Bricolage, Georgia, serif; font-weight: 700; }
+    .tabela code { white-space: nowrap; }
+    .tabela .cor { display: inline-block; width: .9rem; height: .9rem; border-radius: 50%; vertical-align: -.12rem; margin-right: .35rem; box-shadow: inset 0 0 0 1px rgb(28 38 49 / 25%); }
+    .rolagem { overflow-x: auto; }
+    .referencias { display: grid; grid-template-columns: repeat(2, 1fr); gap: .9rem; list-style: none; margin: 0; padding: 0; }
+    .referencias li { background: var(--leitura); border-radius: var(--raio-cartão); padding: 1.2rem 1.3rem; }
+    .referencias h3 { font-size: 1.15rem; margin-bottom: .3rem; }
+    .referencias p { color: var(--texto-suave); font-size: .95rem; }
     footer { padding-block: 2rem 3rem; font-size: .875rem; color: var(--texto-suave); }
     footer ul { padding-left: 1.15rem; }
-    @media (max-width: 700px) {
-      .hero .margem, .cabecalho, .medidas, .specimens { grid-template-columns: 1fr; }
+
+    @media (max-width: 760px) {
+      .hero .margem, .cabecalho, .medidas, .grade, .fazer, .referencias { grid-template-columns: 1fr; }
+      .principios, .niveis, .raios { grid-template-columns: 1fr; }
       .hero .margem { min-height: 0; gap: 0; }
       .hero .texto { padding-block: 2.5rem .25rem; }
       .gravura { min-height: 12rem; max-height: 23rem; }
@@ -127,11 +264,9 @@
       .assinatura { font-size: 2rem; }
       .assinatura img { width: 3rem; }
       .leitura { grid-template-columns: 1fr; }
+      .perfil { max-width: none; }
     }
     @media (max-width: 360px) {
-      .barra .margem { gap: .4rem; }
-      .barra nav { gap: .15rem .6rem; }
-      .barra nav a { font-size: .8rem; }
       .assinatura { font-size: 1.65rem; }
       .assinatura img { width: 2.2rem; }
     }
@@ -151,7 +286,7 @@
     <div class="margem">
       <a class="identificador" href="#topo"><img src="orbit-marca.svg" width="25" height="25" alt="">Orbit</a>
       <nav aria-label="Guia de identidade">
-        <a href="#marca">Marca</a><a href="#paleta">Paleta</a><a href="#interface">Interface</a>
+        <a href="#principios">Princípios</a><a href="#marca">Marca</a><a href="#paleta">Paleta</a><a href="#forma">Forma</a><a href="#vidro">Vidro</a><a href="#componentes">Componentes</a><a href="#usabilidade">Usabilidade</a><a href="#tokens">Tokens</a><a href="#referencias">Referências</a>
       </nav>
     </div>
   </header>
@@ -160,19 +295,35 @@
       <div class="margem">
         <div class="texto">
           <h1>Orbit</h1>
-          <p class="subtitulo">Guia de identidade</p>
-          <p>O perfil reúne seus selos. O anel de Saturno representa o espaço entre esse perfil e as pessoas que você encontra na Órbita e no Parque.</p>
-          <a href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNDQgMTQ0IiBmaWxsPSJub25lIiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0dWxvIj4KICA8dGl0bGUgaWQ9InRpdHVsbyI+T3JiaXQsIHPDrW1ib2xvIGRlIFNhdHVybm88L3RpdGxlPgogIDxkZWZzPgogICAgPG1hc2sgaWQ9ImZvbGdhLWRvLWFuZWwiIG1hc2tVbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjAiIHk9IjAiIHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBzdHlsZT0ibWFzay10eXBlOmx1bWluYW5jZSI+CiAgICAgIDxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjZmZmIi8+CiAgICAgIDxwYXRoIGQ9Ik0xNCA3MmE1OCAxOSAwIDAgMCAxMTYgMCIgdHJhbnNmb3JtPSJyb3RhdGUoLTI3IDcyIDcyKSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjI1Ii8+CiAgICA8L21hc2s+CiAgPC9kZWZzPgogIDxlbGxpcHNlIGN4PSI3MiIgY3k9IjcyIiByeD0iNTgiIHJ5PSIxOSIgdHJhbnNmb3JtPSJyb3RhdGUoLTI3IDcyIDcyKSIgc3Ryb2tlPSIjQTg3MzU2IiBzdHJva2Utd2lkdGg9IjEyIi8+CiAgPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzUiIGZpbGw9IiNERUM5QTgiIG1hc2s9InVybCgjZm9sZ2EtZG8tYW5lbCkiLz4KICA8cGF0aCBkPSJNMTQgNzJhNTggMTkgMCAwIDAgMTE2IDAiIHRyYW5zZm9ybT0icm90YXRlKC0yNyA3MiA3MikiIHN0cm9rZT0iI0E4NzM1NiIgc3Ryb2tlLXdpZHRoPSIxMiIvPgo8L3N2Zz4NCg==" class="download" download="orbit-marca.svg">Baixar símbolo SVG</a>
+          <p class="subtitulo">Guia de identidade · v2</p>
+          <p>Redondo, vidro e usável. O perfil reúne seus selos, e o anel de Saturno representa o espaço entre esse perfil e as pessoas que você encontra na Órbita e no Parque.</p>
+          <div class="acoes">
+            <a href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNDQgMTQ0IiBmaWxsPSJub25lIiByb2xlPSJpbWciIGFyaWEtbGFiZWxsZWRieT0idGl0dWxvIj4KICA8dGl0bGUgaWQ9InRpdHVsbyI+T3JiaXQsIHPDrW1ib2xvIGRlIFNhdHVybm88L3RpdGxlPgogIDxkZWZzPgogICAgPG1hc2sgaWQ9ImZvbGdhLWRvLWFuZWwiIG1hc2tVbml0cz0idXNlclNwYWNlT25Vc2UiIHg9IjAiIHk9IjAiIHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBzdHlsZT0ibWFzay10eXBlOmx1bWluYW5jZSI+CiAgICAgIDxyZWN0IHdpZHRoPSIxNDQiIGhlaWdodD0iMTQ0IiBmaWxsPSIjZmZmIi8+CiAgICAgIDxwYXRoIGQ9Ik0xNCA3MmE1OCAxOSAwIDAgMCAxMTYgMCIgdHJhbnNmb3JtPSJyb3RhdGUoLTI3IDcyIDcyKSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjI1Ii8+CiAgICA8L21hc2s+CiAgPC9kZWZzPgogIDxlbGxpcHNlIGN4PSI3MiIgY3k9IjcyIiByeD0iNTgiIHJ5PSIxOSIgdHJhbnNmb3JtPSJyb3RhdGUoLTI3IDcyIDcyKSIgc3Ryb2tlPSIjQTg3MzU2IiBzdHJva2Utd2lkdGg9IjEyIi8+CiAgPGNpcmNsZSBjeD0iNzIiIGN5PSI3MiIgcj0iMzUiIGZpbGw9IiNERUM5QTgiIG1hc2s9InVybCgjZm9sZ2EtZG8tYW5lbCkiLz4KICA8cGF0aCBkPSJNMTQgNzJhNTggMTkgMCAwIDAgMTE2IDAiIHRyYW5zZm9ybT0icm90YXRlKC0yNyA3MiA3MikiIHN0cm9rZT0iI0E4NzM1NiIgc3Ryb2tlLXdpZHRoPSIxMiIvPgo8L3N2Zz4NCg==" class="pilula primaria" download="orbit-marca.svg">Baixar símbolo SVG</a>
+            <a class="pilula contorno" href="#componentes">Ver componentes</a>
+          </div>
         </div>
         <div class="gravura">
           <img src="orbit-marca.svg" width="288" height="288" alt="Disco de Saturno em areia e anel inclinado em cobre, com passagem à frente do disco">
         </div>
       </div>
     </div>
+
+    <section class="area margem" id="principios" aria-labelledby="titulo-principios">
+      <div class="cabecalho">
+        <div><span class="rotulo">O que mudou na v2</span><h2 id="titulo-principios">Três princípios</h2></div>
+        <p>A v1 reservava o vidro à navegação. A v2 leva o Liquid Glass a toda a camada interativa, padroniza as formas em pílula e círculo e transforma as recomendações de acessibilidade da auditoria em regras de componente.</p>
+      </div>
+      <ul class="principios">
+        <li><span class="icone" aria-hidden="true">◯</span><h3>Redondo</h3><p>Controles são pílulas ou círculos. Avatares, selos de app e botões de ícone são sempre circulares. Contêineres usam raios grandes (24 e 32 px).</p></li>
+        <li><span class="icone" aria-hidden="true">◐</span><h3>Vidro</h3><p>Três níveis: vidro com desfoque nas camadas flutuantes, vidro tingido nos itens interativos e superfície opaca para ler e editar.</p></li>
+        <li><span class="icone" aria-hidden="true">✓</span><h3>Usável</h3><p>Alvo de 44 px, foco sempre visível, texto de no mínimo 12 px e nada comunicado só por cor. Movimento, transparência e contraste respeitam as preferências do sistema.</p></li>
+      </ul>
+    </section>
+
     <section class="area margem" id="marca" aria-labelledby="titulo-marca">
       <div class="cabecalho">
         <h2 id="titulo-marca">O símbolo</h2>
-        <p>Um disco e uma elipse inclinada a 27°. A elipse passa atrás do disco e reaparece à frente. O espaço vazado junto ao anel mantém a sobreposição legível em uma cor.</p>
+        <p>Um disco e uma elipse inclinada a 27°. A elipse passa atrás do disco e reaparece à frente. O espaço vazado junto ao anel mantém a sobreposição legível em uma cor. O círculo é a forma-mãe do sistema: dele vêm as pílulas, os avatares e os selos.</p>
       </div>
       <div class="variantes">
         <figure class="placa">
@@ -199,21 +350,29 @@
             <figure><img class="positivo" src="orbit-marca.svg" width="24" height="24" alt=""><figcaption>24 px</figcaption></figure>
             <figure><img class="amostra-colorida" src="orbit-marca.svg" width="48" height="48" alt=""><figcaption>48 px</figcaption></figure>
           </div>
-          <p>Use o símbolo em uma cor a partir de 16 px. Use a arte colorida sobre tinta azul-noite a partir de 48 px. Na assinatura, use símbolo de pelo menos 32 px.</p>
+          <p>Use o símbolo em uma cor a partir de 16 px. Use a arte colorida sobre tinta azul-noite a partir de 48 px, dentro de um círculo. Na assinatura, use símbolo de pelo menos 32 px.</p>
         </div>
       </div>
     </section>
+
     <section class="area margem" id="paleta" aria-labelledby="titulo-paleta">
       <div class="cabecalho">
         <h2 id="titulo-paleta">Paleta</h2>
-        <p>A tinta azul-noite dá profundidade ao radar. O marfim oferece uma base de leitura. Areia e cobre vêm do disco e da órbita. A sálvia identifica presença junto de um rótulo.</p>
+        <p>A tinta azul-noite dá profundidade ao radar. O marfim oferece uma base de leitura. Areia e cobre vêm do disco e da órbita. A sálvia identifica presença junto de um rótulo. As cores de intenção (roxo, verde, laranja, rosa e azul) ficam nos anéis e nas pílulas de intenção, nunca em botões ou fundos.</p>
       </div>
       <dl class="amostras">
         <div><dt style="background:#1c2631;color:#f5f0e7">Tinta</dt><dd><code>#1C2631</code>Texto e fundo do radar</dd></div>
         <div><dt style="background:#f5f0e7;box-shadow:inset 0 0 0 1px #bdb4a7">Marfim</dt><dd><code>#F5F0E7</code>Superfície de leitura</dd></div>
-        <div><dt style="background:#dec9a8">Areia</dt><dd><code>#DEC9A8</code>Disco de Saturno</dd></div>
+        <div><dt style="background:#dec9a8">Areia</dt><dd><code>#DEC9A8</code>Disco e ação principal</dd></div>
         <div><dt style="background:#a87356;color:#130f0e">Cobre</dt><dd><code>#A87356</code>Anel da marca</dd></div>
         <div><dt style="background:#d9e4d6;color:#30483d">Sálvia</dt><dd><code>#D9E4D6</code>Superfície de presença</dd></div>
+      </dl>
+      <dl class="amostras">
+        <div><dt style="background:#27323d;color:#d3cbbe">Marfim suave</dt><dd><code>#D3CBBE</code>Texto secundário no escuro</dd></div>
+        <div><dt style="background:#27323d;color:#bdb5a9">Marfim apagado</dt><dd><code>#BDB5A9</code>Metadados e placeholders</dd></div>
+        <div><dt style="background:#8fcf9c;color:#1c2631">Presença viva</dt><dd><code>#8FCF9C</code>Só o ponto de online</dd></div>
+        <div><dt style="background:#f2b8b5;color:#1c2631">Alerta</dt><dd><code>#F2B8B5</code>Erros e avisos no escuro</dd></div>
+        <div><dt style="background:linear-gradient(90deg,#d9e4d6 0 25%,#9fc1a8 25% 50%,#f2b8b5 50% 75%,#e2b293 75%);color:#1c2631">Categorias</dt><dd><code>Vacinas · Prevenção · Bem-estar · Debates</code>Selos e linha do tempo</dd></div>
       </dl>
       <div class="contraste">
         <h3>Pares para texto e controles</h3>
@@ -222,64 +381,213 @@
           <div><dt>Texto secundário #4D5964 sobre marfim</dt><dd>6,32:1</dd></div>
           <div><dt>Cobre escuro #754B38 sobre marfim</dt><dd>6,56:1</dd></div>
           <div><dt>Texto de presença #30483D sobre sálvia</dt><dd>7,56:1</dd></div>
-          <div><dt>Marfim sobre vidro, limite claro #48515D</dt><dd>7,09:1</dd></div>
+          <div><dt>Marfim sobre noite #27323D</dt><dd>11,49:1</dd></div>
+          <div><dt>Marfim suave #D3CBBE sobre noite</dt><dd>8,11:1</dd></div>
+          <div><dt>Marfim suave sobre vidro tingido (nível 2)</dt><dd>6,06:1</dd></div>
+          <div><dt>Marfim apagado #BDB5A9 sobre vidro tingido</dt><dd>4,80:1</dd></div>
+          <div><dt>Marfim sobre vidro nível 1 com fundo branco por trás (pior caso)</dt><dd>6,90:1</dd></div>
+          <div><dt>Marfim suave sobre vidro nível 1, pior caso</dt><dd>4,87:1</dd></div>
+          <div><dt>Ponto de presença #8FCF9C sobre tinta (componente)</dt><dd>8,44:1</dd></div>
         </dl>
       </div>
     </section>
-    <section class="area margem" id="interface" aria-labelledby="titulo-interface">
+
+    <section class="area margem" id="forma" aria-labelledby="titulo-forma">
       <div class="cabecalho">
-        <h2 id="titulo-interface">Vidro e leitura</h2>
-        <p>O vidro marca a camada de navegação e ação. A Órbita e o Parque continuam visíveis sob os controles. No artigo, a superfície opaca estabiliza o contraste durante a leitura.</p>
+        <div><span class="rotulo">Novo na v2</span><h2 id="titulo-forma">Forma</h2></div>
+        <p>Três raios cobrem a interface. Escolha pelo papel do elemento, não pelo tamanho: um botão é sempre pílula, um cartão é sempre 24 px, uma folha é sempre 32 px.</p>
       </div>
-      <div class="specimens">
-        <figure>
-          <div class="visor" style="background:#1c2631">
-            <svg viewBox="0 0 360 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-              <path d="M180 9a91 91 0 1 1 0 182 91 91 0 1 1 0-182Z M180 44a56 56 0 1 1 0 112 56 56 0 1 1 0-112Z" fill="none" stroke="#859592" opacity=".55"/>
-              <circle cx="180" cy="100" r="22" fill="#dec9a8"/><circle cx="132" cy="72" r="11" fill="#d9e4d6"/>
-              <circle cx="230" cy="119" r="13" fill="#a87356"/><circle cx="195" cy="10" r="10" fill="#d9e4d6"/>
-              <circle cx="95" cy="136" r="10" fill="#dec9a8"/><circle cx="265" cy="62" r="12" fill="#d9e4d6"/>
-            </svg>
-            <div class="controles vidro"><span>Órbita · Lista</span><span>Centralizar</span></div>
+      <div class="raios">
+        <figure><div class="forma f-pilula">Pílula · 9999 px</div><figcaption><code>rounded-pilula</code> ou <code>rounded-full</code>. Botões, chips, campos de uma linha, abas, navegação, botões de ícone, avatares e selos.</figcaption></figure>
+        <figure><div class="forma f-cartao">Cartão · 24 px</div><figcaption><code>rounded-cartao</code>. Cartões de perfil e de post, avisos, painéis de edição e áreas de texto.</figcaption></figure>
+        <figure><div class="forma f-folha">Folha · 32 px</div><figcaption><code>rounded-folha</code>. Folhas modais, filtros e o painel lateral.</figcaption></figure>
+      </div>
+      <div class="fazer">
+        <div class="sim"><h4>Faça</h4><ul><li>Avatar sempre em círculo, com o anel de vidro na cor da intenção.</li><li>Selo de app em círculo com a cor do app e borda clara de 1 px.</li><li>Botão de ícone em círculo de 44 px, ou de 36 px com área de toque de 44 px.</li><li>Ilustrações e mapas com raio de cartão.</li></ul></div>
+        <div class="nao"><h4>Evite</h4><ul><li>Controles com raio entre 2 e 12 px (<code>rounded-md</code>, <code>rounded-lg</code>, <code>rounded-xl</code>).</li><li>Tiles quadrados de app ou avatar com cantos retos.</li><li>Raios arbitrários (<code>rounded-[22px]</code>): use os três tokens.</li><li>Exceções documentadas: o carimbo do Interesse e as molduras de aparelho do Studio imitam objetos reais.</li></ul></div>
+      </div>
+    </section>
+
+    <section class="area margem" id="vidro" aria-labelledby="titulo-vidro">
+      <div class="cabecalho">
+        <div><span class="rotulo">Revisto na v2</span><h2 id="titulo-vidro">Vidro em três níveis</h2></div>
+        <p>O vidro marca o que pode ser tocado. As camadas flutuantes desfocam o que passa por baixo. Os itens interativos parecem vidro sem custo de desfoque. A leitura longa continua opaca, porque o contraste precisa ser estável.</p>
+      </div>
+      <div class="palco">
+        <div class="cena" aria-hidden="true">
+          <span class="bolha b1"></span><span class="bolha b2"></span><span class="bolha b3"></span><span class="bolha b4"></span>
+          <div class="barra-demo vidro"><span class="ativo">Órbita</span><span>Parque</span><span>Comunidade</span><span>Meu Hub</span></div>
+        </div>
+        <div class="niveis">
+          <div class="vidro"><span class="rotulo" style="color:var(--areia)">Nível 1</span><h4>Vidro flutuante</h4><p><code>.lg-glass</code> · 84% de noite, <code>blur(18px) saturate(165%)</code> e brilho na borda superior. Navegação, cabeçalhos e rodapés de folhas, Centralizar, dock do Parque, cabeçalho público.</p></div>
+          <div class="vidro-tinta"><span class="rotulo" style="color:var(--areia)">Nível 2</span><h4>Vidro tingido</h4><p><code>.lg-glass-tint</code> · reflexo em gradiente e borda especular, sem <code>backdrop-filter</code>. Chips, botões, cartões da Lista, do Perfil e da Comunidade, selos.</p></div>
+          <div class="opaco"><span class="rotulo" style="color:var(--areia)">Nível 3</span><h4>Opaco</h4><p><code>.lg-panel</code> e <code>.lg-sheet</code> · noite sólida. Corpo de folhas, artigos, editor do Perfil e campos de texto.</p></div>
+        </div>
+        <p class="legenda"><strong>Uma camada de desfoque por área.</strong> A Lista pode montar centenas de cartões, por isso o nível 2 imita o vidro com gradientes. Em transparência reduzida, os níveis 1 e 2 viram noite sólida (<code>#27323D</code> e <code>#313D49</code>) com borda de 30%. Em contraste alto, todos viram tinta com borda marfim.</p>
+      </div>
+      <div class="palco">
+        <div class="leitura">
+          <aside>Comunidade &amp; Saúde · c/vacinas</aside>
+          <div>
+            <h4>Como consultar sua carteira de vacinação</h4>
+            <p>Exemplo de artigo em superfície de leitura estável, com autoria, revisão e fontes visíveis antes do texto.</p>
+            <dl><dt>Autoria</dt><dd>Dani Rocha · Enfermeiro</dd><dt>Revisão</dt><dd>Revisado em 20/11/2026</dd><dt>Fontes</dt><dd><a href="#vidro">Ministério da Saúde · Calendário Nacional</a></dd></dl>
           </div>
-          <figcaption><strong>Órbita.</strong> Mantenha a troca para Lista ao lado do radar e “Centralizar” ao alcance de uma ação.</figcaption>
-        </figure>
-        <figure>
-          <div class="visor" style="background:#415449">
-            <svg viewBox="0 0 360 210" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-              <path fill="#c6ad87" d="M0 91h120V66h130v38h110v32H208v-25h-52v26H0z"/>
-              <path fill="#6d816a" d="M28 23h27v27H28zm258 14h28v28h-28zM74 156h28v27H74zm193 4h30v25h-30z"/>
-              <path fill="#dec9a8" d="M175 78h10v10h-10z"/><path fill="#754b38" d="M172 88h16v18h-16z"/>
-              <path fill="#d9e4d6" d="M221 87h10v10h-10z"/><path fill="#27323d" d="M218 97h16v18h-16z"/>
-            </svg>
-            <div class="controles vidro"><span class="presenca">Perto no Parque</span><span>Continuar papo</span></div>
-          </div>
-          <figcaption><strong>Parque.</strong> Agrupe os controles em uma faixa e preserve a área de circulação. A presença tem texto e cor.</figcaption>
-        </figure>
-        <figure class="publico">
-          <div class="leitura">
-            <aside>Comunidade &amp; Saúde</aside>
-            <div><h3>Como consultar sua carteira de vacinação</h3><p>Exemplo de apresentação de um artigo, com autoria, data de revisão e fontes em uma superfície de leitura estável.</p></div>
-          </div>
-          <figcaption><strong>Artigo.</strong> Use fundo opaco no conteúdo longo e destaque os links para as fontes pelo sublinhado.</figcaption>
-        </figure>
+        </div>
+        <p class="legenda"><strong>Artigo.</strong> Fundo opaco em marfim no conteúdo longo, com links para as fontes sublinhados. O cabeçalho da página pública usa o nível 1.</p>
+      </div>
+    </section>
+
+    <section class="area margem" id="componentes" aria-labelledby="titulo-componentes">
+      <div class="cabecalho">
+        <div><span class="rotulo">Novo na v2</span><h2 id="titulo-componentes">Componentes</h2></div>
+        <p>Cada amostra corresponde a um componente em <code>src/components/ui</code> ou <code>src/components/perfil</code>. Use o componente em vez de reescrever as classes.</p>
+      </div>
+      <div class="palco">
+        <div class="grade">
+          <figure>
+            <div class="linha-acoes">
+              <span class="pilula primaria">Mandar um oi 👋</span>
+              <span class="pilula vidro-tinta">🌳 Ir pro Parque</span>
+              <span class="pilula compacta vidro-tinta">Limpar</span>
+            </div>
+            <figcaption><strong>Botão</strong> · <code>Button</code> e <code>buttonClass()</code>. Primário em areia (uma ação por área), vidro para as demais. Tamanho padrão de 44 px; o compacto tem 36 px e uma área de toque invisível de 44 px.</figcaption>
+          </figure>
+          <figure>
+            <div class="linha-acoes">
+              <span class="icone-botao vidro-tinta" aria-hidden="true">✕</span>
+              <span class="icone-botao compacto vidro-tinta" aria-hidden="true">✕</span>
+              <span class="icone-botao vidro" aria-hidden="true">⌖</span>
+            </div>
+            <figcaption><strong>Botão de ícone</strong> · <code>IconButton</code> e <code>CloseButton</code>. Sempre em círculo e com nome acessível. A linha tracejada mostra a área de toque do compacto.</figcaption>
+          </figure>
+          <figure>
+            <div class="fileira">
+              <span class="chip ativo"><span class="ponto" style="background:#f5f0e7"></span>Todos</span>
+              <span class="chip vidro-tinta"><span class="ponto" style="background:#a78bfa"></span>Troca</span>
+              <span class="chip vidro-tinta"><span class="ponto" style="background:#34d399"></span>Amizade</span>
+              <span class="chip vidro-tinta"><span class="ponto" style="background:#fb923c"></span>Casual</span>
+              <span class="chip vidro-tinta"><span class="ponto" style="background:#f472b6"></span>Conhecer</span>
+            </div>
+            <figcaption><strong>Chips de tipo</strong> · <code>ToggleChip</code>, inspirados no seletor de tipo do GoodBrief. Uma fileira rolável que esmaece à direita para indicar que continua.</figcaption>
+          </figure>
+          <figure>
+            <div class="segmentado vidro-tinta"><span class="ativo">Radar</span><span>Conexões</span><span>Lista</span></div>
+            <figcaption><strong>Controle segmentado</strong> · <code>SegmentedTabs</code>. Semântica de abas, um único ponto de Tab e setas, Home e End para trocar.</figcaption>
+          </figure>
+          <figure>
+            <div class="perfil vidro-tinta">
+              <span class="orbe"><span class="foto">M</span><span class="online"></span></span>
+              <span class="nome">Matheus, 26</span>
+              <span class="pronome">ele/dele</span>
+              <span class="intencao">🤝 Amizade &amp; Rolê</span>
+              <span class="metricas">📍 180m · <span class="on">online</span> · no Parque</span>
+              <span class="rodape-perfil">
+                <span class="selos"><span style="background:#fcc419;color:#000">G</span><span style="background:#fd297b;color:#fff">T</span><span style="background:#1db954;color:#000">S</span></span>
+                <span class="seta" aria-hidden="true">→</span>
+              </span>
+            </div>
+            <figcaption><strong>Cartão de perfil</strong> · <code>ProfileCard</code>, no padrão dos cartões de mentor do ADPList e das páginas do Topmate: avatar redondo, nome, uma linha de papel (a intenção), uma linha de métricas, selos e uma ação. Os blocos <code>IntentionPill</code>, <code>MetricLine</code> e <code>AppSeal</code> também montam a folha de perfil e a prévia do Hub.</figcaption>
+          </figure>
+          <figure>
+            <div class="desafio vidro-tinta">
+              <span class="icone vidro-tinta" aria-hidden="true">🔭</span>
+              <span class="rotulo">Nenhum resultado</span>
+              <h4>Ninguém por perto com esses filtros</h4>
+              <p>Cada filtro ativo precisa combinar ao mesmo tempo.</p>
+              <div class="linha-acoes"><span class="pilula compacta primaria">Limpar filtros</span><span class="pilula compacta vidro-tinta">Ajustar filtros</span></div>
+            </div>
+            <figcaption><strong>Cartão-desafio</strong> · <code>ChallengeCard</code>, como os cartões de prompt do Sharpen: um rótulo de categoria, uma pergunta como título e no máximo duas ações. Usado em estados vazios e nas perguntas do quiz de Desejos.</figcaption>
+          </figure>
+          <figure>
+            <ol class="passos">
+              <li><span class="numero vidro-tinta">01</span>Seu cartão</li>
+              <li><span class="numero vidro-tinta">02</span>Intenções e selos</li>
+              <li><span class="numero vidro-tinta">03</span>Molduras</li>
+            </ol>
+            <figcaption><strong>Passos numerados</strong> · como o "how it works" do ADPList. Ordenam as seções do Perfil Hub e dizem onde a pessoa está.</figcaption>
+          </figure>
+          <figure>
+            <div class="vidro" style="border-radius:var(--raio-folha);overflow:hidden">
+              <div style="display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;border-bottom:1px solid var(--vidro-borda)"><span class="orbe" style="width:3rem;height:3rem"><span class="foto" style="font-size:1rem">M</span></span><strong style="flex:1">Matheus, 26</strong><span class="icone-botao vidro-tinta" aria-hidden="true">✕</span></div>
+              <div class="opaco" style="border:0;padding:1rem;font-size:.875rem;color:var(--marfim-suave)">Corpo opaco da folha, com o conteúdo rolando por baixo do cabeçalho e do rodapé de vidro.</div>
+            </div>
+            <figcaption><strong>Folha</strong> · <code>Sheet</code>, <code>SheetHeader</code> e <code>SheetFooter</code>. Foco entra no título, Tab circula dentro, Esc fecha e devolve o foco ao acionador.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <section class="area margem" id="usabilidade" aria-labelledby="titulo-usabilidade">
+      <div class="cabecalho">
+        <div><span class="rotulo">Novo na v2</span><h2 id="titulo-usabilidade">Usabilidade</h2></div>
+        <p>Regras derivadas da auditoria de front-end (ORB-01 a ORB-14) e da WCAG 2.2. Elas valem para todo componente novo.</p>
       </div>
       <ul class="regras">
-        <li>A PWA usa Next.js e React, com classes de vidro próprias em CSS e um reflexo que acompanha o ponteiro. Os exemplos acima traduzem o material da Apple para a web com <code>backdrop-filter</code>.</li>
-        <li>Use opacidade de 88% sobre a tinta elevada e limite a uma camada de desfoque por área. O fallback sólido é <code>#27323D</code>, também aplicado em navegadores que reconhecem a preferência por transparência reduzida.</li>
-        <li>Preserve conteúdo e controles com redução de movimento. Mantenha foco visível, rótulos legíveis e fundos que atinjam pelo menos 4,5:1 para texto normal e 3:1 para componentes conforme WCAG.</li>
-        <li>Use Bricolage Grotesque nos títulos e na assinatura. O texto corrido usa a fonte do sistema em 16 px e entrelinha 1,62. Use 8 px como unidade de espaçamento nas aplicações da marca.</li>
+        <li><strong>Alvo de toque.</strong> 44 × 44 px no mínimo. Quando o visual pede 36 px, estenda a área de toque com um pseudo-elemento invisível.</li>
+        <li><strong>Foco visível.</strong> Contorno marfim de 3 px com afastamento de 3 px no escuro e tinta na superfície clara. Ele não se confunde com os anéis de intenção. Nunca use <code>outline-none</code> sem colocar outro indicador no lugar, por exemplo <code>focus-within</code> no contêiner de um campo.</li>
+        <li><strong>Tipografia.</strong> Bricolage Grotesque nos títulos, rótulos de seção e assinatura; a fonte do sistema no texto corrido, com 16 px e entrelinha de 1,62. Mínimo de 12 px para qualquer texto. Exceções: rótulos da barra de abas (11 px, como no iOS), as telas do relógio e emojis dentro de selos.</li>
+        <li><strong>Cor nunca sozinha.</strong> Presença tem ponto e texto ("online", "Online agora"). A intenção tem anel, pílula e rótulo. As categorias têm nome.</li>
+        <li><strong>Teclado.</strong> Abas e controles segmentados respondem a setas, Home e End. Folhas prendem o foco e devolvem ao acionador. Campos de chat mantêm o foco depois do envio e anunciam o resultado.</li>
+        <li><strong>Preferências do sistema.</strong> Em movimento reduzido, nada desliza sozinho e não há brilho que acompanha o ponteiro. Em transparência reduzida, o vidro fica sólido. Em contraste alto, superfícies viram tinta com borda marfim.</li>
+        <li><strong>Espaçamento.</strong> Use 8 px como unidade. Uma ação primária por área, as demais em vidro.</li>
+      </ul>
+    </section>
+
+    <section class="area margem" id="tokens" aria-labelledby="titulo-tokens">
+      <div class="cabecalho">
+        <h2 id="titulo-tokens">Tokens</h2>
+        <p>Espelho de <code>src/app/globals.css</code>. As cores e os raios viram classes do Tailwind (<code>text-marfim-suave</code>, <code>rounded-cartao</code>). As paletas fora da marca estão desligadas no tema.</p>
+      </div>
+      <div class="rolagem">
+        <table class="tabela">
+          <thead><tr><th scope="col">Token</th><th scope="col">Valor</th><th scope="col">Classe</th><th scope="col">Uso</th></tr></thead>
+          <tbody>
+            <tr><td><code>--color-tinta</code></td><td><span class="cor" style="background:#1c2631"></span>#1C2631</td><td><code>bg-tinta</code></td><td>Fundo do app e texto sobre marfim</td></tr>
+            <tr><td><code>--color-noite</code></td><td><span class="cor" style="background:#27323d"></span>#27323D</td><td><code>bg-noite</code></td><td>Superfícies opacas e fallback do vidro</td></tr>
+            <tr><td><code>--color-noite-elevada</code></td><td><span class="cor" style="background:#313d49"></span>#313D49</td><td><code>bg-noite-elevada</code></td><td>Nível 2 em transparência reduzida</td></tr>
+            <tr><td><code>--color-marfim</code></td><td><span class="cor" style="background:#f5f0e7"></span>#F5F0E7</td><td><code>text-marfim</code> · <code>text-white</code></td><td>Texto principal no escuro</td></tr>
+            <tr><td><code>--color-marfim-suave</code></td><td><span class="cor" style="background:#d3cbbe"></span>#D3CBBE</td><td><code>text-marfim-suave</code></td><td>Texto secundário (substitui <code>slate-300</code>)</td></tr>
+            <tr><td><code>--color-marfim-apagado</code></td><td><span class="cor" style="background:#bdb5a9"></span>#BDB5A9</td><td><code>text-marfim-apagado</code></td><td>Metadados e placeholders</td></tr>
+            <tr><td><code>--color-areia</code></td><td><span class="cor" style="background:#dec9a8"></span>#DEC9A8</td><td><code>lg-btn-primary</code> · <code>text-areia</code></td><td>Ação principal, destaques e avisos</td></tr>
+            <tr><td><code>--color-salvia</code></td><td><span class="cor" style="background:#d9e4d6"></span>#D9E4D6</td><td><code>presenca-chip</code> · <code>text-salvia</code></td><td>Presença e confirmação</td></tr>
+            <tr><td><code>--color-presenca-viva</code></td><td><span class="cor" style="background:#8fcf9c"></span>#8FCF9C</td><td><code>presenca-ponto</code></td><td>Ponto de online</td></tr>
+            <tr><td><code>--color-alerta</code></td><td><span class="cor" style="background:#f2b8b5"></span>#F2B8B5</td><td><code>text-alerta</code></td><td>Erros e avisos no escuro</td></tr>
+            <tr><td><code>--radius-pilula</code></td><td>9999px</td><td><code>rounded-pilula</code> · <code>rounded-full</code></td><td>Controles, avatares e selos</td></tr>
+            <tr><td><code>--radius-cartao</code></td><td>24px</td><td><code>rounded-cartao</code></td><td>Cartões e painéis</td></tr>
+            <tr><td><code>--radius-folha</code></td><td>32px</td><td><code>rounded-folha</code></td><td>Folhas modais</td></tr>
+            <tr><td><code>--vidro</code></td><td>rgb(39 50 61 / 84%)</td><td><code>lg-glass</code> (<code>lg-bar</code>, <code>lg-header</code>)</td><td>Nível 1</td></tr>
+            <tr><td>Gradiente e borda especular</td><td>marfim 4–10% e borda 8–42%</td><td><code>lg-glass-tint</code> (<code>lg-pill</code>)</td><td>Nível 2</td></tr>
+            <tr><td><code>--foco</code></td><td>marfim, ou tinta em <code>.superficie-clara</code></td><td><code>:focus-visible</code></td><td>Contorno de 3 px</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="area margem" id="referencias" aria-labelledby="titulo-referencias">
+      <div class="cabecalho">
+        <h2 id="titulo-referencias">Referências</h2>
+        <p>Quatro produtos que tratam pessoas, perfis e escolhas com clareza. Deles vieram padrões de organização. A estética continua a do Orbit.</p>
+      </div>
+      <ul class="referencias">
+        <li><h3><a href="https://adplist.org/">ADPList</a></h3><p>Cartões de mentor com foto redonda, cargo, empresa e uma linha de números, além do "como funciona" em passos 01–02–03. Vieram daí o <code>ProfileCard</code> e os passos do Perfil Hub.</p></li>
+        <li><h3><a href="https://topmate.io/">Topmate</a></h3><p>Uma página de perfil que leva a ações e serviços. Inspirou a ordem do cartão do Hub: identidade, intenções, selos que levam a outros apps e uma ação clara.</p></li>
+        <li><h3><a href="https://goodbrief.io/">GoodBrief</a></h3><p>Um seletor de tipo em chips como primeira decisão. Virou a fileira de chips da Órbita, da Comunidade e do Compositor, com indicação de que a fileira continua.</p></li>
+        <li><h3><a href="https://sharpen.design/">Sharpen</a></h3><p>Cartões de prompt com categoria e uma pergunta aberta. Virou o <code>ChallengeCard</code> dos estados vazios e o cabeçalho das perguntas do quiz de Desejos.</p></li>
       </ul>
     </section>
   </main>
   <footer class="margem">
-    <p>Proposta de identidade para a equipe do Orbit</p>
+    <p>Guia de identidade do Orbit, versão 2. A v2 substitui a orientação de vidro do ORB-14 da auditoria (vidro só na navegação) pelo sistema de três níveis.</p>
     <ul>
       <li><a href="relatorio-de-auditoria.md">Relatório de auditoria do Orbit</a></li>
       <li><a href="https://developer.apple.com/design/human-interface-guidelines/materials">Apple Human Interface Guidelines · Materials</a></li>
+      <li><a href="https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass">Apple · Liquid Glass</a></li>
       <li><a href="https://www.w3.org/TR/WCAG22/">W3C · WCAG 2.2</a></li>
+      <li><a href="https://www.w3.org/WAI/ARIA/apg/">W3C · ARIA Authoring Practices Guide</a></li>
     </ul>
   </footer>
+
   <!-- Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.

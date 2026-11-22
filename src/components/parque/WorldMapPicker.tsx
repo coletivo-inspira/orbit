@@ -70,7 +70,7 @@ export function WorldMapPicker() {
         >
           Parque pelo mundo
         </h1>
-        <p className="mt-0.5 text-xs text-slate-300">
+        <p className="mt-0.5 text-xs text-marfim-suave">
           Escolha um ponto no mapa-múndi: cada sala é uma miniatura de massinha feita com as ruas reais da região.
         </p>
       </div>
@@ -81,7 +81,7 @@ export function WorldMapPicker() {
         >
           <div
             ref={mapRef}
-            className={`lg-panel relative scroll-mt-3 self-start overflow-hidden rounded-[26px] p-2 ${isMobile ? "" : "sticky top-0"}`}
+            className={`lg-panel relative scroll-mt-3 self-start overflow-hidden rounded-cartao p-2 ${isMobile ? "" : "sticky top-0"}`}
           >
             {/* Pointer shortcut only: the room list below is the accessible way to pick a room. */}
             <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="block h-auto w-full" aria-hidden="true">
@@ -136,7 +136,7 @@ export function WorldMapPicker() {
               <button
                 type="button"
                 onClick={() => setSelectedId(null)}
-                className="lg-pill absolute top-3 right-3 rounded-full bg-tinta px-3 py-1 text-[11px] font-bold text-white"
+                className="lg-pill absolute top-3 right-3 rounded-full bg-tinta px-3 min-h-9 py-1.5 text-xs font-bold text-white"
               >
                 Ver o mundo
               </button>
@@ -147,7 +147,7 @@ export function WorldMapPicker() {
             {selected ? (
               <SelectedRoom room={selected} onEnter={() => enter(selected.id)} />
             ) : (
-              <div className="lg-panel rounded-[24px] p-4 text-xs leading-relaxed text-slate-200">
+              <div className="lg-glass-tint rounded-cartao p-4 text-xs leading-relaxed text-marfim-suave">
                 <span className="font-bold text-white">Toque num ponto do mapa</span> ou escolha uma sala na lista. Você
                 entra no lugar de verdade: as quadras, ruas, praças e árvores num raio de 100 m vêm do OpenStreetMap.
               </div>
@@ -189,20 +189,20 @@ export function WorldMapPicker() {
 
 function SelectedRoom({ room, onEnter }: { room: ParkRoomDefinition; onEnter: () => void }) {
   return (
-    <section aria-label={`Sala ${room.name}`} className="lg-sheet rounded-[24px] p-4">
+    <section aria-label={`Sala ${room.name}`} className="lg-sheet rounded-cartao p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[11px] font-semibold text-areia">
+          <div className="text-xs font-semibold text-areia">
             <span aria-hidden="true">{room.flag} </span>
             {room.city}, {room.country}
           </div>
           <h2 className="mt-0.5 text-base font-extrabold text-white">{room.name}</h2>
         </div>
-        <span className="presenca-chip shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold">
+        <span className="presenca-chip shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold">
           {room.botCount} online
         </span>
       </div>
-      <p className="mt-1.5 text-xs leading-snug text-slate-200">{room.blurb}</p>
+      <p className="mt-1.5 text-xs leading-snug text-marfim-suave">{room.blurb}</p>
       <button
         type="button"
         onClick={onEnter}
@@ -210,7 +210,7 @@ function SelectedRoom({ room, onEnter }: { room: ParkRoomDefinition; onEnter: ()
       >
         Entrar na sala →
       </button>
-      <p className="mt-2 text-center text-[11px] text-slate-300">
+      <p className="mt-2 text-center text-xs text-marfim-suave">
         Mapa real de 200 × 200 m · ©{" "}
         <a
           href="https://www.openstreetmap.org/copyright"
@@ -246,21 +246,21 @@ function RoomRow({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex w-full items-center gap-3 rounded-[20px] px-3 py-2.5 text-left transition ${
+      className={`flex w-full items-center gap-3 rounded-cartao px-3 py-2.5 text-left transition ${
         active ? "lg-active-lens" : "border border-white/[0.14] bg-white/[0.06] hover:bg-white/[0.12]"
       }`}
     >
       <span
-        className="lg-pill flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-lg"
+        className="lg-pill flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
         aria-hidden="true"
       >
         {emoji}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-xs font-bold text-white">{title}</span>
-        <span className="block truncate text-[11px] text-slate-300">{subtitle}</span>
+        <span className="block truncate text-xs text-marfim-suave">{subtitle}</span>
       </span>
-      <span className="shrink-0 text-[11px] font-semibold text-salvia">
+      <span className="shrink-0 text-xs font-semibold text-salvia">
         {online}
         <span className="sr-only"> pessoas online</span>
       </span>

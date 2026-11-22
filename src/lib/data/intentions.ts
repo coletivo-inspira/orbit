@@ -109,18 +109,22 @@ export const EXTERNAL_APPS: Record<AppId, ExternalApp> = {
 export const EXTERNAL_APP_LIST = Object.values(EXTERNAL_APPS);
 
 export const COMMUNITY_CATEGORIES: Record<CommunityCategory, { label: string; slug: string; badge: string }> = {
-  vacinas: { label: "💉 Vacinas", slug: "vacinas", badge: "bg-cyan-400/15 text-cyan-200 border-cyan-300/35" },
+  vacinas: { label: "💉 Vacinas", slug: "vacinas", badge: "bg-salvia/15 text-salvia border-salvia/40" },
   prevencao: {
     label: "🛡️ Prevenção",
     slug: "prevencao",
-    badge: "bg-emerald-400/15 text-emerald-200 border-emerald-300/35",
+    badge: "bg-salvia-funda/15 text-salvia-funda border-salvia-funda/40",
   },
   bemestar: {
     label: "🧠 Saúde Mental",
     slug: "bem-estar",
-    badge: "bg-violet-400/15 text-violet-200 border-violet-300/35",
+    badge: "bg-alerta/15 text-alerta border-alerta/40",
   },
-  debates: { label: "💬 Discussões", slug: "debates", badge: "bg-amber-400/15 text-amber-200 border-amber-300/35" },
+  debates: {
+    label: "💬 Discussões",
+    slug: "debates",
+    badge: "bg-cobre-claro/15 text-cobre-claro border-cobre-claro/40",
+  },
 };
 
 export function activeAppIds(apps: Partial<Record<AppId, { active: boolean }>>): AppId[] {

@@ -36,7 +36,7 @@ export function ConversationBalloon({
         const rect = (avatar ?? e.currentTarget).getBoundingClientRect();
         onOpen({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }}
-      className={`hq-balloon orbit-balloon absolute z-10 flex h-[22px] max-w-[84px] cursor-pointer items-center rounded-[11px] px-2 text-[10px] leading-none font-bold ${
+      className={`hq-balloon orbit-balloon absolute z-10 flex h-[22px] max-w-[84px] cursor-pointer items-center rounded-full px-2 text-xs leading-none font-bold ${
         theirs ? "hq-balloon-filled text-tinta" : "hq-balloon-empty min-w-[30px]"
       } ${className}`}
       style={style}

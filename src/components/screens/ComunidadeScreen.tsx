@@ -14,6 +14,8 @@ import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { CommunityFilter } from "@/lib/state/reducer";
 import type { CommunityPost } from "@/lib/types";
+import { buttonClass } from "@/components/ui/Button";
+import { ChallengeCard } from "@/components/ui/ChallengeCard";
 
 const FILTERS: { id: CommunityFilter; label: string }[] = [
   { id: "all", label: "Todas" },
@@ -41,7 +43,7 @@ export function ComunidadeScreen() {
   const feed = (
     <section aria-label="Posts da comunidade" className="min-w-0">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex shrink-0 items-center gap-1 rounded-full border border-white/[0.11] bg-white/[0.05] p-0.5">
+        <div className="lg-glass-tint flex shrink-0 items-center gap-1 rounded-full p-1">
           {SORTS.map((s) => {
             const active = state.communitySort === s.id;
             return (
@@ -50,8 +52,8 @@ export function ComunidadeScreen() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => dispatch({ type: "setCommunitySort", sort: s.id })}
-                className={`rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap transition ${
-                  active ? "lg-active-lens text-white" : "border border-transparent text-slate-300 hover:text-white"
+                className={`rounded-full px-3 min-h-9 py-1.5 text-xs font-semibold whitespace-nowrap transition ${
+                  active ? "lg-active-lens text-white" : "border border-transparent text-marfim-suave hover:text-white"
                 }`}
               >
                 {s.label}
@@ -65,7 +67,7 @@ export function ComunidadeScreen() {
             onClick={() => setTimelapse(true)}
             aria-haspopup="dialog"
             title="Reveja as interações da comunidade numa animação"
-            className="lg-pill flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold text-white active:scale-95"
+            className="lg-pill flex items-center gap-1.5 rounded-full px-3 min-h-9 py-1.5 text-xs font-bold text-white active:scale-95"
           >
             <svg
               className="h-3.5 w-3.5 text-areia"
@@ -84,7 +86,7 @@ export function ComunidadeScreen() {
           <button
             type="button"
             onClick={() => dispatch({ type: "openComposer", kind: "discussao" })}
-            className="lg-btn-primary rounded-full px-3.5 py-1.5 text-[11px] font-extrabold active:scale-95"
+            className="lg-btn-primary rounded-full px-3.5 min-h-9 py-1.5 text-xs font-extrabold active:scale-95"
           >
             ＋ Criar post
           </button>
@@ -95,9 +97,23 @@ export function ComunidadeScreen() {
           <PostRow key={post.id} post={post} />
         ))}
         {!posts.length && (
-          <p className="lg-panel rounded-[22px] p-5 text-center text-xs text-slate-300">
-            Nada por aqui ainda. Que tal abrir a primeira conversa?
-          </p>
+          <ChallengeCard
+            icon="💬"
+            eyebrow="Comunidade vazia"
+            title="Que tal abrir a primeira conversa?"
+            titleAs="h3"
+            actions={
+              <button
+                type="button"
+                onClick={() => dispatch({ type: "openComposer", kind: "discussao" })}
+                className={buttonClass({ variant: "primario", size: "compacto" })}
+              >
+                ＋ Criar post
+              </button>
+            }
+          >
+            Nada por aqui ainda nesta subcomunidade.
+          </ChallengeCard>
         )}
       </div>
     </section>
@@ -132,14 +148,21 @@ export function ComunidadeScreen() {
           >
             Comunidade & Saúde
           </h1>
-          <Link href="/comunidade" className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-bold text-white">
+          <Link
+            href="/comunidade"
+            className="inline-flex items-center lg-pill rounded-full px-3 min-h-9 py-1.5 text-xs font-bold text-white"
+          >
             Abrir versão pública ↗
           </Link>
         </div>
-        <p className="mt-0.5 text-xs text-slate-300">
+        <p className="mt-0.5 text-xs text-marfim-suave">
           Alertas da sua região, artigos de profissionais verificados e conversas abertas.
         </p>
-        <div className="orbit-scroll mt-3 flex items-center gap-1.5 overflow-x-auto pb-0.5" aria-label="Subcomunidades">
+        <div
+          role="group"
+          className="orbit-scroll mt-3 flex items-center gap-1.5 overflow-x-auto pr-6 pb-0.5 [mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)]"
+          aria-label="Subcomunidades"
+        >
           {FILTERS.map((c) => {
             const active = state.communityFilter === c.id;
             return (
@@ -148,10 +171,8 @@ export function ComunidadeScreen() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => dispatch({ type: "setCommunityFilter", filter: c.id })}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold transition ${
-                  active
-                    ? "lg-active-lens text-white"
-                    : "border border-white/[0.14] bg-white/[0.06] text-slate-300 hover:bg-white/[0.12] hover:text-white"
+                className={`min-h-9 shrink-0 rounded-full px-3.5 text-xs font-semibold transition ${
+                  active ? "lg-active-lens text-white" : "lg-pill text-marfim-suave hover:text-white"
                 }`}
               >
                 {c.label}
@@ -187,30 +208,30 @@ function PostRow({ post }: { post: CommunityPost }) {
   const verified = post.kind === "artigo" && post.status === "publicado";
   return (
     <article
-      className={`lg-panel group relative flex gap-3 rounded-[22px] p-3.5 transition-colors hover:border-white/30 ${
-        verified ? "border-emerald-300/25" : post.status === "em_revisao" ? "border-amber-300/30 border-dashed" : ""
+      className={`lg-glass-tint group relative flex gap-3 rounded-cartao p-3.5 transition-colors hover:border-white/30 ${
+        verified ? "border-salvia/25" : post.status === "em_revisao" ? "border-areia/30 border-dashed" : ""
       }`}
     >
       <VoteControl post={post} />
       <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-slate-300">
+        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-xs text-marfim-suave">
           <span className={`rounded-full border px-2 py-px font-bold ${category.badge}`}>c/{category.slug}</span>
-          <span className="truncate font-semibold text-slate-200">{post.author}</span>
+          <span className="truncate font-semibold text-marfim-suave">{post.author}</span>
           <span aria-hidden>·</span>
           <span>{post.date}</span>
         </div>
-        <h2 className="mt-1.5 font-sans text-sm leading-snug font-bold text-white transition group-hover:text-areia">
+        <h2 className="mt-1.5 text-sm leading-snug font-bold text-white transition group-hover:text-areia">
           <button
             type="button"
             onClick={() => dispatch({ type: "openArticle", id: post.id })}
-            className="text-left after:absolute after:inset-0 after:rounded-[22px] after:content-['']"
+            className="text-left after:absolute after:inset-0 after:rounded-cartao after:content-['']"
           >
             {post.title}
           </button>
         </h2>
-        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-300">{post.summary}</p>
+        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-marfim-suave">{post.summary}</p>
         <TagList tags={postTags(post)} className="mt-2" />
-        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] text-slate-300">
+        <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs text-marfim-suave">
           <PostTrustBadge post={post} />
           <span>
             <span aria-hidden="true">💬</span>
@@ -226,12 +247,12 @@ function PostRow({ post }: { post: CommunityPost }) {
 function ProfessionalCard({ pending }: { pending: number }) {
   const { dispatch } = useOrbit();
   return (
-    <section aria-label="Artigos de profissionais de saúde" className="lg-panel rounded-[22px] p-4">
-      <h2 className="font-sans text-sm font-extrabold text-white">🩺 Sou profissional de saúde</h2>
-      <p className="mt-1 text-[11px] leading-relaxed text-slate-300">
+    <section aria-label="Artigos de profissionais de saúde" className="lg-glass-tint rounded-cartao p-4">
+      <h2 className="text-sm font-extrabold text-white">🩺 Sou profissional de saúde</h2>
+      <p className="mt-1 text-xs leading-relaxed text-marfim-suave">
         Médicos(as), enfermeiros(as) e psicólogos(as) podem publicar artigos com selo de verificado.
       </p>
-      <ol className="mt-2.5 space-y-1.5 text-[11px] leading-snug text-slate-200">
+      <ol className="mt-2.5 space-y-1.5 text-xs leading-snug text-marfim-suave">
         <li>
           <strong className="text-white">1. Registro:</strong> conferimos CRM, COREN ou CRP no conselho profissional.
         </li>
@@ -243,7 +264,7 @@ function ProfessionalCard({ pending }: { pending: number }) {
         </li>
       </ol>
       {pending > 0 && (
-        <p className="mt-2.5 rounded-xl border border-amber-300/30 bg-amber-400/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-100">
+        <p className="mt-2.5 rounded-cartao border border-areia/30 bg-areia/10 px-2.5 py-1.5 text-xs font-semibold text-areia">
           ⏳ {pending} {pending === 1 ? "artigo seu em revisão" : "artigos seus em revisão"}
         </p>
       )}
@@ -254,7 +275,7 @@ function ProfessionalCard({ pending }: { pending: number }) {
       >
         Enviar artigo para revisão
       </button>
-      <p className="mt-2 text-[11px] leading-snug text-slate-300">
+      <p className="mt-2 text-xs leading-snug text-marfim-suave">
         Demo: a verificação é simulada, nenhum dado é enviado aos conselhos.
       </p>
     </section>

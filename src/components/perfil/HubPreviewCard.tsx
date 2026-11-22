@@ -1,10 +1,11 @@
 import type { Ref } from "react";
 import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
-import { AppTile } from "@/components/ui/AppBadge";
+import { AppSeal, appSealClass, IntentionPill } from "@/components/perfil/ProfileCard";
+import { SectionLabel } from "@/components/ui/Sheet";
 import { MolduraAvatar } from "@/components/molduras/MolduraAvatar";
 import { Avatar, RingedAvatar } from "@/components/ui/Avatar";
 import type { MolduraId } from "@/lib/molduras/catalogo";
-import { activeAppIds, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
+import { activeAppIds, INTENTIONS } from "@/lib/data/intentions";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
 import type { DesejoPublico } from "@/lib/desejos/perfis";
 import type { UserProfile } from "@/lib/types";
@@ -28,19 +29,19 @@ export function HubPreviewCard({
   const primary = INTENTIONS[u.primaryIntention] ?? INTENTIONS.troca;
   const apps = activeAppIds(u.apps);
   return (
-    <section aria-labelledby={headingId} className="lg-panel relative overflow-hidden rounded-[28px] p-5">
+    <section aria-labelledby={headingId} className="lg-glass-tint relative overflow-hidden rounded-cartao p-5">
       <div className="relative mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2
           ref={headingRef}
           id={headingId}
           tabIndex={-1}
-          className="font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase"
+          className="font-display text-xs font-bold tracking-wider text-marfim-suave uppercase"
         >
           Prévia do cartão · só neste navegador
         </h2>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold ${
-            u.isPublic ? "border-salvia/60 bg-salvia text-presenca" : "border-amber-300/50 bg-amber-100 text-amber-900"
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-bold ${
+            u.isPublic ? "border-salvia/60 bg-salvia text-presenca" : "border-areia/50 bg-areia text-tinta"
           }`}
         >
           {u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}
@@ -49,21 +50,21 @@ export function HubPreviewCard({
 
       <div className="relative flex items-center gap-3.5">
         {moldura ? (
-          <MolduraAvatar molduraId={moldura} cor={primary.color} size={64}>
+          <MolduraAvatar molduraId={moldura} cor={primary.color} size={72}>
             <Avatar cfg={u.avatar} />
           </MolduraAvatar>
         ) : (
-          <RingedAvatar cfg={u.avatar} color={primary.color} size={64} />
+          <RingedAvatar cfg={u.avatar} color={primary.color} size={72} />
         )}
         <div className="min-w-0">
-          <div className="truncate text-base font-extrabold text-white">
+          <div className="truncate font-display text-lg font-extrabold text-white">
             {u.name}, {u.age}
           </div>
           <div className="text-xs font-semibold text-areia">{u.handle}</div>
-          <div className="mt-0.5 text-[11px] text-slate-300">📍 {u.city}</div>
+          <div className="mt-0.5 text-xs text-marfim-suave">📍 {u.city}</div>
         </div>
       </div>
-      <p className="mt-2 text-[11px] text-slate-300">
+      <p className="mt-2 text-xs text-marfim-suave">
         Anel do avatar: <strong className="text-white">{primary.label}</strong> (intenção principal)
       </p>
 
@@ -72,63 +73,44 @@ export function HubPreviewCard({
       </p>
 
       <ul className="mt-3.5 flex flex-wrap gap-1.5" aria-label="Intenções">
-        {u.intentions.map((id) => {
-          const it = INTENTIONS[id];
-          if (!it) return null;
-          return (
-            <li
-              key={id}
-              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold"
-              style={{ background: it.bg, color: it.text, border: `1px solid ${it.border}` }}
-            >
-              {it.emoji} {it.label}
-              {u.primaryIntention === id ? " ★ principal" : ""}
-            </li>
-          );
-        })}
+        {u.intentions.map((id) => (
+          <li key={id}>
+            <IntentionPill id={id} principal={u.primaryIntention === id} />
+          </li>
+        ))}
       </ul>
 
       {u.topics.length > 0 && (
         <ul className="mt-2.5 flex flex-wrap gap-1" aria-label="Assuntos">
           {u.topics.map((id) => (
-            <li
-              key={id}
-              className="rounded-full border border-white/[0.14] bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-slate-300"
-            >
+            <li key={id} className="lg-pill rounded-full px-2.5 py-0.5 text-xs font-semibold text-marfim-suave">
               {labelOf(TOPICS, id)}
             </li>
           ))}
         </ul>
       )}
 
-      <div className="mt-4 border-t border-white/[0.12] pt-3.5">
-        <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">Selos ativos</h3>
+      <div className="mt-4 border-t border-marfim/10 pt-3.5">
+        <SectionLabel className="mb-2">Selos ativos</SectionLabel>
         {apps.length ? (
           <ul className="flex flex-wrap gap-1.5">
             {apps.map((id) => {
               const handle = u.apps[id].handle.trim();
               return (
-                <li
-                  key={id}
-                  className="inline-flex items-center gap-1.5 rounded-xl border border-white/[0.15] bg-tinta px-2.5 py-1.5"
-                >
-                  <AppTile appId={id} className="h-4 w-4 rounded-md" iconClassName="h-2.5 w-2.5" />
-                  <span className="text-[11px] font-bold text-white">{EXTERNAL_APPS[id].name}</span>
-                  <span className={`text-[11px] ${handle ? "text-areia" : "text-salvia"}`}>
-                    {handle ? `${handle} · leva ao app` : "Presença"}
-                  </span>
+                <li key={id} className={appSealClass}>
+                  <AppSeal appId={id} handle={handle} action="leva ao app" />
                 </li>
               );
             })}
           </ul>
         ) : (
-          <p className="text-[11px] text-slate-300">Nenhum selo ativado no momento.</p>
+          <p className="text-xs text-marfim-suave">Nenhum selo ativado no momento.</p>
         )}
       </div>
 
       {desejos.length > 0 && (
-        <div className="mt-4 border-t border-white/[0.12] pt-3.5">
-          <h3 className="mb-2 font-sans text-[11px] font-bold tracking-wider text-slate-300 uppercase">Desejos</h3>
+        <div className="mt-4 border-t border-marfim/10 pt-3.5">
+          <SectionLabel className="mb-2">Desejos</SectionLabel>
           <BarrasDesejos desejos={desejos} />
         </div>
       )}

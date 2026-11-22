@@ -19,6 +19,7 @@ import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import { BIO_MAX_LENGTH, TOPICS_MAX } from "@/lib/state/reducer";
 import type { AppId, IntentionId, TopicId } from "@/lib/types";
+import { buttonClass } from "@/components/ui/Button";
 
 export function usePrivacyToggle() {
   const { state, dispatch } = useOrbit();
@@ -100,24 +101,33 @@ export function PerfilScreen() {
     { id: "visibilidade", label: "Visibilidade" },
   ];
 
-  const sectionHeading = (id: string, label: string) => (
-    <h2
-      id={`${ids}-${id}`}
-      ref={(el) => {
-        sectionRefs.current[id] = el;
-      }}
-      tabIndex={-1}
-      className="text-base font-bold tracking-tight text-white"
-    >
-      {label}
-    </h2>
-  );
+  const sectionHeading = (id: string, label: string) => {
+    const step = sections.findIndex((s) => s.id === id) + 1;
+    return (
+      <h2
+        id={`${ids}-${id}`}
+        ref={(el) => {
+          sectionRefs.current[id] = el;
+        }}
+        tabIndex={-1}
+        className="flex items-center gap-2.5 text-base font-bold tracking-tight text-white"
+      >
+        <span
+          aria-hidden="true"
+          className="lg-glass-tint flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-extrabold text-areia tabular-nums"
+        >
+          {String(step).padStart(2, "0")}
+        </span>
+        {label}
+      </h2>
+    );
+  };
 
   const backToPreview = (
     <button
       type="button"
       onClick={showPreview}
-      className="lg-btn-primary self-start rounded-full px-3.5 py-1.5 text-xs font-bold"
+      className={buttonClass({ variant: "primario", size: "compacto", className: "self-start" })}
     >
       Ver prévia do cartão ↑
     </button>
@@ -135,11 +145,11 @@ export function PerfilScreen() {
             >
               Meu Perfil Hub
             </h1>
-            <span className="rounded-full border border-areia/50 bg-areia/15 px-2.5 py-0.5 text-[11px] font-bold text-areia">
+            <span className="rounded-full border border-areia/50 bg-areia/15 px-2.5 py-0.5 text-xs font-bold text-areia">
               Modo Explorar · simulação local
             </span>
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-slate-300">
+          <p className="mt-1 text-xs leading-relaxed text-marfim-suave">
             Ainda não há contas nem link público: tudo o que você muda aqui fica só neste navegador e aparece na prévia
             do cartão. O Modo Explorar precisa de conexão e ainda não funciona offline.
           </p>
@@ -149,7 +159,7 @@ export function PerfilScreen() {
                 key={s.id}
                 type="button"
                 onClick={() => goTo(s.id === "cartao" ? previewRef.current : sectionRefs.current[s.id])}
-                className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-semibold text-white"
+                className="lg-pill min-h-9 rounded-full px-3.5 text-xs font-semibold text-white"
               >
                 {s.label}
               </button>
@@ -182,12 +192,12 @@ export function PerfilScreen() {
                 aria-describedby={bioCountId}
                 onChange={(e) => dispatch({ type: "updateBio", bio: e.target.value })}
                 placeholder="Conte um pouco sobre você..."
-                className="mt-2 w-full resize-none rounded-2xl border border-white/20 bg-tinta px-3.5 py-2.5 text-sm text-white placeholder-slate-300"
+                className="mt-2 w-full resize-none rounded-cartao border border-white/20 bg-tinta px-3.5 py-2.5 text-sm text-white placeholder-marfim-apagado"
               />
               <p
                 id={bioCountId}
                 aria-live="polite"
-                className={`mt-1 text-right text-[11px] ${bioAtLimit ? "font-bold text-areia" : "text-slate-300"}`}
+                className={`mt-1 text-right text-xs ${bioAtLimit ? "font-bold text-areia" : "text-marfim-suave"}`}
               >
                 {bioAtLimit
                   ? `Limite de ${BIO_MAX_LENGTH} caracteres atingido.`
@@ -200,8 +210,8 @@ export function PerfilScreen() {
             <section aria-labelledby={`${ids}-intencoes`} className="flex flex-col gap-3">
               {sectionHeading("intencoes", "Intenções e selos")}
               <Panel>
-                <h3 className="font-sans text-sm font-bold text-white">O que você está buscando?</h3>
-                <p className="mt-0.5 mb-3 text-xs text-slate-300">
+                <h3 className="text-sm font-bold text-white">O que você está buscando?</h3>
+                <p className="mt-0.5 mb-3 text-xs text-marfim-suave">
                   Ative suas intenções. A estrela ★ escolhe a <strong className="text-white">intenção principal</strong>
                   , que vira a cor do anel do seu avatar na Órbita.
                 </p>
@@ -223,7 +233,7 @@ export function PerfilScreen() {
                           type="button"
                           aria-pressed={selected}
                           onClick={() => toggleIntention(it.id)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold ${selected ? "text-white" : "text-slate-300 hover:text-white"}`}
+                          className={`flex min-h-9 items-center gap-1.5 pr-3 pl-3.5 text-xs font-semibold ${selected ? "text-white" : "text-marfim-suave hover:text-white"}`}
                         >
                           <span aria-hidden="true">{it.emoji}</span>
                           <span>{it.label}</span>
@@ -233,7 +243,7 @@ export function PerfilScreen() {
                           aria-pressed={isPrimary}
                           onClick={() => setPrimary(it.id)}
                           aria-label={`${it.label} como intenção principal`}
-                          className={`border-l border-white/15 px-2.5 py-1.5 text-xs transition ${isPrimary ? "bg-white/15 text-areia" : "text-slate-300 hover:text-areia"}`}
+                          className={`min-h-9 min-w-9 border-l border-white/15 pr-3 pl-2.5 text-sm transition ${isPrimary ? "bg-white/15 text-areia" : "text-marfim-suave hover:text-areia"}`}
                         >
                           {isPrimary ? "★" : "☆"}
                         </button>
@@ -244,8 +254,8 @@ export function PerfilScreen() {
               </Panel>
 
               <Panel>
-                <h3 className="font-sans text-sm font-bold text-white">Selos de outros aplicativos</h3>
-                <p className="mt-0.5 mb-3 text-xs text-slate-300">
+                <h3 className="text-sm font-bold text-white">Selos de outros aplicativos</h3>
+                <p className="mt-0.5 mb-3 text-xs text-marfim-suave">
                   Autodeclarados. <strong className="text-white">Selo de presença</strong> só indica conta ativa (sem
                   link). <strong className="text-white">Selo com @</strong> mostra seu usuário e pode levar ao app.
                 </p>
@@ -255,14 +265,14 @@ export function PerfilScreen() {
                     return (
                       <li
                         key={app.id}
-                        className={`rounded-2xl border p-3 transition ${
+                        className={`rounded-cartao border p-3 transition ${
                           appState.active ? "border-white/[0.2] bg-tinta" : "border-white/[0.1] bg-tinta/40"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex min-w-0 items-center gap-2.5">
                             <div
-                              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl shadow"
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full shadow ring-1 ring-white/25"
                               style={{ background: app.bg, color: app.textColor }}
                             >
                               <AppBadgeIcon appId={app.id} className="h-4 w-4" />
@@ -271,12 +281,12 @@ export function PerfilScreen() {
                               <div className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-white">
                                 {app.name}
                                 <span
-                                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${app.noExternalLink ? "presenca-chip" : "border border-areia/50 text-areia"}`}
+                                  className={`rounded-full px-2 py-0.5 text-xs font-bold ${app.noExternalLink ? "presenca-chip" : "border border-areia/50 text-areia"}`}
                                 >
                                   {app.noExternalLink ? "Selo de presença" : "Selo com @"}
                                 </span>
                               </div>
-                              <div className="text-[11px] text-slate-300">
+                              <div className="text-xs text-marfim-suave">
                                 {appState.active ? "Aparece na prévia" : "Oculto"}
                               </div>
                             </div>
@@ -299,7 +309,7 @@ export function PerfilScreen() {
                               }
                               placeholder={`Seu @usuário no ${app.name}`}
                               aria-label={`Seu usuário no ${app.name}`}
-                              className="w-full rounded-xl border border-white/20 bg-noite px-3 py-1.5 text-sm text-white placeholder-slate-300"
+                              className="min-h-10 w-full rounded-full border border-marfim/25 bg-tinta px-4 py-1.5 text-sm text-white placeholder-marfim-apagado"
                             />
                           </div>
                         )}
@@ -322,8 +332,8 @@ export function PerfilScreen() {
             <section aria-labelledby={`${ids}-assuntos`} className="flex flex-col gap-3">
               {sectionHeading("assuntos", "Assuntos")}
               <Panel>
-                <h3 className="font-sans text-sm font-bold text-white">Sobre o que você gosta de trocar ideia?</h3>
-                <p className="mt-0.5 mb-3 text-xs text-slate-300">
+                <h3 className="text-sm font-bold text-white">Sobre o que você gosta de trocar ideia?</h3>
+                <p className="mt-0.5 mb-3 text-xs text-marfim-suave">
                   Na Órbita, quem marcou os mesmos assuntos mostra “Em comum” e sobe para o centro quando você ordena
                   por <strong className="text-white">Afinidade</strong>.
                 </p>
@@ -338,7 +348,7 @@ export function PerfilScreen() {
                     </ToggleChip>
                   ))}
                 </div>
-                <p className="mt-2 text-right text-[11px] text-slate-300" aria-live="polite">
+                <p className="mt-2 text-right text-xs text-marfim-suave" aria-live="polite">
                   {u.topics.length} de {TOPICS_MAX} assuntos
                 </p>
               </Panel>
@@ -349,16 +359,16 @@ export function PerfilScreen() {
               {sectionHeading("desejos", "Desejos")}
               <Panel>
                 <div className="flex gap-3.5">
-                  <Ilustracao id="mascaras" className="h-[72px] w-24 shrink-0 rounded-xl" />
+                  <Ilustracao id="mascaras" className="h-[72px] w-24 shrink-0 rounded-cartao" />
                   <div className="min-w-0">
-                    <h3 className="font-sans text-sm font-bold text-white">Quiz visual de desejos · 18+</h3>
-                    <p className="mt-0.5 text-xs leading-relaxed text-slate-300">
+                    <h3 className="text-sm font-bold text-white">Quiz visual de desejos · 18+</h3>
+                    <p className="mt-0.5 text-xs leading-relaxed text-marfim-suave">
                       Cerca de 5 minutos, sem nada explícito. As respostas ficam só neste aparelho e nada vai para o
                       cartão sem você escolher.
                     </p>
                   </div>
                 </div>
-                <p className="mt-3 text-[11px] text-slate-300" aria-live="polite">
+                <p className="mt-3 text-xs text-marfim-suave" aria-live="polite">
                   {state.desejos.concluido
                     ? desejosNoCartao.length
                       ? `No cartão: ${desejosNoCartao.map((d) => CATEGORIAS[d.id].nome).join(", ")}.`
@@ -387,7 +397,7 @@ export function PerfilScreen() {
                       Perfil {u.isPublic ? "público" : "privado"}{" "}
                       <span className="font-semibold text-areia">(simulação local)</span>
                     </div>
-                    <p className="mt-0.5 text-xs text-slate-300">
+                    <p className="mt-0.5 text-xs text-marfim-suave">
                       {u.isPublic
                         ? "Com contas reais, apareceria na Órbita para outras pessoas."
                         : "Com contas reais, só conexões aprovadas veriam seus selos."}{" "}
@@ -407,5 +417,5 @@ export function PerfilScreen() {
 }
 
 function Panel({ children }: { children: ReactNode }) {
-  return <div className="lg-panel rounded-[22px] p-4">{children}</div>;
+  return <div className="lg-panel rounded-cartao p-4">{children}</div>;
 }

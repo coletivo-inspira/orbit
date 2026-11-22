@@ -3,6 +3,7 @@
 import { useId, useState, type ReactNode } from "react";
 import { Switch } from "@/components/ui/Switch";
 import { GRAPH_DISPLAY_LIMITS, type GraphDisplay } from "@/lib/engines/graphDisplay";
+import { buttonClass } from "@/components/ui/Button";
 
 export interface GraphFilterToggle {
   id: string;
@@ -49,11 +50,11 @@ export function GraphSettingsPanel({
     <section
       data-graph-control
       aria-label="Configurações do grafo"
-      className={`lg-sheet orbit-scroll absolute z-30 flex flex-col overflow-y-auto rounded-[22px] text-white ${
+      className={`lg-sheet orbit-scroll absolute z-30 flex flex-col overflow-y-auto rounded-cartao text-white ${
         compact ? `inset-x-2.5 ${compactBottom} max-h-[70%]` : "top-2.5 right-2.5 bottom-16 w-[268px]"
       }`}
     >
-      <div className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-white/[0.12] bg-tinta/95 px-3.5 py-2.5">
+      <div className="lg-glass lg-header sticky top-0 z-10 flex items-center justify-between gap-2 px-3.5 py-2.5">
         <h2 className="text-xs font-extrabold">Configurações do grafo</h2>
         <div className="flex items-center gap-1">
           <button
@@ -61,7 +62,7 @@ export function GraphSettingsPanel({
             onClick={onReset}
             title="Restaurar padrão"
             aria-label="Restaurar configurações padrão"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-sm hover:bg-white/10"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-sm hover:bg-white/10"
           >
             ↺
           </button>
@@ -69,7 +70,7 @@ export function GraphSettingsPanel({
             type="button"
             onClick={onClose}
             aria-label="Fechar configurações"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-xs hover:bg-white/10"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full after:absolute after:-inset-1 after:content-[''] text-xs hover:bg-white/10"
           >
             ✕
           </button>
@@ -86,7 +87,7 @@ export function GraphSettingsPanel({
           value={search}
           onChange={(e) => onSearch(e.target.value)}
           placeholder="Procurar…"
-          className="w-full rounded-xl border border-white/20 bg-noite px-3 py-1.5 text-xs text-white placeholder-slate-300"
+          className="min-h-10 w-full rounded-full border border-marfim/25 bg-tinta px-4 py-1.5 text-xs text-white placeholder-marfim-apagado"
         />
         {toggles.map((t) => (
           <Row key={t.id} label={t.label}>
@@ -131,7 +132,7 @@ export function GraphSettingsPanel({
             label="Fixar nós ao arrastar"
           />
         </Row>
-        <p className="-mt-1 text-[10px] leading-snug text-slate-300">
+        <p className="-mt-1 text-xs leading-snug text-marfim-suave">
           Arraste para organizar: o nó fica onde você soltar (📌). Dois cliques nele, ou “Soltar”, devolvem à física.
         </p>
         <div className="mt-1 flex items-center justify-end gap-2">
@@ -139,15 +140,11 @@ export function GraphSettingsPanel({
             type="button"
             onClick={onUnpinAll}
             disabled={pinnedCount === 0}
-            className="lg-pill rounded-full px-3 py-1.5 text-[11px] font-bold text-white disabled:opacity-40"
+            className={buttonClass({ size: "compacto", className: "disabled:opacity-40" })}
           >
             Soltar todos{pinnedCount ? ` (${pinnedCount})` : ""}
           </button>
-          <button
-            type="button"
-            onClick={onAnimate}
-            className="lg-btn-primary rounded-full px-3.5 py-1.5 text-[11px] font-bold"
-          >
+          <button type="button" onClick={onAnimate} className={buttonClass({ variant: "primario", size: "compacto" })}>
             Animar
           </button>
         </div>
@@ -195,7 +192,7 @@ function Group({ title, defaultOpen = true, children }: { title: string; default
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center gap-1.5 py-1 text-left text-xs font-bold"
       >
-        <span className={`text-[9px] transition-transform ${open ? "rotate-90" : ""}`} aria-hidden="true">
+        <span className={`text-xs transition-transform ${open ? "rotate-90" : ""}`} aria-hidden="true">
           ▶
         </span>
         {title}
@@ -209,7 +206,7 @@ function Group({ title, defaultOpen = true, children }: { title: string; default
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-3 text-[11px] text-slate-200">
+    <div className="flex items-center justify-between gap-3 text-xs text-marfim-suave">
       <span>{label}</span>
       {children}
     </div>
@@ -232,9 +229,9 @@ function Slider({
   const id = useId();
   return (
     <div className="flex flex-col gap-1">
-      <label htmlFor={id} className="flex items-center justify-between gap-2 text-[11px] text-slate-200">
+      <label htmlFor={id} className="flex items-center justify-between gap-2 text-xs text-marfim-suave">
         <span>{label}</span>
-        <span className="font-mono text-[10px] text-slate-300">{hint ?? value.toFixed(2)}</span>
+        <span className="font-mono text-xs text-marfim-suave">{hint ?? value.toFixed(2)}</span>
       </label>
       <input
         id={id}

@@ -33,7 +33,7 @@ export default async function ArticlePage({ params }: PageProps<"/comunidade/[id
       <Link href="/comunidade" className="text-sm font-bold text-cobre-texto underline underline-offset-4">
         ← Comunidade &amp; Saúde
       </Link>
-      <article className="mt-4 rounded-[24px] bg-leitura p-6 sm:p-8">
+      <article className="mt-4 rounded-cartao bg-leitura p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-bold text-cobre-texto">Comunidade &amp; Saúde · c/{category.slug}</p>
           <PostTrustBadge post={post} tone="light" />

@@ -48,10 +48,10 @@ export function PerfilRelogio({ children }: { children?: ReactNode }) {
             {activeAppIds(u.apps)
               .slice(0, 5)
               .map((id) => (
-                <AppTile key={id} appId={id} className="h-6 w-6 rounded-lg" iconClassName="h-3.5 w-3.5" />
+                <AppTile key={id} appId={id} className="h-6 w-6" iconClassName="h-3.5 w-3.5" />
               ))}
           </div>
-          <p className="text-[10px] font-semibold text-slate-200">
+          <p className="text-[10px] font-semibold text-marfim-suave">
             <strong className="font-extrabold text-white">{PROFILE_VIEWS.length}</strong> visualizações ·{" "}
             <strong className="font-extrabold text-white">{RECEIVED_TAPS.length}</strong> toques
           </p>
@@ -72,7 +72,7 @@ export function PerfilRelogio({ children }: { children?: ReactNode }) {
           <button
             type="button"
             onClick={togglePrivacy}
-            className={`lg-liquid lg-sheen flex h-10 w-full items-center justify-between rounded-full px-3.5 text-[11px] font-bold ${u.isPublic ? "text-salvia" : "text-amber-200"}`}
+            className={`lg-liquid lg-sheen flex h-10 w-full items-center justify-between rounded-full px-3.5 text-[11px] font-bold ${u.isPublic ? "text-salvia" : "text-areia"}`}
           >
             <span>{u.isPublic ? "🌐 Público (simulado)" : "🔒 Privado (simulado)"}</span>
             <span className="text-[10px] text-marfim/85">Alternar</span>

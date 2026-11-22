@@ -1,23 +1,22 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent } from "react";
+import { useId, useRef } from "react";
 import { InterestGraph } from "@/components/orbita/InterestGraph";
 import { OrbitMapRadar } from "@/components/orbita/OrbitMapRadar";
 import { useOrbitRecenter } from "@/components/orbita/recenter";
-import { SelosStatus } from "@/components/orbita/SelosStatus";
 import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
 import { useProgressiveCount } from "@/components/orbita/useProgressiveCount";
-import { AppTile } from "@/components/ui/AppBadge";
-import { RingedAvatar } from "@/components/ui/Avatar";
+import { ProfileCard } from "@/components/perfil/ProfileCard";
+import { buttonClass } from "@/components/ui/Button";
+import { ChallengeCard } from "@/components/ui/ChallengeCard";
+import { SegmentedTabs, segmentTabId } from "@/components/ui/SegmentedTabs";
 import { ToggleChip } from "@/components/ui/ToggleChip";
-import { rovingIndex } from "@/lib/a11y/roving";
-import { activeAppIds, EXTERNAL_APPS, INTENTION_LIST, INTENTIONS } from "@/lib/data/intentions";
-import { labelOf, PRONOUNS, TOPICS } from "@/lib/data/profileOptions";
-import { activeFilterCount, sharedTopics } from "@/lib/orbitaFilters";
+import { INTENTION_LIST } from "@/lib/data/intentions";
+import { activeFilterCount } from "@/lib/orbitaFilters";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { OrbitaFilter, OrbitState } from "@/lib/state/reducer";
-import type { Profile, TopicId } from "@/lib/types";
+import type { Profile } from "@/lib/types";
 
 const FILTERS: { id: OrbitaFilter; label: string; color: string }[] = [
   { id: "all", label: "Todos", color: "#f5f0e7" },
@@ -42,19 +41,8 @@ export function OrbitaScreen() {
     dispatch({ type: "setOrbitaFilter", filter: "all" });
   };
   const ids = useId();
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const tabId = (mode: string) => `${ids}-tab-${mode}`;
   const panelId = `${ids}-panel`;
-  const activeIndex = VIEW_MODES.findIndex((m) => m.id === state.orbitaViewMode);
   const setMode = (mode: OrbitState["orbitaViewMode"]) => dispatch({ type: "setOrbitaViewMode", mode });
-
-  const onTabKeyDown = (e: KeyboardEvent) => {
-    const next = rovingIndex(e.key, activeIndex, VIEW_MODES.length);
-    if (next === null) return;
-    e.preventDefault();
-    setMode(VIEW_MODES[next].id);
-    tabRefs.current[next]?.focus();
-  };
 
   return (
     <div className="relative flex h-full w-full flex-col">
@@ -67,44 +55,23 @@ export function OrbitaScreen() {
               className={`${isMobile ? "text-lg" : "text-xl"} flex items-center gap-2 font-bold tracking-tight whitespace-nowrap text-white`}
             >
               Sua Órbita
-              <span className="rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-0.5 font-sans text-[11px] font-semibold whitespace-nowrap text-white">
+              <span className="rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-0.5 font-sans text-xs font-semibold whitespace-nowrap text-white">
                 {profiles.length}
                 <span className={isMobile ? "sr-only" : ""}> perto</span>
               </span>
             </h1>
           </div>
-          <div
-            className="flex shrink-0 items-center rounded-full border border-white/25 bg-tinta p-1"
-            role="tablist"
-            aria-label="Modo de visualização"
-          >
-            {VIEW_MODES.map((mode, i) => {
-              const selected = state.orbitaViewMode === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  ref={(el) => {
-                    tabRefs.current[i] = el;
-                  }}
-                  id={tabId(mode.id)}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  aria-controls={panelId}
-                  tabIndex={selected ? 0 : -1}
-                  onKeyDown={onTabKeyDown}
-                  onClick={() => setMode(mode.id)}
-                  className={`rounded-full ${isMobile ? "px-2.5" : "px-3.5"} py-1.5 text-xs font-bold transition ${
-                    selected ? "lg-active-lens" : "border border-transparent text-slate-300 hover:text-white"
-                  }`}
-                >
-                  {mode.label}
-                </button>
-              );
-            })}
-          </div>
+          <SegmentedTabs
+            items={VIEW_MODES}
+            value={state.orbitaViewMode}
+            onChange={setMode}
+            label="Modo de visualização"
+            idBase={ids}
+            panelId={panelId}
+            compact={isMobile}
+          />
         </div>
-        <p className="mt-1 text-[11px] leading-snug text-slate-300">
+        <p className="mt-1 text-xs leading-snug text-marfim-suave">
           {state.orbitaViewMode === "conexoes"
             ? "Linhas ligam cada pessoa aos assuntos e estilos de música que ela curte. Toque numa pessoa para ver as conexões; toque de novo para abrir o perfil."
             : state.orbitaViewMode === "radial"
@@ -122,7 +89,7 @@ export function OrbitaScreen() {
             onClick={() => dispatch({ type: "openOrbitaFilters" })}
             aria-haspopup="dialog"
             aria-label={filterCount ? `Filtros, ${filterCount} ativos` : "Filtros"}
-            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition ${
+            className={`flex min-h-9 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold transition ${
               filterCount ? "lg-active-lens" : "lg-pill text-white"
             }`}
           >
@@ -143,7 +110,7 @@ export function OrbitaScreen() {
             Filtros
             {filterCount > 0 && (
               <span
-                className="flex h-4 min-w-4 items-center justify-center rounded-full bg-areia px-1 text-[10px] font-extrabold text-tinta"
+                className="flex h-4 min-w-4 items-center justify-center rounded-full bg-areia px-1 text-xs font-extrabold text-tinta"
                 aria-hidden="true"
               >
                 {filterCount}
@@ -160,7 +127,7 @@ export function OrbitaScreen() {
           <div
             role="group"
             aria-label="Filtrar por intenção"
-            className="orbit-scroll -my-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1"
+            className="orbit-scroll -my-1 flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto py-1 pr-6 [mask-image:linear-gradient(to_right,#000_calc(100%-28px),transparent)]"
           >
             {FILTERS.map((f) => (
               <ToggleChip
@@ -179,7 +146,7 @@ export function OrbitaScreen() {
       <div
         id={panelId}
         role="tabpanel"
-        aria-labelledby={tabId(state.orbitaViewMode)}
+        aria-labelledby={segmentTabId(ids, state.orbitaViewMode)}
         className="relative flex min-h-0 flex-1 flex-col"
       >
         {profiles.length === 0 ? (
@@ -220,14 +187,14 @@ function RadialOverlay({ compact, count, onShowList }: { compact: boolean; count
       <button
         type="button"
         onClick={onShowList}
-        className="rounded-full px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10"
+        className="min-h-10 rounded-full px-4 text-xs font-semibold text-white hover:bg-white/10"
       >
         Ver {count} em lista
       </button>
       <button
         type="button"
         onClick={recenter}
-        className="flex items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10 active:scale-95"
+        className="flex min-h-10 items-center gap-1.5 rounded-full px-4 text-xs font-semibold text-white hover:bg-white/10 active:scale-95"
       >
         <svg
           className="h-3.5 w-3.5 text-areia"
@@ -249,28 +216,26 @@ function RadialOverlay({ compact, count, onShowList }: { compact: boolean; count
 function EmptyState({ compact, onClear, onAdjust }: { compact: boolean; onClear: () => void; onAdjust: () => void }) {
   return (
     <div className={`flex flex-1 items-center justify-center ${compact ? "p-5 pb-28" : "p-8"}`}>
-      <div className="lg-panel max-w-sm rounded-[26px] p-6 text-center" role="status">
-        <div className="text-3xl" aria-hidden="true">
-          🔭
-        </div>
-        <h2 className="mt-2 text-base font-bold text-white">Ninguém por perto com esses filtros</h2>
-        <p className="mt-1 text-xs leading-relaxed text-slate-300">
-          Tente afrouxar algum grupo: cada filtro ativo precisa combinar ao mesmo tempo, e quem deixou um campo em
-          branco fica de fora quando você filtra por ele.
-        </p>
-        <div className="mt-4 flex flex-wrap justify-center gap-2">
-          <button type="button" onClick={onClear} className="lg-btn-primary rounded-full px-4 py-2 text-xs font-bold">
-            Limpar filtros
-          </button>
-          <button
-            type="button"
-            onClick={onAdjust}
-            className="lg-pill rounded-full px-4 py-2 text-xs font-bold text-white"
-          >
-            Ajustar filtros
-          </button>
-        </div>
-      </div>
+      <ChallengeCard
+        role="status"
+        icon="🔭"
+        eyebrow="Nenhum resultado"
+        title="Ninguém por perto com esses filtros"
+        className="max-w-sm"
+        actions={
+          <>
+            <button type="button" onClick={onClear} className={buttonClass({ variant: "primario", size: "compacto" })}>
+              Limpar filtros
+            </button>
+            <button type="button" onClick={onAdjust} className={buttonClass({ size: "compacto" })}>
+              Ajustar filtros
+            </button>
+          </>
+        }
+      >
+        Tente afrouxar algum grupo: cada filtro ativo precisa combinar ao mesmo tempo, e quem deixou um campo em branco
+        fica de fora quando você filtra por ele.
+      </ChallengeCard>
     </div>
   );
 }
@@ -291,8 +256,8 @@ function NearbyList({ profiles, compact }: { profiles: Profile[]; compact: boole
         aria-label="Pessoas por perto"
       >
         {profiles.slice(0, shown).map((p) => (
-          <li key={p.id} className="flex [contain-intrinsic-size:auto_190px] [content-visibility:auto]">
-            <NearbyCard
+          <li key={p.id} className="flex [contain-intrinsic-size:auto_250px] [content-visibility:auto]">
+            <ProfileCard
               profile={p}
               userTopics={state.user.topics}
               compact={compact}
@@ -302,76 +267,12 @@ function NearbyList({ profiles, compact }: { profiles: Profile[]; compact: boole
         ))}
         {shown < profiles.length && (
           <li ref={sentinelRef} className="col-span-full flex justify-center py-2">
-            <button
-              type="button"
-              onClick={more}
-              className="lg-pill rounded-full px-4 py-2 text-xs font-bold text-white"
-            >
+            <button type="button" onClick={more} className={buttonClass({ size: "compacto" })}>
               Mostrar mais ({shown} de {profiles.length})
             </button>
           </li>
         )}
       </ul>
     </div>
-  );
-}
-
-function NearbyCard({
-  profile: p,
-  userTopics,
-  compact,
-  onOpen,
-}: {
-  profile: Profile;
-  userTopics: TopicId[];
-  compact: boolean;
-  onOpen: () => void;
-}) {
-  const intention = INTENTIONS[p.primaryIntention];
-  const apps = activeAppIds(p.apps);
-  const shared = sharedTopics(userTopics, p.topics);
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className="lg-panel group flex w-full flex-col gap-2.5 rounded-[22px] p-3.5 text-left transition-colors hover:border-white/30"
-    >
-      <div className="flex items-center gap-2.5">
-        <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} online={p.online} size={52} halo={false}>
-          <SelosStatus profile={p} variant="orbe" />
-        </RingedAvatar>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-sm font-bold text-white">
-            {p.name}, {p.age}
-          </div>
-          <div className="flex flex-wrap items-center gap-x-1 text-[11px] text-slate-300">
-            <span>{PRONOUNS[p.pronouns]} ·</span>
-            <span>📍 {p.dist}</span>
-            {p.online && <span>· online</span>}
-            {p.inPark && <span className="font-semibold text-salvia">· no Parque</span>}
-            {p.visitingFrom && <span>· ✈️ de {p.visitingFrom}</span>}
-          </div>
-        </div>
-      </div>
-      <div
-        className="inline-flex items-center gap-1 self-start rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-        style={{ background: intention.bg, color: intention.text, border: `1px solid ${intention.border}` }}
-      >
-        {intention.emoji} {intention.label}
-      </div>
-      {!compact && <p className="line-clamp-2 text-[11px] leading-relaxed text-slate-300">{p.bio}</p>}
-      {shared.length > 0 && (
-        <p className="text-[11px] leading-snug text-areia">
-          <span className="font-bold">✦ Em comum:</span> {shared.map((id) => labelOf(TOPICS, id)).join(", ")}
-        </p>
-      )}
-      <div className="mt-auto flex items-center gap-1.5 border-t border-white/[0.09] pt-2">
-        {apps.slice(0, 4).map((id) => (
-          <AppTile key={id} appId={id} />
-        ))}
-        {apps.length > 4 && <span className="text-[10px] text-slate-300">+{apps.length - 4}</span>}
-        <span className="sr-only">Selos: {apps.map((id) => EXTERNAL_APPS[id].name).join(", ")}</span>
-      </div>
-    </button>
   );
 }

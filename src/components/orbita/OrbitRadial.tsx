@@ -167,7 +167,7 @@ export function OrbitRadial({
             <MolduraDoUsuario size={centerSize} sombra="0 12px 28px rgba(0,0,0,0.55)">
               <Avatar cfg={state.user.avatar} />
             </MolduraDoUsuario>
-            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-xs font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
               Você<span className="sr-only">, abrir meu perfil</span>
             </span>
           </div>
@@ -195,7 +195,7 @@ export function OrbitRadial({
                   e.stopPropagation();
                   if (!ignoreIfDragged()) dispatch({ type: "openProfile", id: p.id });
                 }}
-                className="flex cursor-pointer flex-col items-center rounded-2xl"
+                className="flex cursor-pointer flex-col items-center rounded-cartao"
               >
                 <div className="relative" data-avatar aria-hidden="true">
                   <OrbeVidro
@@ -207,7 +207,7 @@ export function OrbitRadial({
                     <ProfileImage cfg={p.avatar} photo={p.photo} />
                   </OrbeVidro>
                   {shared > 0 && !isWatch && (
-                    <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
+                    <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-xs font-extrabold text-tinta shadow">
                       {shared}
                     </span>
                   )}
@@ -215,9 +215,9 @@ export function OrbitRadial({
                 </div>
                 <div
                   data-label
-                  className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white`}
+                  className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-xs" : "text-xs"} font-bold whitespace-nowrap text-white`}
                 >
-                  {p.name} {!isWatch && <span className="font-normal text-slate-300">{p.dist}</span>}
+                  {p.name} {!isWatch && <span className="font-normal text-marfim-suave">{p.dist}</span>}
                 </div>
                 <span className="sr-only">
                   , {intention.label}

@@ -183,9 +183,9 @@ function WatchInterestCaption({ entry }: { entry: InterestEntry }) {
         <span className="truncate">
           {p.name}, {p.age}
         </span>
-        {p.online && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />}
+        {p.online && <span className="h-1.5 w-1.5 shrink-0 rounded-full presenca-ponto" aria-hidden="true" />}
       </p>
-      <p className="truncate text-[10px] font-medium text-slate-300">
+      <p className="truncate text-[10px] font-medium text-marfim-suave">
         {formatAgo(entry.minutesAgo)}
         {entry.opens > 1 && <span className="font-bold text-white"> · abriu {entry.opens}×</span>}
       </p>

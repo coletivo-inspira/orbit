@@ -62,10 +62,10 @@ export function AppBadgeIcon({ appId, className = "h-3.5 w-3.5" }: { appId: AppI
   }
 }
 
-/** Colored square app tile (brand color + glyph). */
+/** Circular app tile (brand color + glyph); brandbook v2 keeps every badge round. */
 export function AppTile({
   appId,
-  className = "h-5 w-5 rounded-lg",
+  className = "h-5 w-5",
   iconClassName = "h-3 w-3",
 }: {
   appId: AppId;
@@ -76,7 +76,7 @@ export function AppTile({
   return (
     <span
       title={`Ativo no ${app.name}`}
-      className={`flex shrink-0 items-center justify-center shadow-xs ${className}`}
+      className={`flex shrink-0 items-center justify-center rounded-full shadow-xs ring-1 ring-white/25 ${className}`}
       style={{ background: app.bg, color: app.textColor }}
     >
       <AppBadgeIcon appId={appId} className={iconClassName} />

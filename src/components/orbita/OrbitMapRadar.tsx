@@ -275,7 +275,7 @@ export function OrbitMapRadar({
               data-m={m}
               x={0}
               textAnchor="middle"
-              className="fill-areia/70 text-[10px] font-bold"
+              className="fill-areia/70 text-xs font-bold"
               style={{ paintOrder: "stroke", stroke: "rgb(27 37 48 / 0.85)", strokeWidth: 3 }}
             >
               {ringLabel(m)}
@@ -296,7 +296,7 @@ export function OrbitMapRadar({
             <MolduraDoUsuario size={CENTER_SIZE} sombra="0 12px 28px rgba(0,0,0,0.55)">
               <Avatar cfg={state.user.avatar} />
             </MolduraDoUsuario>
-            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-[10px] font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+            <span className="absolute -bottom-2.5 rounded-full border border-white/30 bg-noite px-2.5 py-0.5 text-xs font-extrabold text-white shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
               Você<span className="sr-only">, abrir meu perfil</span>
             </span>
           </div>
@@ -323,14 +323,14 @@ export function OrbitMapRadar({
                       e.stopPropagation();
                       openCluster(item.members);
                     }}
-                    className="absolute flex cursor-pointer flex-col items-center rounded-2xl"
+                    className="absolute flex cursor-pointer flex-col items-center rounded-cartao"
                     style={{ left: -BUBBLE_BOX.halfW, top: -RADIUS, width: BUBBLE_BOX.halfW * 2 }}
                   >
                     <ClusterDisc lead={lead} count={item.members.length} />
                     <span
                       data-label
                       aria-hidden="true"
-                      className="mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-white"
+                      className="mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 text-xs font-bold whitespace-nowrap text-white"
                     >
                       {item.members.length} pessoas
                     </span>
@@ -363,7 +363,7 @@ export function OrbitMapRadar({
                       e.stopPropagation();
                       if (!ignoreIfDragged()) dispatch({ type: "openProfile", id: p.id });
                     }}
-                    className="flex cursor-pointer flex-col items-center rounded-2xl"
+                    className="flex cursor-pointer flex-col items-center rounded-cartao"
                   >
                     <div className="relative" data-avatar aria-hidden="true">
                       <OrbeVidro
@@ -375,7 +375,7 @@ export function OrbitMapRadar({
                         <ProfileImage cfg={p.avatar} photo={p.photo} />
                       </OrbeVidro>
                       {shared > 0 && (
-                        <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
+                        <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-xs font-extrabold text-tinta shadow">
                           {shared}
                         </span>
                       )}
@@ -383,9 +383,9 @@ export function OrbitMapRadar({
                     </div>
                     <div
                       data-label
-                      className="mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 text-[10px] font-bold whitespace-nowrap text-white"
+                      className="mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 text-xs font-bold whitespace-nowrap text-white"
                     >
-                      {p.name} <span className="font-normal text-slate-300">{p.dist}</span>
+                      {p.name} <span className="font-normal text-marfim-suave">{p.dist}</span>
                     </div>
                     <span className="sr-only">
                       , {intention.label}
@@ -416,12 +416,12 @@ export function OrbitMapRadar({
         className={`absolute z-30 flex flex-col items-end gap-2 ${compact ? "top-2.5 right-2.5" : "top-3.5 right-3.5"}`}
       >
         <RadarLocationControl compact={compact} />
-        <div className="lg-bar flex flex-col overflow-hidden rounded-2xl" role="group" aria-label="Zoom do mapa">
+        <div className="lg-bar flex flex-col overflow-hidden rounded-full" role="group" aria-label="Zoom do mapa">
           <button
             type="button"
             onClick={() => engineRef.current?.zoomBy(1)}
             aria-label="Aproximar o mapa"
-            className="flex h-9 w-9 items-center justify-center text-lg font-bold text-white hover:bg-white/10"
+            className="flex h-10 w-10 items-center justify-center text-lg font-bold text-white hover:bg-white/10"
           >
             +
           </button>
@@ -430,7 +430,7 @@ export function OrbitMapRadar({
             type="button"
             onClick={() => engineRef.current?.zoomBy(-1)}
             aria-label="Afastar o mapa"
-            className="flex h-9 w-9 items-center justify-center text-lg font-bold text-white hover:bg-white/10"
+            className="flex h-10 w-10 items-center justify-center text-lg font-bold text-white hover:bg-white/10"
           >
             −
           </button>
@@ -469,7 +469,7 @@ function MapAttribution({ compact, failed }: { compact: boolean; failed: boolean
   return (
     <div
       data-map-control
-      className={`absolute z-20 max-w-[70%] rounded-md bg-tinta/80 px-1.5 py-0.5 text-[9px] leading-snug text-slate-300 ${
+      className={`absolute z-20 max-w-[70%] rounded-full bg-tinta/80 px-2 py-0.5 text-xs leading-snug text-marfim-suave ${
         compact ? "bottom-[142px] left-2.5" : "bottom-3 left-3"
       }`}
     >

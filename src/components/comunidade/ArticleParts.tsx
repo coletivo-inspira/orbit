@@ -3,7 +3,7 @@ import type { ArticleBlock, CommunityPost, PostComment } from "@/lib/types";
 
 type Tone = "dark" | "light";
 
-const muted: Record<Tone, string> = { dark: "text-slate-300", light: "text-texto-suave" };
+const muted: Record<Tone, string> = { dark: "text-marfim-suave", light: "text-texto-suave" };
 const accent: Record<Tone, string> = { dark: "text-areia", light: "text-cobre-texto" };
 
 export function ArticleBody({ blocks, className = "" }: { blocks: ArticleBlock[]; className?: string }) {
@@ -86,7 +86,7 @@ export function CommentList({
   const total = comments.reduce((n, c) => n + 1 + (c.replies?.length ?? 0), 0);
   return (
     <section aria-labelledby={headingId}>
-      <h2 id={headingId} className={`font-sans text-sm font-bold ${tone === "dark" ? "text-white" : "text-tinta"}`}>
+      <h2 id={headingId} className={`text-sm font-bold ${tone === "dark" ? "text-white" : "text-tinta"}`}>
         Comentários de exemplo ({total})
       </h2>
       <p className={`mt-1 text-xs ${muted[tone]}`}>{note}</p>
@@ -99,7 +99,7 @@ export function CommentList({
                   type="button"
                   onClick={() => onReply(i)}
                   aria-label={`Responder ${c.author}`}
-                  className={`mt-1.5 text-[11px] font-bold ${accent[tone]} hover:underline`}
+                  className={`mt-1.5 text-xs font-bold ${accent[tone]} hover:underline`}
                 >
                   ↩ Responder
                 </button>
@@ -108,7 +108,7 @@ export function CommentList({
             {c.replies && c.replies.length > 0 && (
               <ul
                 aria-label={`Respostas a ${c.author}`}
-                className={`mt-2 ml-4 space-y-2 border-l-2 pl-3 ${tone === "dark" ? "border-violet-300/40" : "border-linha"}`}
+                className={`mt-2 ml-4 space-y-2 border-l-2 pl-3 ${tone === "dark" ? "border-areia/40" : "border-linha"}`}
               >
                 {c.replies.map((r, j) => (
                   <li key={j}>
@@ -137,11 +137,11 @@ function CommentCard({
 }) {
   return (
     <div
-      className={`rounded-2xl border p-3 ${tone === "dark" ? "bg-tinta" : "bg-marfim"} ${
+      className={`rounded-cartao border p-3 ${tone === "dark" ? "bg-tinta" : "bg-marfim"} ${
         highlighted ? "border-areia" : tone === "dark" ? "border-white/[0.12]" : "border-linha"
       }`}
     >
-      <div className="flex items-center justify-between gap-2 text-[11px]">
+      <div className="flex items-center justify-between gap-2 text-xs">
         <span className={`font-bold ${accent[tone]}`}>
           {c.author}
           {c.local && <span className={`ml-1.5 font-semibold ${muted[tone]}`}>· você, só nesta sessão</span>}
