@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties, ReactNode } from "react";
+import { OrbeVidro } from "@/components/ui/OrbeVidro";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { getMoldura, MOLDURA_PADRAO, type MolduraId } from "@/lib/molduras/catalogo";
 import { molduraVisivel } from "@/lib/molduras/conquistas";
@@ -8,7 +9,7 @@ import { useOrbit } from "@/lib/state/OrbitProvider";
 
 interface MolduraAvatarProps {
   molduraId: MolduraId;
-  /** Main intention color; the classic frame is just this ring. */
+  /** Main intention color; the classic frame is a glass orb tinted with it. */
   cor: string;
   size: number;
   /** Extra drop shadow under the avatar (e.g. the radar center). */
@@ -23,17 +24,11 @@ export function MolduraAvatar({ molduraId, cor, size, sombra, className = "", ch
   const escala = size / 64;
 
   if (m.id === MOLDURA_PADRAO) {
-    const ring = Math.min(3, Math.max(2, Math.round(3 * escala * 10) / 10));
     return (
       <div className={`relative shrink-0 ${className}`} style={{ width: size, height: size }} aria-hidden="true">
-        <div
-          className="h-full w-full overflow-hidden rounded-full"
-          style={{
-            boxShadow: `0 0 0 ${ring}px ${cor}, 0 0 0 ${ring * 2}px rgba(255,255,255,0.14)${sombra ? `, ${sombra}` : ""}`,
-          }}
-        >
+        <OrbeVidro cor={cor} size={size} sombra={sombra}>
           {children}
-        </div>
+        </OrbeVidro>
       </div>
     );
   }

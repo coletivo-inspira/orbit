@@ -55,8 +55,8 @@ export interface OrbitState {
   regionId: RegionId;
   /** Profiles the user tapped, newest first. */
   sentTaps: string[];
-  /** 0: Órbita, 1: Parque, 2: Meu Cartão */
-  watchPage: 0 | 1 | 2;
+  /** 0: Órbita, 1: Parque, 2: Meu Cartão, 3: Interesse */
+  watchPage: 0 | 1 | 2 | 3;
   selectedProfileId: string | null;
   selectedArticleId: string | null;
   composerKind: PostKind | null;

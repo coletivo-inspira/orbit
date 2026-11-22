@@ -336,6 +336,88 @@
     left: 0;
   }
 
+  /* ---------------------------------------------------------------------------
+     Glass orb (<OrbeVidro />): thick glass rim with iridescent reflections, tinted
+     by the person's status color (--tom). Gradients and shadows only, no filters:
+     the radar can mount hundreds of these.
+     --------------------------------------------------------------------------- */
+  .orbe-vidro {
+    --t: color-mix(in oklab, var(--tom, #dec9a8) 50%, #7f8b98);
+    display: block;
+    position: relative;
+    flex-shrink: 0;
+    padding: var(--aro, 4px);
+    border-radius: 50%;
+    background:
+      linear-gradient(
+        142deg,
+        rgb(255 255 255 / 88%) 0%,
+        rgb(255 255 255 / 22%) 20%,
+        transparent 38%,
+        transparent 64%,
+        rgb(255 255 255 / 10%) 82%,
+        rgb(255 255 255 / 62%) 100%
+      ),
+      conic-gradient(
+        from 205deg,
+        color-mix(in oklab, var(--t) 58%, #bdefff),
+        var(--t) 16%,
+        color-mix(in oklab, var(--t) 62%, #f6d3f4) 31%,
+        color-mix(in oklab, var(--t) 42%, var(--color-tinta)) 46%,
+        color-mix(in oklab, var(--t) 66%, #fff0cf) 60%,
+        var(--t) 74%,
+        color-mix(in oklab, var(--t) 52%, #c9d8ff) 88%,
+        color-mix(in oklab, var(--t) 58%, #bdefff)
+      );
+    box-shadow:
+      inset 0 1px 0.5px rgb(255 255 255 / 70%),
+      inset 0 -1px 1px rgb(10 14 19 / 35%),
+      0 0 0 0.5px rgb(245 240 231 / 30%),
+      0 8px 18px -8px rgb(6 10 15 / 70%),
+      var(--sombra, 0 0 #0000);
+  }
+  .orbe-vidro[data-online] {
+    --t: var(--tom, #dec9a8);
+    box-shadow:
+      inset 0 1px 0.5px rgb(255 255 255 / 75%),
+      inset 0 -1px 1px rgb(10 14 19 / 35%),
+      0 0 0 0.5px rgb(245 240 231 / 35%),
+      0 0 14px -3px color-mix(in oklab, var(--tom) 65%, transparent),
+      0 8px 18px -8px rgb(6 10 15 / 70%),
+      var(--sombra, 0 0 #0000);
+  }
+  .orbe-vidro-foto {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    background: var(--color-noite);
+  }
+  /* Inner lens edge: tinted glow, bright top lip and a gentle gloss over the photo. */
+  .orbe-vidro::after {
+    content: "";
+    position: absolute;
+    inset: var(--aro, 4px);
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(158deg, rgb(255 255 255 / 20%) 0%, rgb(255 255 255 / 4%) 26%, transparent 42%);
+    box-shadow:
+      inset 0 0 0 1px rgb(255 255 255 / 24%),
+      inset 0 2px 3px -1px rgb(255 255 255 / 40%),
+      inset 0 -4px 8px -4px rgb(4 8 12 / 55%),
+      inset 0 0 calc(var(--aro, 4px) * 2.2) color-mix(in oklab, var(--t) 40%, transparent);
+  }
+  @media (prefers-contrast: more) {
+    .orbe-vidro {
+      background: var(--tom, var(--color-areia));
+    }
+    .orbe-vidro::after {
+      background: none;
+      box-shadow: inset 0 0 0 1px var(--color-tinta);
+    }
+  }
+
   /* Specular sheen that follows the pointer (position set by <LiquidSheen />). */
   .lg-sheen::before {
     content: "";
@@ -354,6 +436,164 @@
 
   .lg-sheen:hover::before {
     opacity: 1;
+  }
+
+  /* ---------------------------------------------------------------------------
+     Liquid Glass over a scene (watch): translucent tint, refraction-like rim
+     (bright top-left, dark bottom-right) and a specular top edge. The tint stays
+     dark enough for ivory text over any part of the ocean.
+     --------------------------------------------------------------------------- */
+  .lg-liquid {
+    position: relative;
+    isolation: isolate;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 15%) 0%, rgb(255 255 255 / 3%) 48%, rgb(255 255 255 / 7%) 100%),
+      rgb(6 28 44 / 72%);
+    border: 1px solid rgb(245 240 231 / 18%);
+    box-shadow:
+      inset 0 1px 0.5px rgb(255 255 255 / 55%),
+      inset 0 -1px 1px rgb(255 255 255 / 12%),
+      inset 0 0 16px rgb(150 225 255 / 9%),
+      0 10px 24px rgb(2 12 22 / 42%);
+    transition:
+      background 0.2s ease,
+      transform 0.16s ease;
+  }
+  .lg-liquid::after {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgb(255 255 255 / 75%) 0%,
+      rgb(255 255 255 / 8%) 32%,
+      rgb(150 225 255 / 4%) 62%,
+      rgb(255 255 255 / 38%) 100%
+    );
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+  @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+    .lg-liquid {
+      background:
+        linear-gradient(180deg, rgb(255 255 255 / 15%) 0%, rgb(255 255 255 / 3%) 48%, rgb(255 255 255 / 7%) 100%),
+        rgb(6 28 44 / 38%);
+      -webkit-backdrop-filter: blur(10px) saturate(175%) brightness(1.06);
+      backdrop-filter: blur(10px) saturate(175%) brightness(1.06);
+    }
+  }
+  .lg-liquid:is(button):hover {
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 22%) 0%, rgb(255 255 255 / 6%) 48%, rgb(255 255 255 / 10%) 100%),
+      rgb(6 28 44 / 34%);
+  }
+  .lg-liquid:is(button):active {
+    transform: scale(0.97);
+  }
+
+  /* Underwater scene: light from the surface, slow rays, caustics and rising bubbles. */
+  .oceano-cena {
+    background:
+      radial-gradient(120% 55% at 50% -12%, rgb(178 236 255 / 55%), transparent 62%),
+      radial-gradient(90% 40% at 50% 112%, rgb(222 201 168 / 30%), transparent 70%),
+      linear-gradient(180deg, #1a6f93 0%, #0f5577 26%, #0a3d5c 52%, #072a43 76%, #051c2e 100%);
+  }
+  .oceano-raios {
+    background: repeating-conic-gradient(
+      from 168deg at 50% -18%,
+      rgb(200 240 255 / 0%) 0deg 4deg,
+      rgb(200 240 255 / 13%) 5deg 7deg,
+      rgb(200 240 255 / 0%) 9deg 13deg
+    );
+    mask: linear-gradient(180deg, #000 0%, rgb(0 0 0 / 50%) 45%, transparent 78%);
+    transform-origin: 50% -18%;
+    animation: oceanoRaios 13s ease-in-out infinite alternate;
+  }
+  .oceano-caustica {
+    background:
+      radial-gradient(38% 14% at 30% 20%, rgb(190 245 255 / 22%), transparent 70%),
+      radial-gradient(30% 12% at 72% 34%, rgb(190 245 255 / 16%), transparent 70%),
+      radial-gradient(44% 10% at 50% 8%, rgb(255 255 255 / 20%), transparent 70%);
+    filter: blur(6px);
+    animation: oceanoCaustica 9s ease-in-out infinite alternate;
+  }
+  .oceano-bolha {
+    position: absolute;
+    bottom: -12px;
+    border-radius: 999px;
+    background: radial-gradient(circle at 32% 30%, rgb(255 255 255 / 70%), rgb(190 240 255 / 18%) 45%, transparent 70%);
+    box-shadow: inset 0 0 0 1px rgb(220 245 255 / 35%);
+    animation: oceanoBolha var(--dur, 11s) linear var(--atraso, 0s) infinite;
+  }
+
+  @keyframes oceanoRaios {
+    from {
+      transform: rotate(-4deg);
+    }
+    to {
+      transform: rotate(4deg);
+    }
+  }
+
+  @keyframes oceanoCaustica {
+    from {
+      transform: translate3d(-8px, 0, 0) scale(1);
+      opacity: 0.75;
+    }
+    to {
+      transform: translate3d(10px, 6px, 0) scale(1.08);
+      opacity: 1;
+    }
+  }
+
+  @keyframes oceanoBolha {
+    0% {
+      transform: translate3d(0, 0, 0);
+      opacity: 0;
+    }
+    12% {
+      opacity: 0.9;
+    }
+    50% {
+      transform: translate3d(6px, -180px, 0);
+    }
+    100% {
+      transform: translate3d(-4px, -360px, 0);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .oceano-raios,
+    .oceano-caustica {
+      animation: none;
+    }
+    .oceano-bolha {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .lg-liquid,
+    .lg-liquid:is(button):hover {
+      background: var(--color-noite) !important;
+      border-color: rgb(245 240 231 / 30%);
+      -webkit-backdrop-filter: none !important;
+      backdrop-filter: none !important;
+    }
+  }
+
+  @media (prefers-contrast: more) {
+    .lg-liquid,
+    .lg-liquid:is(button):hover {
+      background: var(--color-tinta);
+      border-color: var(--color-marfim);
+    }
   }
 
   .orbit-scroll::-webkit-scrollbar {

@@ -262,6 +262,13 @@ describe("sanitizeStoredUser", () => {
 });
 
 describe("Interesse", () => {
+  it("opens the watch's Interesse page, closing any open profile", () => {
+    const open = orbitReducer(createInitialState(), { type: "openProfile", id: RECEIVED_TAPS[0].profile.id });
+    const state = orbitReducer(open, { type: "setWatchPage", page: 3 });
+    expect(state.watchPage).toBe(3);
+    expect(state.selectedProfileId).toBeNull();
+  });
+
   it("records each tap once, newest first", () => {
     let state = createInitialState();
     state = orbitReducer(state, { type: "tapProfile", id: "p1" });
