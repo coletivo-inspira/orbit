@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { OBSTACLES, PARK_BOTS, PLAYER_SPAWN } from "@/lib/data/park";
 import { fisheye, hexRingPositions, panToReveal } from "./orbitHoneycomb";
-import { collidesAt, proximityOf } from "./park2d";
+import { proximityOf } from "./park2d";
+import { collidesAt } from "./scenes/centralPark";
 
 describe("panToReveal", () => {
   it("centers inner bubbles", () => {
