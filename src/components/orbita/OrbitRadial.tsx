@@ -1,7 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
+import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
+import { RadarMapBackdrop } from "@/components/orbita/RadarMapBackdrop";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
+import { hasTalked } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { hexRingPositions, maxPanFor, OrbitHoneycombEngine } from "@/lib/engines/orbitHoneycomb";
@@ -43,8 +46,9 @@ export function OrbitRadial({
   const { getScale } = useDevice();
   const fieldRef = useRef<HTMLDivElement>(null);
   const centerRef = useRef<HTMLButtonElement>(null);
-  const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const bubbleRefs = useRef<(HTMLDivElement | null)[]>([]);
   const engineRef = useRef<OrbitHoneycombEngine | null>(null);
+  const backdropRef = useRef<SVGSVGElement>(null);
 
   const crowded = profiles.length > 24;
   const baseRadius = isWatch ? 24 : crowded ? 32 : 36;
@@ -65,6 +69,7 @@ export function OrbitRadial({
       centerOffsetY,
       getScale,
       reducedMotion: prefersReducedMotion,
+      backdropEl: backdropRef.current,
       nodes: bubbleRefs.current
         .slice(0, positions.length)
         .flatMap((el, i) =>
@@ -92,6 +97,7 @@ export function OrbitRadial({
       className={`relative cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing ${className}`}
       style={style}
     >
+      {!isWatch && <RadarMapBackdrop ref={backdropRef} />}
       {!isWatch && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-30">
           <div className="h-[210px] w-[210px] rounded-full border border-white/25" />
@@ -132,63 +138,88 @@ export function OrbitRadial({
         {profiles.map((p, idx) => {
           const intention = INTENTIONS[p.primaryIntention];
           const shared = affinity?.get(p.id) ?? 0;
+          const conversation = state.conversations[p.id];
+          const revealOnKeyboard = (e: React.FocusEvent<HTMLElement>) =>
+            e.currentTarget.matches(":focus-visible") && engineRef.current?.reveal(idx);
           return (
-            <button
+            <div
               key={p.id}
               ref={(el) => {
                 bubbleRefs.current[idx] = el;
               }}
-              type="button"
-              onFocus={(e) => e.currentTarget.matches(":focus-visible") && engineRef.current?.reveal(idx)}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (!ignoreIfDragged()) dispatch({ type: "openProfile", id: p.id });
-              }}
-              className="absolute top-0 left-0 flex cursor-pointer flex-col items-center rounded-2xl opacity-0 will-change-transform"
+              className="absolute top-0 left-0 opacity-0 will-change-transform"
             >
-              <div className="relative" aria-hidden="true">
-                <div
-                  className="overflow-hidden rounded-full"
-                  style={{
-                    width: diameter,
-                    height: diameter,
-                    boxShadow: `0 0 0 2.5px ${intention.color}, 0 0 0 ${isWatch ? 4 : 5}px rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45)`,
-                  }}
-                >
-                  <ProfileImage cfg={p.avatar} photo={p.photo} />
-                </div>
-                {shared > 0 && !isWatch && (
-                  <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
-                    {shared}
-                  </span>
-                )}
-                {p.online && (
-                  <span
-                    className={`absolute right-0.5 bottom-0.5 ${isWatch ? "h-2.5 w-2.5" : "h-3 w-3"} rounded-full border-2 border-tinta bg-emerald-400`}
-                  />
-                )}
-                {p.inPark && !isWatch && (
-                  <span
-                    title="Está no Parque 2D"
-                    className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-salvia text-[10px] shadow"
-                  >
-                    🌳
-                  </span>
-                )}
-              </div>
-              <div
-                data-label
-                className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white`}
+              <button
+                type="button"
+                onFocus={revealOnKeyboard}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!ignoreIfDragged()) dispatch({ type: "openProfile", id: p.id });
+                }}
+                className="flex cursor-pointer flex-col items-center rounded-2xl"
               >
-                {p.name} <span className="font-normal text-slate-300">{p.dist}</span>
-              </div>
-              <span className="sr-only">
-                , {intention.label}
-                {shared > 0 ? `, ${shared} ${shared === 1 ? "assunto" : "assuntos"} em comum` : ""}
-                {p.online ? ", online" : ""}
-                {p.inPark ? ", no Parque" : ""}. Ver perfil
-              </span>
-            </button>
+                <div className="relative" data-avatar aria-hidden="true">
+                  <div
+                    className="overflow-hidden rounded-full"
+                    style={{
+                      width: diameter,
+                      height: diameter,
+                      boxShadow: `0 0 0 2.5px ${intention.color}, 0 0 0 ${isWatch ? 4 : 5}px rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45)`,
+                    }}
+                  >
+                    <ProfileImage cfg={p.avatar} photo={p.photo} />
+                  </div>
+                  {shared > 0 && !isWatch && (
+                    <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
+                      {shared}
+                    </span>
+                  )}
+                  {p.online && (
+                    <span
+                      className={`absolute right-0.5 bottom-0.5 ${isWatch ? "h-2.5 w-2.5" : "h-3 w-3"} rounded-full border-2 border-tinta bg-emerald-400`}
+                    />
+                  )}
+                  {p.visitingFrom && !isWatch && (
+                    <span
+                      title={`De passagem, mora em ${p.visitingFrom}`}
+                      className="absolute -bottom-1 -left-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-noite text-[10px] shadow"
+                    >
+                      ✈️
+                    </span>
+                  )}
+                  {p.inPark && !isWatch && (
+                    <span
+                      title="Está no Parque 2D"
+                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border border-white/40 bg-salvia text-[10px] shadow"
+                    >
+                      🌳
+                    </span>
+                  )}
+                </div>
+                <div
+                  data-label
+                  className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white`}
+                >
+                  {p.name} <span className="font-normal text-slate-300">{p.dist}</span>
+                </div>
+                <span className="sr-only">
+                  , {intention.label}
+                  {shared > 0 ? `, ${shared} ${shared === 1 ? "assunto" : "assuntos"} em comum` : ""}
+                  {p.online ? ", online" : ""}
+                  {p.visitingFrom ? `, de passagem, mora em ${p.visitingFrom}` : ""}
+                  {p.inPark ? ", no Parque" : ""}. Ver perfil
+                </span>
+              </button>
+              {hasTalked(conversation) && !isWatch && (
+                <ConversationBalloon
+                  name={p.name}
+                  conversation={conversation}
+                  onFocus={revealOnKeyboard}
+                  onOpen={(origin) => !ignoreIfDragged() && dispatch({ type: "openMiniChat", id: p.id, origin })}
+                  style={{ left: diameter * 0.62, top: -24 }}
+                />
+              )}
+            </div>
           );
         })}
       </div>

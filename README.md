@@ -53,7 +53,8 @@ O workflow `.github/workflows/ci.yml` roda todas essas etapas em cada pull reque
 - **Tailwind CSS 4** + tokens do brandbook (`docs/design/brandbook.html`) em `src/app/globals.css`: tinta `#1C2631`, noite `#27323D`, marfim `#F5F0E7`, areia `#DEC9A8`, cobre `#A87356`, sálvia `#D9E4D6`, mais o token de foco `--foco`. O vidro (`lg-bar`, `lg-header`: 88% de opacidade + `blur(12px)`, fallback sólido `#27323D`) fica só em barras de navegação e ações flutuantes; leitura e edição usam superfícies opacas (`lg-panel`, `lg-sheet`). Com `prefers-reduced-transparency` o vidro vira sólido; com `prefers-reduced-motion` animações, inércia da Órbita e reflexo do ponteiro (`lg-sheen`) são desligados.
 - **Tipografia**: Bricolage Grotesque (SIL OFL, `src/app/fonts/`) em títulos e na assinatura; fonte do sistema no texto corrido. Ícones (`src/app/icon.svg`, `apple-icon.png`, `public/icons/`) usam o símbolo oficial `docs/design/orbit-marca.svg`.
 - **Acessibilidade compartilhada** (`src/lib/a11y/`): `useDialogFocus` (foco entra no diálogo, circula, fundo inerte, Esc devolve ao acionador ou ao `data-focus-fallback` da tela), `rovingIndex` (abas por setas) e `useReducedMotion`. Links públicos saem de `src/lib/publicUrl.ts`, que respeita o `basePath`.
-- **Órbita**: motor próprio em TypeScript (`src/lib/engines/orbitHoneycomb.ts`) que posiciona as bolhas em anéis hexagonais, com efeito fisheye, inércia e limite elástico. O React renderiza o markup e o motor só atualiza `transform`/`opacity`.
+- **Órbita**: motor próprio em TypeScript (`src/lib/engines/orbitHoneycomb.ts`) que posiciona as bolhas em anéis hexagonais, com efeito fisheye, inércia e limite elástico. O React renderiza o markup e o motor só atualiza `transform`/`opacity`. Por baixo, um mapa de ruas estilizado (`engines/radarMap.ts`) acompanha o arraste em paralaxe; ele é decorativo e não indica posição real.
+- **Conexões**: aba da Órbita no estilo do grafo do Obsidian. `src/lib/engines/interestGraph.ts` monta o grafo (você, as pessoas filtradas e os interesses que pelo menos duas pessoas têm) e roda um layout de forças determinístico; `engines/graphView.ts` cuida de arrastar, zoom (roda, pinça e botões) e arrastar nós. As linhas têm três origens, que podem ser ligadas e desligadas: assuntos do perfil (linha contínua), Discussões da Comunidade (tracejada) e gêneros musicais do Spotify (verde). Veja [Conversas e conexões](#conversas-e-conexões).
 - **Parque 2D**: motor Canvas 2D em TypeScript (`src/lib/engines/park2d.ts`) com colisão deslizante, câmera suave, clique/arraste, WASD/setas (só com o mapa em foco), D-Pad (ponteiro, Espaço ou Enter), 7 bots com falas e o easter egg do gato Paçoca. A lista "Pessoas" expõe quem está por perto com ações de conversar e ver perfil, sem depender do canvas.
 - **Parque pelo mundo**: o Parque abre num mapa-múndi pontilhado (`src/components/parque/WorldMapPicker.tsx`) com o Parque Central e salas em cidades reais. Cada sala de cidade é uma miniatura "de massinha" das ruas de verdade, desenhada pela cena `src/lib/engines/scenes/clayCity.ts` sobre o mesmo motor do Parque Central (que virou a cena `scenes/centralPark.ts`). Veja [Parque pelo mundo](#parque-pelo-mundo).
 - **Estado**: um único reducer (`src/lib/state/reducer.ts`) compartilhado por todos os layouts; o Perfil Hub fica salvo no `localStorage` até existir backend.
@@ -95,6 +96,25 @@ O mapa-múndi (`src/lib/data/worldLand.json`) é a terra do Natural Earth 1:110m
 **Atribuição e licença.** Os dados de ruas, prédios e pontos de interesse são do © [OpenStreetMap](https://www.openstreetmap.org/copyright) e seus colaboradores, sob a licença ODbL. Por isso cada sala mostra "Mapa © OpenStreetMap" com link para a página de copyright, e os JSONs gerados são uma base de dados derivada que continua sob ODbL.
 
 **Por que não Google Maps.** Os termos do Google Maps Platform proíbem extrair ou guardar dados do mapa para usar fora dos mapas do Google, e é justamente isso que as salas fazem (redesenhar as ruas num jogo próprio). Além disso exigiriam chave de API e cobrança. O OSM permite esse uso desde que haja atribuição.
+
+## Conversas e conexões
+
+**Mini chat efêmero.** Quem já conversou com você ganha um balão de quadrinho ao lado da bolinha, no radar e no grafo. Tocar nele abre o mini chat (`src/components/orbita/MiniChat.tsx`): as duas fotos crescem lado a lado a partir da bolinha, cada uma com só a **última fala** daquele lado. Quando a pessoa ainda não respondeu, o balão dela fica vazio (tracejado). Responder troca o seu balão. Falar com alguém no Parque também alimenta esses balões.
+
+**O que fica guardado.** O estado visível (`src/lib/conversas.ts`) guarda no máximo uma fala de cada lado e não vai para o `localStorage`. Toda fala também passa por um `ConversationArchive` (`src/lib/seguranca/conversationArchive.ts`), o registro completo usado em denúncias ou ordens judiciais. No Modo Explorar não há servidor: o registro é cifrado com AES-GCM (chave de 256 bits, não exportável, gerada por sessão) e fica só na memória da aba. O texto mostrado ao usuário fala em "registro criptografado com acesso restrito" e diz explicitamente que **não é ponta a ponta**, porque o Orbit precisa conseguir abrir o registro nesses casos.
+
+**Backend previsto (ainda não implementado).**
+
+- Tabela `messages` no Supabase com o texto numa coluna criptografada (Vault/pgsodium ou chave em KMS), nunca em texto puro.
+- RLS: o usuário não lê a tabela; lê só uma view com a última fala de cada lado por conversa.
+- Abertura do registro só pelo papel de moderação, ao apurar uma denúncia de alguém da conversa ou por ordem judicial, com log de auditoria de cada acesso.
+- Prazo de retenção a decidir na política de privacidade (sugestão: 6 meses), com apagamento automático depois disso. O Marco Civil obriga a guardar registros de acesso por 6 meses, não o conteúdo, então guardar o conteúdo precisa de base legal própria na LGPD.
+
+**De onde vêm as linhas do grafo.**
+
+- **Perfil**: os assuntos que a pessoa marcou.
+- **Comunidade**: assuntos das threads em que a pessoa postou ou comentou, **só na categoria Discussões** (`INTEREST_CATEGORIES` em `src/lib/community.ts`). Vacinas, Prevenção e Saúde Mental nunca viram ligação: comentar num post sobre PrEP não pode virar uma tag pública (dado sensível de saúde).
+- **Spotify**: gêneros musicais de quem tem o selo do Spotify ativo (`src/lib/data/music.ts`, simulados). A integração real leria os artistas mais ouvidos (escopo `user-top-read`) no servidor e guardaria só os gêneros; antes disso, confira os limites atuais da API do Spotify para apps novos (o modo de desenvolvimento limita o número de usuários).
 
 ## PWA, Modo Explorar e matriz de dispositivos
 

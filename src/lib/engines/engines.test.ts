@@ -1,8 +1,35 @@
 import { describe, expect, it } from "vitest";
 import { OBSTACLES, PARK_BOTS, PLAYER_SPAWN } from "@/lib/data/park";
 import { fisheye, hexRingPositions, panToReveal } from "./orbitHoneycomb";
+import { clampZoom, fitTransform, MAX_ZOOM, MIN_ZOOM } from "./graphView";
 import { proximityOf } from "./park2d";
+import { generateRadarMap } from "./radarMap";
 import { collidesAt } from "./scenes/centralPark";
+
+describe("generateRadarMap", () => {
+  it("is deterministic and has streets, a river and parks", () => {
+    const map = generateRadarMap();
+    expect(generateRadarMap()).toEqual(map);
+    expect(map.minor.length).toBeGreaterThan(10);
+    expect(map.major.length).toBeGreaterThan(3);
+    expect(map.river.startsWith("M")).toBe(true);
+    expect(map.parks).toHaveLength(4);
+  });
+});
+
+describe("graph viewport", () => {
+  it("clamps zoom", () => {
+    expect(clampZoom(10)).toBe(MAX_ZOOM);
+    expect(clampZoom(0)).toBe(MIN_ZOOM);
+  });
+
+  it("fits and centers the bounds", () => {
+    const t = fitTransform({ minX: 0, minY: 0, maxX: 400, maxY: 200 }, 400, 400);
+    expect(t.zoom).toBeCloseTo(400 / 520);
+    expect(t.panX).toBeCloseTo(-200 * t.zoom);
+    expect(t.panY).toBeCloseTo(-100 * t.zoom);
+  });
+});
 
 describe("panToReveal", () => {
   it("centers inner bubbles", () => {

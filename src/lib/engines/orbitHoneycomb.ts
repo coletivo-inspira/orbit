@@ -50,7 +50,11 @@ interface EngineOptions {
   getScale: () => number;
   /** Read on every interaction so a change of the OS setting applies immediately. */
   reducedMotion: () => boolean;
+  /** Map layer that follows the pan at a slower rate (parallax). */
+  backdropEl?: HTMLElement | SVGElement | null;
 }
+
+export const BACKDROP_PARALLAX = 0.55;
 
 const REST_SPEED = 0.05;
 
@@ -221,6 +225,11 @@ export class OrbitHoneycombEngine {
 
     centerEl.style.left = `${cx}px`;
     centerEl.style.top = `${cy}px`;
+    if (this.opts.backdropEl) {
+      const bx = this.panX * BACKDROP_PARALLAX;
+      const by = this.panY * BACKDROP_PARALLAX - centerOffsetY;
+      this.opts.backdropEl.style.transform = `translate(-50%, -50%) translate3d(${bx.toFixed(1)}px, ${by.toFixed(1)}px, 0)`;
+    }
 
     const maxDist = Math.min(w, h) * 0.56;
     const minClear = isWatch ? 54 : 84;
