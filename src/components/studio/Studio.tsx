@@ -131,6 +131,7 @@ function StudioContent() {
     if (tab === "orbita") dispatch({ type: "setWatchPage", page: 0 });
     else if (tab === "parque") dispatch({ type: "setWatchPage", page: 1 });
     else if (tab === "perfil") dispatch({ type: "setWatchPage", page: 2 });
+    else if (tab === "interesse") dispatch({ type: "setWatchPage", page: 3 });
     else switchDevice("mobile");
   };
 

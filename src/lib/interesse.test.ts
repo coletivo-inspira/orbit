@@ -3,6 +3,8 @@ import {
   buildInterestFeed,
   formatAgo,
   INTEREST_FEED,
+  INTEREST_TAP_COUNT,
+  interestEntryLabel,
   PROFILE_VIEWS,
   RECEIVED_TAPS,
   receivedTapFrom,
@@ -46,6 +48,16 @@ describe("simulated Interesse", () => {
     expect(feed[0]).toMatchObject({ minutesAgo: 10, opens: 4, tapMinutesAgo: 10 });
     expect(feed[1]).toMatchObject({ minutesAgo: 40, opens: 2 });
     expect(feed[1].tapMinutesAgo).toBeUndefined();
+  });
+
+  it("names each card for screen readers with its toque and repeat opens", () => {
+    const tapped = INTEREST_FEED.find((e) => e.tapMinutesAgo !== undefined && e.opens > 1)!;
+    expect(interestEntryLabel(tapped)).toBe(
+      `${tapped.profile.name}, ${tapped.profile.age}, te deu um toque, abriu seu perfil ${tapped.opens} vezes`,
+    );
+    const once = INTEREST_FEED.find((e) => e.tapMinutesAgo === undefined && e.opens === 1)!;
+    expect(interestEntryLabel(once)).toBe(`${once.profile.name}, ${once.profile.age}`);
+    expect(INTEREST_TAP_COUNT).toBe(RECEIVED_TAPS.length);
   });
 
   it("finds who tapped the user", () => {
