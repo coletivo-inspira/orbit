@@ -1,10 +1,10 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from "react";
-import { Avatar } from "@/components/ui/Avatar";
+import { Avatar, ProfileImage } from "@/components/ui/Avatar";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
-import { hexRingPositions, OrbitHoneycombEngine } from "@/lib/engines/orbitHoneycomb";
+import { hexRingPositions, maxPanFor, OrbitHoneycombEngine } from "@/lib/engines/orbitHoneycomb";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
@@ -14,6 +14,8 @@ interface OrbitRadialProps {
   isWatch?: boolean;
   centerOffsetY?: number;
   onCenterClick: () => void;
+  /** Shared-topic count per profile id, shown as a badge on each bubble. */
+  affinity?: ReadonlyMap<string, number>;
   /** Rendered inside the drag field (e.g. the recenter button, which reads `useOrbitRecenter`). */
   overlay?: React.ReactNode;
   className?: string;
@@ -32,6 +34,7 @@ export function OrbitRadial({
   isWatch = false,
   centerOffsetY = 0,
   onCenterClick,
+  affinity,
   overlay,
   className = "",
   style,
@@ -43,8 +46,11 @@ export function OrbitRadial({
   const bubbleRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const engineRef = useRef<OrbitHoneycombEngine | null>(null);
 
-  const baseRadius = isWatch ? 24 : 36;
-  const positions = useMemo(() => hexRingPositions(profiles.length, isWatch ? 64 : 104), [profiles.length, isWatch]);
+  const crowded = profiles.length > 24;
+  const baseRadius = isWatch ? 24 : crowded ? 32 : 36;
+  const spacing = isWatch ? 64 : crowded ? 94 : 104;
+  const positions = useMemo(() => hexRingPositions(profiles.length, spacing), [profiles.length, spacing]);
+  const maxPan = maxPanFor(positions, isWatch);
   const profileKey = profiles.map((p) => p.id).join(",");
 
   useEffect(() => {
@@ -55,6 +61,7 @@ export function OrbitRadial({
       container: field,
       centerEl: center,
       isWatch,
+      maxPan,
       centerOffsetY,
       getScale,
       reducedMotion: prefersReducedMotion,
@@ -71,7 +78,7 @@ export function OrbitRadial({
       engine.destroy();
       engineRef.current = null;
     };
-  }, [profileKey, positions, isWatch, centerOffsetY, getScale]);
+  }, [profileKey, positions, maxPan, isWatch, centerOffsetY, getScale]);
 
   const userIntention = INTENTIONS[state.user.primaryIntention];
   const centerSize = baseRadius * 2.15;
@@ -90,6 +97,9 @@ export function OrbitRadial({
           <div className="h-[210px] w-[210px] rounded-full border border-white/25" />
           <div className="absolute h-[390px] w-[390px] rounded-full border border-dashed border-areia/25" />
           <div className="absolute h-[580px] w-[580px] rounded-full border border-white/10" />
+          {crowded && (
+            <div className="absolute h-[780px] w-[780px] rounded-full border border-dashed border-white/[0.08]" />
+          )}
         </div>
       )}
 
@@ -121,6 +131,7 @@ export function OrbitRadial({
 
         {profiles.map((p, idx) => {
           const intention = INTENTIONS[p.primaryIntention];
+          const shared = affinity?.get(p.id) ?? 0;
           return (
             <button
               key={p.id}
@@ -144,8 +155,13 @@ export function OrbitRadial({
                     boxShadow: `0 0 0 2.5px ${intention.color}, 0 0 0 ${isWatch ? 4 : 5}px rgba(255,255,255,0.12), 0 10px 22px rgba(0,0,0,0.45)`,
                   }}
                 >
-                  <Avatar cfg={p.avatar} />
+                  <ProfileImage cfg={p.avatar} photo={p.photo} />
                 </div>
+                {shared > 0 && !isWatch && (
+                  <span className="absolute -top-1 -left-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-tinta bg-areia px-1 text-[10px] font-extrabold text-tinta shadow">
+                    {shared}
+                  </span>
+                )}
                 {p.online && (
                   <span
                     className={`absolute right-0.5 bottom-0.5 ${isWatch ? "h-2.5 w-2.5" : "h-3 w-3"} rounded-full border-2 border-tinta bg-emerald-400`}
@@ -168,6 +184,7 @@ export function OrbitRadial({
               </div>
               <span className="sr-only">
                 , {intention.label}
+                {shared > 0 ? `, ${shared} ${shared === 1 ? "assunto" : "assuntos"} em comum` : ""}
                 {p.online ? ", online" : ""}
                 {p.inPark ? ", no Parque" : ""}. Ver perfil
               </span>

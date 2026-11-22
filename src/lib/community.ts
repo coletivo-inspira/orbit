@@ -1,0 +1,120 @@
+import { COMMUNITY_CATEGORIES } from "@/lib/data/intentions";
+import type { CommunityPost, PostDraft, ProfessionalCouncil, VoteDirection } from "@/lib/types";
+
+export type CommunitySort = "hot" | "new";
+
+export const COUNCILS: Record<ProfessionalCouncil, { profession: string; name: string }> = {
+  CRM: { profession: "Médico(a)", name: "Conselho Regional de Medicina" },
+  COREN: { profession: "Enfermeiro(a)", name: "Conselho Regional de Enfermagem" },
+  CRP: { profession: "Psicólogo(a)", name: "Conselho Regional de Psicologia" },
+};
+
+export const UFS = [
+  "AC",
+  "AL",
+  "AM",
+  "AP",
+  "BA",
+  "CE",
+  "DF",
+  "ES",
+  "GO",
+  "MA",
+  "MG",
+  "MS",
+  "MT",
+  "PA",
+  "PB",
+  "PE",
+  "PI",
+  "PR",
+  "RJ",
+  "RN",
+  "RO",
+  "RR",
+  "RS",
+  "SC",
+  "SE",
+  "SP",
+  "TO",
+] as const;
+
+export const TITLE_LIMITS = { min: 8, max: 140 } as const;
+export const BODY_LIMITS = { min: 20, max: 4000 } as const;
+export const MODERATION_TEAM = "Moderação Orbit (simulada)";
+
+export function credentialLabel(p: { council: ProfessionalCouncil; uf: string }): string {
+  return `${p.council}-${p.uf}`;
+}
+
+/** Returns pt-BR messages for every invalid field; an empty list means the draft can be submitted. */
+export function validateDraft(draft: PostDraft): string[] {
+  const errors: string[] = [];
+  const title = draft.title.trim();
+  const body = draft.body.trim();
+  if (!Object.hasOwn(COMMUNITY_CATEGORIES, draft.category)) errors.push("Escolha uma subcomunidade.");
+  if (title.length < TITLE_LIMITS.min || title.length > TITLE_LIMITS.max) {
+    errors.push(`O título precisa ter entre ${TITLE_LIMITS.min} e ${TITLE_LIMITS.max} caracteres.`);
+  }
+  if (body.length < BODY_LIMITS.min || body.length > BODY_LIMITS.max) {
+    errors.push(`O texto precisa ter entre ${BODY_LIMITS.min} e ${BODY_LIMITS.max} caracteres.`);
+  }
+  if (draft.kind === "artigo") {
+    const p = draft.professional;
+    if (!p || p.name.trim().length < 3) errors.push("Informe seu nome profissional.");
+    if (!p || !Object.hasOwn(COUNCILS, p.council)) errors.push("Escolha o conselho profissional.");
+    if (!p || !/^\d{4,8}$/.test(p.registration.trim())) errors.push("O registro deve ter de 4 a 8 dígitos.");
+    if (!p || !(UFS as readonly string[]).includes(p.uf)) errors.push("Escolha a UF do registro.");
+  }
+  return errors;
+}
+
+export function buildPost(draft: PostDraft, id: string, authorName: string): CommunityPost {
+  const paragraphs = draft.body
+    .trim()
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const words = draft.body.trim().split(/\s+/).length;
+  const summary = paragraphs[0].length > 160 ? `${paragraphs[0].slice(0, 157).trimEnd()}…` : paragraphs[0];
+  const base = {
+    id,
+    category: draft.category,
+    title: draft.title.trim(),
+    summary,
+    date: "Agora",
+    ageHours: 0,
+    readTime: `${Math.max(1, Math.round(words / 200))} min`,
+    score: 1,
+    vote: 1 as const,
+    content: paragraphs,
+    comments: [],
+  };
+  if (draft.kind === "artigo" && draft.professional) {
+    const p = draft.professional;
+    const name = p.name.trim();
+    return {
+      ...base,
+      kind: "artigo",
+      status: "em_revisao",
+      author: `${name} · ${COUNCILS[p.council].profession}`,
+      professional: { name, council: p.council, uf: p.uf, registration: p.registration.trim() },
+    };
+  }
+  return { ...base, kind: "discussao", status: "publicado", author: authorName };
+}
+
+export function applyVote(post: CommunityPost, direction: Exclude<VoteDirection, 0>): CommunityPost {
+  const next: VoteDirection = post.vote === direction ? 0 : direction;
+  return { ...post, vote: next, score: post.score - post.vote + next };
+}
+
+function hotRank(post: CommunityPost): number {
+  return post.score / Math.pow(post.ageHours + 2, 1.5);
+}
+
+export function sortPosts(posts: CommunityPost[], sort: CommunitySort): CommunityPost[] {
+  const ranked = [...posts];
+  if (sort === "new") return ranked.sort((a, b) => a.ageHours - b.ageHours);
+  return ranked.sort((a, b) => hotRank(b) - hotRank(a));
+}

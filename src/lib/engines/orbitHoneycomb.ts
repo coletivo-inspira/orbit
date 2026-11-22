@@ -20,6 +20,12 @@ export function hexRingPositions(count: number, spacing: number): Point[] {
   return coords;
 }
 
+/** Pan bound that lets the outer rings reach the middle without letting the user lose the radar. */
+export function maxPanFor(positions: Point[], isWatch: boolean): number {
+  const outer = positions.reduce((m, p) => Math.max(m, Math.hypot(p.x, p.y)), 0);
+  return Math.max(isWatch ? 165 : 240, Math.round(outer * 0.82));
+}
+
 /** Apple Watch–style fisheye: bubbles are larger near the center and shrink/fade toward the edges. */
 export function fisheye(distance: number, maxDistance: number): { scale: number; opacity: number; norm: number } {
   const norm = Math.min(1, distance / Math.max(120, maxDistance));
@@ -38,6 +44,7 @@ interface EngineOptions {
   centerEl: HTMLElement;
   nodes: OrbitNode[];
   isWatch: boolean;
+  maxPan?: number;
   /** Vertical offset of the visual center (mobile shifts up to clear the floating nav). */
   centerOffsetY: number;
   getScale: () => number;
@@ -83,7 +90,7 @@ export class OrbitHoneycombEngine {
   }
 
   private get maxPan() {
-    return this.opts.isWatch ? 165 : 240;
+    return this.opts.maxPan ?? (this.opts.isWatch ? 165 : 240);
   }
 
   /** True while/just after a drag, so bubble clicks at the end of a pan are ignored. */

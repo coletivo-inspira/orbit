@@ -5,6 +5,7 @@ import { createInitialState, orbitReducer, sanitizeStoredUser, type OrbitAction,
 import type { UserProfile } from "@/lib/types";
 
 const STORAGE_KEY = "orbit:user:v1";
+const REGION_KEY = "orbit:region:v1";
 
 interface OrbitContextValue {
   state: OrbitState;
@@ -25,7 +26,7 @@ function readStoredUser(): UserProfile | null {
 /**
  * Holds the single app state shared by every device layout, so switching
  * desktop / mobile / watch in the studio keeps the session in sync.
- * Until a backend exists, only the user's hub is persisted (localStorage).
+ * Until a backend exists, only the user's hub and chosen region are persisted (localStorage).
  */
 export function OrbitProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(orbitReducer, undefined, createInitialState);
@@ -42,8 +43,19 @@ export function OrbitProvider({ children }: { children: ReactNode }) {
   }, [state.user]);
 
   useEffect(() => {
+    if (!hydrated.current) return;
+    try {
+      window.localStorage.setItem(REGION_KEY, state.regionId);
+    } catch {}
+  }, [state.regionId]);
+
+  useEffect(() => {
     const stored = readStoredUser();
     if (stored) dispatch({ type: "hydrateUser", user: stored });
+    try {
+      const region = window.localStorage.getItem(REGION_KEY);
+      if (region) dispatch({ type: "setRegion", regionId: region });
+    } catch {}
     hydrated.current = true;
   }, []);
 

@@ -4,13 +4,15 @@ import { useId, useRef, type ReactNode } from "react";
 import { HubPreviewCard } from "@/components/perfil/HubPreviewCard";
 import { AppBadgeIcon } from "@/components/ui/AppBadge";
 import { Switch } from "@/components/ui/Switch";
+import { ToggleChip } from "@/components/ui/ToggleChip";
 import { useToast } from "@/components/ui/Toasts";
 import { prefersReducedMotion } from "@/lib/a11y/motion";
 import { EXTERNAL_APP_LIST, EXTERNAL_APPS, INTENTION_LIST, INTENTIONS } from "@/lib/data/intentions";
+import { labelOf, TOPICS } from "@/lib/data/profileOptions";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
-import { BIO_MAX_LENGTH } from "@/lib/state/reducer";
-import type { AppId, IntentionId } from "@/lib/types";
+import { BIO_MAX_LENGTH, TOPICS_MAX } from "@/lib/state/reducer";
+import type { AppId, IntentionId, TopicId } from "@/lib/types";
 
 export function usePrivacyToggle() {
   const { state, dispatch } = useOrbit();
@@ -69,9 +71,18 @@ export function PerfilScreen() {
     );
   };
 
+  const toggleTopic = (id: TopicId) => {
+    if (!u.topics.includes(id) && u.topics.length >= TOPICS_MAX) {
+      showToast(`Escolha até ${TOPICS_MAX} assuntos. Tire um para incluir ${labelOf(TOPICS, id)}.`);
+      return;
+    }
+    dispatch({ type: "toggleTopic", id });
+  };
+
   const sections = [
     { id: "cartao", label: "Seu cartão" },
     { id: "intencoes", label: "Intenções e selos" },
+    { id: "assuntos", label: "Assuntos" },
     { id: "visibilidade", label: "Visibilidade" },
   ];
 
@@ -276,6 +287,32 @@ export function PerfilScreen() {
                     );
                   })}
                 </ul>
+              </Panel>
+              {backToPreview}
+            </section>
+
+            <section aria-labelledby={`${ids}-assuntos`} className="flex flex-col gap-3">
+              {sectionHeading("assuntos", "Assuntos")}
+              <Panel>
+                <h3 className="font-sans text-sm font-bold text-white">Sobre o que você gosta de trocar ideia?</h3>
+                <p className="mt-0.5 mb-3 text-xs text-slate-300">
+                  Na Órbita, quem marcou os mesmos assuntos mostra “Em comum” e sobe para o centro quando você ordena
+                  por <strong className="text-white">Afinidade</strong>.
+                </p>
+                <div role="group" aria-label="Seus assuntos" className="flex flex-wrap gap-1.5">
+                  {TOPICS.map((topic) => (
+                    <ToggleChip
+                      key={topic.id}
+                      pressed={u.topics.includes(topic.id)}
+                      onToggle={() => toggleTopic(topic.id)}
+                    >
+                      {topic.label}
+                    </ToggleChip>
+                  ))}
+                </div>
+                <p className="mt-2 text-right text-[11px] text-slate-300" aria-live="polite">
+                  {u.topics.length} de {TOPICS_MAX} assuntos
+                </p>
               </Panel>
               {backToPreview}
             </section>
