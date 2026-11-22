@@ -1,5 +1,6 @@
 import { DEMO_MONTH } from "@/lib/data/profileOptions";
 import type {
+  BodyTypeId,
   CondomUse,
   GenderId,
   IntentionId,
@@ -19,6 +20,10 @@ export interface NumberRange {
   max: number | null;
 }
 
+/** "nao-informado" matches profiles that left the body type blank. */
+export type BodyTypeFilter = BodyTypeId | "nao-informado";
+export type PhotoFilterId = "tem-fotos" | "rosto" | "album";
+
 export interface OrbitaFilters {
   genders: GenderId[];
   orientations: OrientationId[];
@@ -27,6 +32,9 @@ export interface OrbitaFilters {
   positions: PositionId[];
   sports: SportId[];
   relationships: RelationshipId[];
+  bodyTypes: BodyTypeFilter[];
+  /** Unlike the other lists, every checked option must hold. */
+  photos: PhotoFilterId[];
   meetAt: MeetPlaceId[];
   condom: CondomUse[];
   topics: TopicId[];
@@ -62,6 +70,8 @@ export const EMPTY_FILTERS: OrbitaFilters = {
   positions: [],
   sports: [],
   relationships: [],
+  bodyTypes: [],
+  photos: [],
   meetAt: [],
   condom: [],
   topics: [],
@@ -82,6 +92,8 @@ const LIST_KEYS: ListFilterKey[] = [
   "positions",
   "sports",
   "relationships",
+  "bodyTypes",
+  "photos",
   "meetAt",
   "condom",
   "topics",
@@ -108,6 +120,11 @@ function inRange(range: NumberRange, value: number | undefined): boolean {
   return (range.min === null || value >= range.min) && (range.max === null || value <= range.max);
 }
 
+function hasPhoto(p: Profile, need: PhotoFilterId): boolean {
+  if (need === "album") return p.photos.album;
+  return Boolean(p.photo) && (need === "tem-fotos" || p.photos.face);
+}
+
 /**
  * OR inside a group, AND across groups. Optional fields left blank only fail
  * a group that is actively filtering on them.
@@ -121,6 +138,8 @@ export function matchesFilters(p: Profile, f: OrbitaFilters, today: string = DEM
   if (!anyOf(f.positions, p.position ? [p.position] : [])) return false;
   if (!anyOf(f.sports, p.sports)) return false;
   if (!anyOf(f.relationships, p.relationship ? [p.relationship] : [])) return false;
+  if (!anyOf(f.bodyTypes, [p.bodyType ?? "nao-informado"])) return false;
+  if (!f.photos.every((need) => hasPhoto(p, need))) return false;
   if (!anyOf(f.meetAt, p.meetAt)) return false;
   if (!anyOf(f.condom, p.health.condom ? [p.health.condom] : [])) return false;
   if (!anyOf(f.topics, p.topics)) return false;

@@ -68,6 +68,7 @@ const DOCK: { id: DeviceKind; label: string; title: string; icon: React.ReactNod
 const QUICK_NAV: { tab: TabId; label: string }[] = [
   { tab: "orbita", label: "Órbita" },
   { tab: "parque", label: "Parque 2D" },
+  { tab: "interesse", label: "Interesse" },
   { tab: "comunidade", label: "Comunidade" },
   { tab: "perfil", label: "Meu Hub" },
 ];

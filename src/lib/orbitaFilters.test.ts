@@ -150,6 +150,39 @@ describe("selectOrbitaProfiles", () => {
   });
 });
 
+describe("body type and photo filters", () => {
+  it("matches any checked body type, including not informed", () => {
+    const result = selectOrbitaProfiles(SIMULATED_PROFILES, query({ filters: filters({ bodyTypes: ["esbelto"] }) }));
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.every((p) => p.bodyType === "esbelto")).toBe(true);
+    const blank = SIMULATED_PROFILES.find((p) => p.bodyType === undefined)!;
+    expect(matchesFilters(blank, filters({ bodyTypes: ["nao-informado"] }))).toBe(true);
+    expect(matchesFilters(blank, filters({ bodyTypes: ["medio"] }))).toBe(false);
+  });
+
+  it("requires every checked photo option", () => {
+    const p = byId("p1");
+    const noPhoto = { ...p, photo: undefined };
+    const noFace = { ...p, photos: { face: false, album: true } };
+    expect(matchesFilters(noPhoto, filters({ photos: ["tem-fotos"] }))).toBe(false);
+    expect(matchesFilters(noFace, filters({ photos: ["tem-fotos"] }))).toBe(true);
+    expect(matchesFilters(noFace, filters({ photos: ["rosto"] }))).toBe(false);
+    expect(matchesFilters(noFace, filters({ photos: ["album"] }))).toBe(true);
+    expect(matchesFilters(noFace, filters({ photos: ["album", "rosto"] }))).toBe(false);
+  });
+
+  it("narrows the roster to profiles with an album", () => {
+    const result = selectOrbitaProfiles(SIMULATED_PROFILES, query({ filters: filters({ photos: ["album"] }) }));
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.length).toBeLessThan(SIMULATED_PROFILES.length);
+    expect(result.every((p) => p.photos.album)).toBe(true);
+  });
+
+  it("counts each new group once", () => {
+    expect(activeFilterCount(filters({ bodyTypes: ["medio", "grande"], photos: ["album"] }))).toBe(2);
+  });
+});
+
 describe("helpers", () => {
   it("toggles list membership", () => {
     expect(toggleInList(["a"], "b")).toEqual(["a", "b"]);
