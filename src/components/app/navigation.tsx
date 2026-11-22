@@ -59,10 +59,13 @@ export const NAV_ITEMS: NavItem[] = [
   {
     id: "comunidade",
     label: "Comunidade",
-    short: "Saúde",
+    short: "Comunidade",
     icon: (
       <svg {...iconProps}>
-        <path d="M12 21s-7-4.5-9-9.5C1.6 8 4 4.5 7.5 4.5c2 0 3.5 1.1 4.5 2.5 1-1.4 2.5-2.5 4.5-2.5 3.5 0 5.9 3.5 4.5 7-2 5-9 9.5-9 9.5z" />
+        <circle cx="9" cy="8" r="3.5" />
+        <path d="M2.5 20c0-3.3 2.9-5.5 6.5-5.5s6.5 2.2 6.5 5.5" />
+        <path d="M15.5 4.8a3.5 3.5 0 0 1 0 6.4" />
+        <path d="M17.5 14.8c2.4.6 4 2.5 4 5.2" />
       </svg>
     ),
   },

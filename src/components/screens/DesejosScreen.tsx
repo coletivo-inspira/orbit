@@ -519,7 +519,7 @@ function Resultado({ isMobile }: { isMobile: boolean }) {
           onClick={() => dispatch({ type: "setTab", tab: "comunidade" })}
           className="font-semibold text-areia underline underline-offset-2"
         >
-          Ir para Saúde
+          Ir para Comunidade
         </button>
       </p>
     </>
