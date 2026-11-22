@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { OBSTACLES, PARK_BOTS, PLAYER_SPAWN } from "@/lib/data/park";
 import { cullIndices, fisheye, frontierFor, hexRingPositions, panToReveal, VIEW_CELL, viewFor } from "./orbitHoneycomb";
-import { clampZoom, fitTransform, MAX_ZOOM, MIN_ZOOM } from "./graphView";
+import { DEFAULT_GRAPH_DISPLAY, labelZoomFor, sanitizeGraphDisplay } from "./graphDisplay";
+import { clampZoom, edgeGrowth, fitTransform, MAX_ZOOM, MIN_ZOOM } from "./graphView";
 import { proximityOf } from "./park2d";
 import { generateRadarMap, RADAR_TILE, radarMapSvg } from "./radarMap";
 import { collidesAt } from "./scenes/centralPark";
@@ -98,6 +99,29 @@ describe("fisheye", () => {
     expect(center.scale).toBeGreaterThan(edge.scale);
     expect(center.opacity).toBeGreaterThan(edge.opacity);
     expect(edge.norm).toBe(1);
+  });
+
+  it("keeps watch bubbles bigger at the edge", () => {
+    expect(fisheye(300, 300, 0.38).scale).toBeGreaterThan(fisheye(300, 300).scale);
+  });
+});
+
+describe("graph display settings", () => {
+  it("restores stored settings, clamping and dropping bad values", () => {
+    expect(sanitizeGraphDisplay(null)).toEqual(DEFAULT_GRAPH_DISPLAY);
+    const d = sanitizeGraphDisplay({ arrows: true, nodeSize: 99, repel: "x", linkWidth: 2 });
+    expect(d).toMatchObject({ arrows: true, nodeSize: 1.8, repel: 1, linkWidth: 2 });
+  });
+
+  it("shows labels sooner with a lower text threshold", () => {
+    expect(labelZoomFor(-1)).toBeLessThan(labelZoomFor(0));
+    expect(labelZoomFor(1)).toBeGreaterThan(labelZoomFor(0));
+  });
+
+  it("grows new timelapse links from 0 to 1", () => {
+    expect(edgeGrowth(0)).toBe(0);
+    expect(edgeGrowth(200)).toBeGreaterThan(0.5);
+    expect(edgeGrowth(10_000)).toBe(1);
   });
 });
 

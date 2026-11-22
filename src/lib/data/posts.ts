@@ -32,6 +32,13 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         author: "Bruno M.",
         time: "há 40 min",
         text: "Consegui tomar a segunda dose de Hepatite B ontem no posto do bairro, super rápido!",
+        replies: [
+          {
+            author: "Dani Rocha",
+            time: "há 25 min",
+            text: "Boa! A terceira dose fecha o esquema, então já deixa anotada a data no cartão.",
+          },
+        ],
       },
       {
         author: "Matheus",
@@ -134,6 +141,20 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         profileId: "p10",
         time: "há 2 dias",
         text: "Atalhos de teclado decentes no desktop e separar claramente quem quer conversar de quem quer algo imediato!",
+        replies: [
+          {
+            author: "Lucas Silva",
+            profileId: "me",
+            time: "há 1 dia",
+            text: "Anotado! Atalhos de teclado entram no roadmap do desktop junto com os filtros por intenção.",
+          },
+          {
+            author: "Leo",
+            profileId: "p7",
+            time: "há 20 h",
+            text: "E um modo relógio que avise quando alguém com intenção de amizade estiver por perto!",
+          },
+        ],
       },
     ],
   },
@@ -160,6 +181,13 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         author: "Rê",
         time: "há 4 h",
         text: "Fui numa UPA num domingo e fui bem atendida. Vale conferir no site da prefeitura quais serviços fazem PEP na sua cidade.",
+        replies: [
+          {
+            author: "Caio R.",
+            time: "há 3 h",
+            text: "Valeu demais, Rê! Vou salvar o link da prefeitura.",
+          },
+        ],
       },
       {
         author: "Diego",
@@ -220,6 +248,14 @@ export const COMMUNITY_POSTS: CommunityPost[] = [
         profileId: "p7",
         time: "há 18 h",
         text: "Hoje Eu Quero Voltar Sozinho, sem discussão!",
+        replies: [
+          {
+            author: "Thiago",
+            profileId: "p3",
+            time: "há 16 h",
+            text: "Clássico absoluto do cinema nacional! Já entrou na lista da sessão.",
+          },
+        ],
       },
       {
         author: "Yasmin",

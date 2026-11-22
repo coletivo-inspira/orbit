@@ -111,7 +111,7 @@ export type OrbitAction =
   | { type: "updateAppHandle"; id: AppId; handle: string }
   | { type: "toggleTopic"; id: TopicId }
   | { type: "votePost"; id: string; direction: 1 | -1 }
-  | { type: "addComment"; id: string; text: string }
+  | { type: "addComment"; id: string; text: string; /** Index of the comment being answered. */ replyTo?: number }
   | { type: "submitPost"; draft: PostDraft }
   | { type: "approveArticle"; id: string }
   | { type: "hydrateDesejos"; estado: EstadoDesejos }
@@ -357,13 +357,21 @@ function baseReducer(state: OrbitState, action: OrbitAction): OrbitState {
     case "addComment": {
       const text = action.text.trim().slice(0, COMMENT_MAX_LENGTH);
       if (!text) return state;
+      const comment = { author: state.user.name, time: "agora", text, local: true };
+      const { replyTo } = action;
       return {
         ...state,
-        posts: state.posts.map((p) =>
-          p.id === action.id
-            ? { ...p, comments: [...p.comments, { author: state.user.name, time: "agora", text, local: true }] }
-            : p,
-        ),
+        posts: state.posts.map((p) => {
+          if (p.id !== action.id) return p;
+          if (replyTo === undefined) return { ...p, comments: [...p.comments, comment] };
+          if (!p.comments[replyTo]) return p;
+          return {
+            ...p,
+            comments: p.comments.map((c, i) =>
+              i === replyTo ? { ...c, replies: [...(c.replies ?? []), comment] } : c,
+            ),
+          };
+        }),
       };
     }
     case "submitPost": {

@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { GraphSettingsPanel } from "@/components/graph/GraphSettingsPanel";
+import { useGraphDisplay } from "@/components/graph/useGraphDisplay";
 import { MolduraDoUsuario } from "@/components/molduras/MolduraAvatar";
 import { ConversationBalloon } from "@/components/orbita/ConversationBalloon";
 import { Avatar, ProfileImage } from "@/components/ui/Avatar";
@@ -11,15 +13,20 @@ import { hasTalked } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
 import { MUSIC_GENRES, profileGenres, userGenres } from "@/lib/data/music";
 import { labelOf, TOPICS } from "@/lib/data/profileOptions";
-import { GraphViewEngine } from "@/lib/engines/graphView";
+import { forcesOf, viewDisplayOf } from "@/lib/engines/graphDisplay";
+import { GraphViewEngine, type EdgeStyle, type GraphViewState } from "@/lib/engines/graphView";
 import {
   buildInterestGraph,
   focusSets,
   ForceLayout,
+  hubSize,
+  interestNodeRadius,
+  type GraphEdge,
   type GraphNode,
   type GraphSources,
   type LinkOrigin,
 } from "@/lib/engines/interestGraph";
+import { normalizeSearch } from "@/lib/keywords";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
@@ -27,6 +34,14 @@ import type { Profile } from "@/lib/types";
 const SPOTIFY_GREEN = "#1db954";
 const GRAPH_BATCH = 150;
 const GRAPH_MAX = 450;
+const DISPLAY_KEY = "orbit:graph:conexoes:v1";
+
+const ORIGIN_STYLE: Record<LinkOrigin, EdgeStyle> = {
+  perfil: { color: "rgb(245 240 231)", alpha: 0.2, dash: [] },
+  comunidade: { color: "#dec9a8", alpha: 0.45, dash: [5, 4] },
+  musica: { color: SPOTIFY_GREEN, alpha: 0.45, dash: [] },
+};
+const styleOf = (e: GraphEdge) => e.origin;
 
 const SOURCE_CHIPS: { id: keyof GraphSources; label: string; swatch: React.ReactNode }[] = [
   { id: "perfil", label: "Perfil", swatch: <span className="h-0.5 w-4 rounded bg-marfim/70" /> },
@@ -72,32 +87,45 @@ export function InterestGraph({
   style?: React.CSSProperties;
 }) {
   const { state, dispatch } = useOrbit();
-  const { getScale } = useDevice();
+  const { getScale, device } = useDevice();
   const [sources, setSources] = useState<GraphSources>({ perfil: true, comunidade: true, musica: true });
   const [focus, setFocus] = useState<number | null>(null);
   const [limit, setLimit] = useState(GRAPH_BATCH);
+  const [showOrphans, setShowOrphans] = useState(true);
+  const [search, setSearch] = useState("");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { display, update: updateDisplay, reset: resetDisplay } = useGraphDisplay(DISPLAY_KEY);
+  const displayRef = useRef(display);
+  useLayoutEffect(() => {
+    displayRef.current = display;
+  });
+  /** Positions and camera of the previous engine: a rebuild (filter, chip, "Mostrar mais") warm starts from them. */
+  const positionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
+  const viewRef = useRef<GraphViewState | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const worldRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const engineRef = useRef<GraphViewEngine | null>(null);
+  const engineRef = useRef<GraphViewEngine<GraphEdge> | null>(null);
 
   // The nearest people (in the current sort) only: a graph of 1000+ nodes is neither readable nor light on a phone.
   const shownPeople = Math.min(limit, profiles.length, GRAPH_MAX);
   const people = useMemo(() => profiles.slice(0, shownPeople), [profiles, shownPeople]);
   const community = useMemo(() => communityTopics(state.posts), [state.posts]);
-  const graph = useMemo(
-    () =>
-      buildInterestGraph({
-        profiles: people,
-        userTopics: state.user.topics,
-        userGenres: userGenres(state.user),
-        genresOf: profileGenres,
-        community,
-        sources,
-      }),
-    [people, state.user, community, sources],
-  );
+  const graph = useMemo(() => {
+    const input = {
+      profiles: people,
+      userTopics: state.user.topics,
+      userGenres: userGenres(state.user),
+      genresOf: profileGenres,
+      community,
+      sources,
+    };
+    const full = buildInterestGraph(input);
+    if (showOrphans) return full;
+    const linked = people.filter((_, i) => full.incident[i + 1].length > 0);
+    return linked.length === people.length ? full : buildInterestGraph({ ...input, profiles: linked });
+  }, [people, state.user, community, sources, showOrphans]);
 
   // A new graph invalidates the focused index; resetting during render avoids a stale highlight frame.
   const [graphForFocus, setGraphForFocus] = useState(graph);
@@ -111,24 +139,50 @@ export function InterestGraph({
     const world = worldRef.current;
     const canvas = canvasRef.current;
     if (!container || !world || !canvas) return;
+    const d = displayRef.current;
+    const layout = new ForceLayout(graph, {
+      radius: (i) => interestNodeRadius(graph.nodes[i]),
+      initial: positionsRef.current ?? undefined,
+      forces: forcesOf(d),
+    });
+    layout.radiusScale = d.nodeSize;
     const engine = new GraphViewEngine({
       container,
       world,
       canvas,
       nodeEls: nodeRefs.current.slice(0, graph.nodes.length),
       edges: graph.edges,
-      layout: new ForceLayout(graph),
+      edgeStyles: ORIGIN_STYLE,
+      styleOf,
+      layout,
       getScale,
       reducedMotion: prefersReducedMotion,
       centerOffsetY,
       onBackgroundTap: () => setFocus(null),
+      display: viewDisplayOf(d),
+      initialView: viewRef.current,
     });
     engineRef.current = engine;
     return () => {
+      positionsRef.current = layout.positions();
+      viewRef.current = engine.view();
       engine.destroy();
       engineRef.current = null;
     };
   }, [graph, getScale, centerOffsetY]);
+
+  useEffect(() => {
+    engineRef.current?.setDisplay(viewDisplayOf(display));
+    engineRef.current?.setForces(forcesOf(display), display.nodeSize);
+  }, [display, graph]);
+
+  const matches = useMemo(() => {
+    const q = normalizeSearch(search);
+    if (!q) return null;
+    const out = new Set<number>();
+    graph.nodes.forEach((node, i) => normalizeSearch(nodeLabel(node)).includes(q) && out.add(i));
+    return out;
+  }, [graph, search]);
 
   const lit = useMemo(() => (focus === null ? null : focusSets(graph, focus)), [graph, focus]);
   const focusColor =
@@ -136,8 +190,13 @@ export function InterestGraph({
       ? INTENTIONS[(graph.nodes[focus] as Extract<GraphNode, { kind: "person" }>).profile.primaryIntention].color
       : "#dec9a8";
   useEffect(() => {
-    engineRef.current?.setHighlight(lit ? { direct: lit.direct, shared: lit.shared, color: focusColor } : null);
-  }, [lit, focusColor, graph]);
+    if (lit) engineRef.current?.setHighlight({ direct: lit.direct, shared: lit.shared, color: focusColor });
+    else if (matches) {
+      const direct = new Set<number>();
+      matches.forEach((i) => graph.incident[i].forEach((e) => direct.add(e)));
+      engineRef.current?.setHighlight({ direct, shared: new Set(), color: "#dec9a8" });
+    } else engineRef.current?.setHighlight(null);
+  }, [lit, matches, focusColor, graph]);
   const ignoreIfDragged = () => engineRef.current?.wasDragged() ?? false;
 
   const hubsOf = (i: number) =>
@@ -160,7 +219,7 @@ export function InterestGraph({
     <div
       ref={containerRef}
       className={`group/graph relative cursor-grab touch-none overflow-hidden select-none active:cursor-grabbing ${className}`}
-      style={style}
+      style={{ ...style, ["--node-scale" as string]: display.nodeSize }}
     >
       <canvas
         ref={canvasRef}
@@ -181,7 +240,8 @@ export function InterestGraph({
         className="absolute top-0 left-0 origin-top-left will-change-transform group-data-[settling=true]/graph:invisible"
       >
         {graph.nodes.map((node, i) => {
-          const dim = lit && !lit.nodes.has(i);
+          const dim = (lit && !lit.nodes.has(i)) || (!lit && matches && !matches.has(i));
+          const emphasized = Boolean(lit?.nodes.has(i) || matches?.has(i));
           const selected = focus === i;
           const conversation = node.kind === "person" ? state.conversations[node.id] : undefined;
           return (
@@ -205,13 +265,16 @@ export function InterestGraph({
                   e.stopPropagation();
                   onNodeClick(i);
                 }}
-                className="relative block cursor-pointer rounded-full"
+                className="relative block origin-center cursor-pointer rounded-full"
+                style={{ transform: "scale(var(--node-scale, 1))" }}
               >
                 <NodeDot node={node} selected={selected} userAvatar={state.user.avatar} />
                 <span
                   className={`pointer-events-none absolute top-full left-1/2 mt-1 -translate-x-1/2 whitespace-nowrap ${
+                    emphasized || node.kind === "me" ? "" : "group-data-[zoom=far]/graph:hidden"
+                  } ${
                     node.kind === "person" || node.kind === "me"
-                      ? `rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-[10px] font-bold text-white ${lit?.nodes.has(i) || node.kind === "me" ? "" : "group-data-[zoom=far]/graph:hidden"}`
+                      ? "rounded-full border border-white/20 bg-tinta/90 px-1.5 py-px text-[10px] font-bold text-white"
                       : `text-[10px] font-semibold ${node.kind === "genre" ? "text-emerald-200" : "text-slate-300"}`
                   }`}
                   aria-hidden="true"
@@ -220,7 +283,7 @@ export function InterestGraph({
                 </span>
                 <span className="sr-only">{nodeA11yLabel(node, hubsOf(i), selected)}</span>
               </button>
-              {conversation && hasTalked(conversation) && node.kind === "person" && (
+              {selected && conversation && hasTalked(conversation) && node.kind === "person" && (
                 <ConversationBalloon
                   name={node.profile.name}
                   conversation={conversation}
@@ -312,7 +375,40 @@ export function InterestGraph({
         >
           Ajustar
         </button>
+        {device !== "watch" && (
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((o) => !o)}
+            aria-expanded={settingsOpen}
+            aria-label="Configurações do grafo"
+            title="Configurações do grafo"
+            className={`flex h-8 w-8 items-center justify-center rounded-full text-sm text-white ${settingsOpen ? "bg-white/15" : "hover:bg-white/10"}`}
+          >
+            ⚙
+          </button>
+        )}
       </div>
+
+      {settingsOpen && device !== "watch" && (
+        <GraphSettingsPanel
+          display={display}
+          onChange={updateDisplay}
+          onReset={resetDisplay}
+          onAnimate={() => engineRef.current?.replay()}
+          search={search}
+          onSearch={setSearch}
+          toggles={[
+            {
+              id: "orfaos",
+              label: "Órfãos (sem nada em comum)",
+              checked: showOrphans,
+              onToggle: () => setShowOrphans((v) => !v),
+            },
+          ]}
+          compact={compact}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -347,7 +443,7 @@ function NodeDot({
       </span>
     );
   }
-  const size = 9 + Math.min(node.degree, 14) * 1.1;
+  const size = hubSize(node.degree);
   return (
     <span
       className="block rounded-full"
