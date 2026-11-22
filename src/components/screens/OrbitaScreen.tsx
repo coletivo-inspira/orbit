@@ -81,7 +81,7 @@ export function OrbitaScreen() {
                     : "border border-white/[0.11] bg-white/[0.06] text-slate-300 hover:bg-white/[0.12] hover:text-white"
                 }`}
               >
-                <span className="h-2 w-2 rounded-full shadow-sm" style={{ background: f.color }} />
+                <span className="h-2 w-2 rounded-full shadow-xs" style={{ background: f.color }} />
                 {f.label}
               </button>
             );

@@ -16,14 +16,14 @@ export function DesktopLayout({ topBar, showStudioLink = false }: { topBar?: Rea
   const primary = INTENTIONS[state.user.primaryIntention];
 
   return (
-    <div className="app-ambient-bg relative flex h-full w-full flex-col overflow-hidden">
+    <div className="relative flex h-full w-full flex-col overflow-hidden bg-[#0b101d]">
       <AmbientOrbs />
       {topBar}
       <div className="relative z-10 flex min-h-0 flex-1 gap-3 p-3">
         <aside className="lg-bar flex w-[228px] shrink-0 flex-col justify-between rounded-[24px] p-3.5">
           <div>
             <div className="mb-5 flex items-center gap-2.5 px-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/30 bg-gradient-to-br from-violet-400/60 via-indigo-400/50 to-cyan-300/50 shadow-[0_8px_20px_rgba(99,102,241,0.3),inset_0_1px_0_rgba(255,255,255,0.5)]">
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl border border-white/30 bg-linear-to-br/srgb from-violet-400/60 via-indigo-400/50 to-cyan-300/50 shadow-[0_8px_20px_rgba(99,102,241,0.3),inset_0_1px_0_rgba(255,255,255,0.5)]">
                 <OrbitMark />
               </div>
               <div>

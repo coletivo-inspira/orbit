@@ -115,9 +115,6 @@ export function PerfilScreen() {
                 placeholder="Conte um pouco sobre você..."
                 className="w-full resize-none rounded-2xl border border-white/15 bg-slate-950/45 px-3.5 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-white/35"
               />
-              <div className="mt-1 text-right text-[10px] text-slate-400">
-                {u.bio.length}/{BIO_MAX_LENGTH}
-              </div>
             </div>
 
             <div className="lg-panel rounded-[22px] p-4">

@@ -88,7 +88,7 @@ export function WatchScreen() {
 
   if (state.watchPage === 1) {
     return (
-      <div className="relative flex h-full w-full flex-col justify-between bg-gradient-to-b from-emerald-950/35 to-[#060a14] px-4 pt-9 pb-9">
+      <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-emerald-950/35 to-[#060a14] px-4 pt-9 pb-9">
         <TopClock />
         <div className="mt-1 flex flex-col items-center text-center">
           <div className="lg-pill flex h-12 w-12 items-center justify-center rounded-2xl text-2xl">🌳</div>
@@ -128,7 +128,7 @@ export function WatchScreen() {
   const u = state.user;
   const primary = INTENTIONS[u.primaryIntention] ?? INTENTIONS.troca;
   return (
-    <div className="relative flex h-full w-full flex-col justify-between bg-gradient-to-b from-indigo-950/35 to-[#060914] px-4 pt-9 pb-9">
+    <div className="relative flex h-full w-full flex-col justify-between bg-linear-to-b/srgb from-indigo-950/35 to-[#060914] px-4 pt-9 pb-9">
       <TopClock />
       <div className="flex flex-col items-center text-center">
         <RingedAvatar cfg={u.avatar} color={primary.color} size={56} />

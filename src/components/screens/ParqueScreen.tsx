@@ -183,7 +183,7 @@ function DpadButton({
       onPointerUp={release}
       onPointerLeave={release}
       onPointerCancel={release}
-      className="pointer-events-auto flex touch-none items-center justify-center rounded-xl border border-white/25 bg-white/[0.12] text-white shadow-sm transition hover:bg-white/[0.24] active:bg-violet-400/60"
+      className="pointer-events-auto flex touch-none items-center justify-center rounded-xl border border-white/25 bg-white/[0.12] text-white shadow-xs transition hover:bg-white/[0.24] active:bg-violet-400/60"
     >
       <svg
         className="h-4 w-4"
