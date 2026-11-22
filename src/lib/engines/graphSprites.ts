@@ -29,9 +29,12 @@ class VariantCache<T> {
   private readonly variants = new Map<string, Map<number, T>>();
   private count = 0;
   private budget = SPRITES_PER_FRAME;
+  /** A stand-in of another size was drawn this frame: another frame is needed to finish. */
+  pending = false;
 
   beginFrame() {
     this.budget = SPRITES_PER_FRAME;
+    this.pending = false;
   }
 
   get(key: string, size: number, create: () => T | null): T | null {
@@ -39,6 +42,7 @@ class VariantCache<T> {
     const hit = sizes?.get(size);
     if (hit) return hit;
     if (this.budget <= 0 && sizes?.size) {
+      this.pending = true;
       let best: T | null = null;
       let bestD = Infinity;
       sizes.forEach((v, s) => {
@@ -98,6 +102,10 @@ export class AvatarSprites {
 
   beginFrame() {
     this.sprites.beginFrame();
+  }
+
+  get pending(): boolean {
+    return this.sprites.pending;
   }
 
   /** The best image loaded so far: the photo, else the illustrated avatar, else null. */
@@ -187,6 +195,10 @@ export class LabelSprites {
 
   beginFrame() {
     this.cache.beginFrame();
+  }
+
+  get pending(): boolean {
+    return this.cache.pending;
   }
 
   get(text: string, color: string, fontDevicePx: number): LabelSprite | null {

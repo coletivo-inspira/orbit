@@ -808,7 +808,8 @@ export class GraphViewEngine<E extends ViewEdge = ViewEdge> {
       );
     }
     ctx.globalAlpha = 1;
-    return animating;
+    // Some bitmaps were stand-ins of another size (creation budget spent): keep drawing until all are exact.
+    return animating || this.sprites.pending || this.labelSprites.pending;
   }
 
   private drawNode(
