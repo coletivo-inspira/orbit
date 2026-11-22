@@ -16,7 +16,7 @@ import {
 import { OrbitLogo } from "@/components/ui/OrbitLogo";
 import { ToastProvider } from "@/components/ui/Toasts";
 import { PARK_BOTS } from "@/lib/data/park";
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { ORBIT_PROFILES } from "@/lib/data/profiles";
 import { DeviceProvider } from "@/lib/state/device";
 import { OrbitProvider, useOrbit } from "@/lib/state/OrbitProvider";
 import type { DeviceKind, TabId } from "@/lib/types";
@@ -237,7 +237,7 @@ function StudioContent() {
               {device === "desktop" && (
                 <LaptopFrame>
                   <DesktopLayout
-                    topBar={<BrowserBar peopleCount={SIMULATED_PROFILES.length} parkCount={PARK_BOTS.length} />}
+                    topBar={<BrowserBar peopleCount={ORBIT_PROFILES.length} parkCount={PARK_BOTS.length} />}
                   />
                 </LaptopFrame>
               )}

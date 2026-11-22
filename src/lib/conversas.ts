@@ -1,4 +1,4 @@
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { profileById } from "@/lib/data/profiles";
 
 export type Speaker = "me" | "them";
 
@@ -14,8 +14,6 @@ export interface Conversation {
 export type Conversations = Readonly<Record<string, Conversation>>;
 
 export const MINI_CHAT_MAX_LENGTH = 75;
-
-const PROFILE_IDS = new Set(SIMULATED_PROFILES.map((p) => p.id));
 
 /** Simulated exchanges so the radar already shows who the user has talked to. */
 export const SEED_CONVERSATIONS: Conversations = {
@@ -37,7 +35,7 @@ export function recordLine(
   text: string,
 ): Conversations {
   const line = text.trim().slice(0, MINI_CHAT_MAX_LENGTH);
-  if (!line || !PROFILE_IDS.has(profileId)) return conversations;
+  if (!line || !profileById(profileId)) return conversations;
   const current = conversations[profileId] ?? { mine: null, theirs: null };
   const next = from === "me" ? { ...current, mine: line } : { ...current, theirs: line };
   if (next.mine === current.mine && next.theirs === current.theirs && conversations[profileId]) return conversations;

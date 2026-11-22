@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { SIMULATED_PROFILES } from "@/lib/data/profiles";
+import { ORBIT_PROFILES } from "@/lib/data/profiles";
 import { selectOrbitaProfiles, sharedTopics } from "@/lib/orbitaFilters";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
@@ -11,7 +11,7 @@ export function useOrbitaProfiles() {
   const { orbitaFilter, orbitaFilters, orbitaSort } = state;
   const userTopics = state.user.topics;
   return useMemo(() => {
-    const profiles = selectOrbitaProfiles(SIMULATED_PROFILES, {
+    const profiles = selectOrbitaProfiles(ORBIT_PROFILES, {
       intention: orbitaFilter,
       filters: orbitaFilters,
       sort: orbitaSort,
