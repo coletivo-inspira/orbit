@@ -138,6 +138,8 @@ export interface Profile {
   photo?: string;
   apps: Partial<Record<AppId, AppPresence>>;
   city: string;
+  /** Home city of someone just passing through; shown as a travel badge. */
+  visitingFrom?: string;
   gender: GenderId;
   pronouns: Pronouns;
   orientation: OrientationId;
@@ -178,6 +180,8 @@ export interface PostComment {
   text: string;
   /** Written in this session (Modo Explorar); never published. */
   local?: boolean;
+  /** Demo profile that wrote it, when it is one of the simulated profiles. */
+  profileId?: string;
 }
 
 /** A paragraph, or a semantic list instead of typed bullets. */
@@ -208,6 +212,10 @@ export interface CommunityPost {
   title: string;
   summary: string;
   author: string;
+  /** "me" for the demo user, or a simulated profile id. */
+  authorProfileId?: string;
+  /** Interests the thread is about; only open discussions turn them into links between people. */
+  topics?: TopicId[];
   /** Only articles carry a credential; it is shown as verified once status is "publicado". */
   professional?: Omit<ProfessionalCredential, "registration"> & { registration?: string };
   /** Moderator who approved a submitted article (simulated in the demo). */

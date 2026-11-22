@@ -9,6 +9,7 @@ import { BarrasDesejos } from "@/components/desejos/BarrasDesejos";
 import { DesejoSheet } from "@/components/desejos/DesejoSheet";
 import { ComposerSheet } from "@/components/modals/ComposerSheet";
 import { TapIcon } from "@/components/interesse/TapIcon";
+import { MiniChat } from "@/components/orbita/MiniChat";
 import { OrbitaFiltersSheet } from "@/components/orbita/OrbitaFiltersSheet";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
@@ -52,12 +53,16 @@ export function DeviceModals() {
   const close = () => dispatch({ type: "closeModals" });
   const showFilters = state.orbitaFiltersOpen && device !== "watch";
   const composerKind = device === "watch" ? null : state.composerKind;
+  const miniChat = device === "watch" ? null : state.miniChat;
   const desejo = device === "watch" ? null : state.desejoAberto;
-  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind || showFilters || desejo);
+  const open = Boolean(
+    state.selectedProfileId || state.selectedArticleId || composerKind || showFilters || miniChat || desejo,
+  );
 
   const profile = state.selectedProfileId
     ? SIMULATED_PROFILES.find((p) => p.id === state.selectedProfileId)
     : undefined;
+  const chatProfile = miniChat ? SIMULATED_PROFILES.find((p) => p.id === miniChat.profileId) : undefined;
   const post = state.selectedArticleId ? state.posts.find((p) => p.id === state.selectedArticleId) : undefined;
 
   return (
@@ -66,6 +71,9 @@ export function DeviceModals() {
       {post && <ArticleSheet key={post.id} post={post} onClose={close} />}
       {showFilters && <OrbitaFiltersSheet onClose={close} />}
       {composerKind && <ComposerSheet initialKind={composerKind} onClose={close} />}
+      {chatProfile && miniChat && (
+        <MiniChat key={chatProfile.id} profile={chatProfile} origin={miniChat.origin} onClose={close} />
+      )}
       {desejo && <DesejoSheet key={desejo} id={desejo} onClose={close} />}
     </div>
   );
@@ -207,6 +215,11 @@ function ProfileSheet({ profile: p, onClose }: { profile: Profile; onClose: () =
                   {p.online ? "Online agora" : "Visto há pouco"}
                 </span>
               </div>
+              {p.visitingFrom && (
+                <p className="mt-0.5 text-xs font-semibold text-areia">
+                  <span aria-hidden="true">✈️ </span>De passagem por aqui · mora em {p.visitingFrom}
+                </p>
+              )}
             </div>
           </div>
           {p.photo && (

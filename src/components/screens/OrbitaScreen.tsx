@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef, type KeyboardEvent } from "react";
+import { InterestGraph } from "@/components/orbita/InterestGraph";
 import { OrbitRadial, useOrbitRecenter } from "@/components/orbita/OrbitRadial";
 import { useOrbitaProfiles } from "@/components/orbita/useOrbitaProfiles";
 import { AppTile } from "@/components/ui/AppBadge";
@@ -22,6 +23,7 @@ const FILTERS: { id: OrbitaFilter; label: string; color: string }[] = [
 
 const VIEW_MODES: { id: OrbitState["orbitaViewMode"]; label: string }[] = [
   { id: "radial", label: "Radar" },
+  { id: "conexoes", label: "Conexões" },
   { id: "lista", label: "Lista" },
 ];
 
@@ -59,11 +61,12 @@ export function OrbitaScreen() {
             <h1
               tabIndex={-1}
               data-focus-fallback
-              className={`${isMobile ? "text-lg" : "text-xl"} flex items-center gap-2 font-bold tracking-tight text-white`}
+              className={`${isMobile ? "text-lg" : "text-xl"} flex items-center gap-2 font-bold tracking-tight whitespace-nowrap text-white`}
             >
               Sua Órbita
-              <span className="rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-0.5 font-sans text-[11px] font-semibold text-white">
-                {profiles.length} perto
+              <span className="rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-0.5 font-sans text-[11px] font-semibold whitespace-nowrap text-white">
+                {profiles.length}
+                <span className={isMobile ? "sr-only" : ""}> perto</span>
               </span>
             </h1>
           </div>
@@ -88,7 +91,7 @@ export function OrbitaScreen() {
                   tabIndex={selected ? 0 : -1}
                   onKeyDown={onTabKeyDown}
                   onClick={() => setMode(mode.id)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                  className={`rounded-full ${isMobile ? "px-2.5" : "px-3.5"} py-1.5 text-xs font-bold transition ${
                     selected ? "lg-active-lens" : "border border-transparent text-slate-300 hover:text-white"
                   }`}
                 >
@@ -99,11 +102,13 @@ export function OrbitaScreen() {
           </div>
         </div>
         <p className="mt-1 text-[11px] leading-snug text-slate-300">
-          {byAffinity
-            ? "Quem tem mais assuntos em comum com você fica mais perto do centro. O número na bolha mostra quantos."
-            : state.orbitaViewMode === "radial"
-              ? "Arraste o radar ou use Tab. A posição no radar não indica distância; as distâncias são aproximadas e simuladas."
-              : "Pessoas por perto, da mais próxima à mais distante (distâncias aproximadas e simuladas)."}
+          {state.orbitaViewMode === "conexoes"
+            ? "Linhas ligam cada pessoa aos assuntos e estilos de música que ela curte. Toque numa pessoa para ver as conexões; toque de novo para abrir o perfil."
+            : byAffinity
+              ? "Quem tem mais assuntos em comum com você fica mais perto do centro. O número na bolha mostra quantos."
+              : state.orbitaViewMode === "radial"
+                ? "Arraste o radar ou use Tab. A posição no radar não indica distância; as distâncias são aproximadas e simuladas."
+                : "Pessoas por perto, da mais próxima à mais distante (distâncias aproximadas e simuladas)."}
         </p>
 
         <div className="mt-2.5 flex items-center gap-1.5">
@@ -185,6 +190,14 @@ export function OrbitaScreen() {
               background: "radial-gradient(circle at center, #344252 0%, rgb(28 38 49 / 0) 70%)",
             }}
             overlay={<RadialOverlay compact={isMobile} count={profiles.length} onShowList={() => setMode("lista")} />}
+          />
+        ) : state.orbitaViewMode === "conexoes" ? (
+          <InterestGraph
+            profiles={profiles}
+            compact={isMobile}
+            centerOffsetY={isMobile ? 30 : 0}
+            className="flex-1"
+            style={{ background: "radial-gradient(circle at center, #2a3644 0%, rgb(28 38 49 / 0) 75%)" }}
           />
         ) : (
           <div className={`orbit-scroll @container flex-1 overflow-y-auto ${isMobile ? "p-3.5 pb-24" : "p-5"}`}>
@@ -309,6 +322,7 @@ function NearbyCard({
             <span>📍 {p.dist}</span>
             {p.online && <span>· online</span>}
             {p.inPark && <span className="font-semibold text-salvia">· no Parque</span>}
+            {p.visitingFrom && <span>· ✈️ de {p.visitingFrom}</span>}
           </div>
         </div>
       </div>
