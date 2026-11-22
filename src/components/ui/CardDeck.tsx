@@ -44,6 +44,8 @@ interface CardDeckProps<T> {
   openLabel?: string;
   /** Arrows, caption and counter under the pile; off for a compact embedded pile. */
   controls?: boolean;
+  /** Tighter caption row for tiny screens such as the watch; the arrows keep their 44 px targets. */
+  compact?: boolean;
   /** Sizes the pile area (the card is a square as tall as it); defaults to a medium pile. */
   stageClassName?: string;
   className?: string;
@@ -64,6 +66,7 @@ export function CardDeck<T>({
   onOpen,
   openLabel = "Abrir perfil de",
   controls = true,
+  compact = false,
   stageClassName = "h-[240px]",
   className = "",
 }: CardDeckProps<T>) {
@@ -297,11 +300,17 @@ export function CardDeck<T>({
       </div>
 
       {controls && (
-        <div data-deck-controls className="mt-3 flex w-full max-w-[420px] items-center gap-2">
+        <div
+          data-deck-controls
+          className={`flex w-full max-w-[420px] items-center ${compact ? "mt-1.5 gap-1" : "mt-3 gap-2"}`}
+        >
           <DeckArrow direction="prev" disabled={index === 0} onClick={() => go(index - 1)} />
           <div className="min-w-0 flex-1 text-center">
             {renderCaption?.(front)}
-            <p className="mt-0.5 text-[11px] font-semibold text-slate-400 tabular-nums" aria-hidden="true">
+            <p
+              className={`font-semibold text-slate-400 tabular-nums ${compact ? "text-[10px]" : "mt-0.5 text-[11px]"}`}
+              aria-hidden="true"
+            >
               {index + 1} de {count}
             </p>
           </div>
