@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useId, useRef, useState, type FormEvent } from "react";
 import { ArticleBody, ArticleProvenance, CommentList } from "@/components/comunidade/ArticleParts";
+import { PostTrustBadge } from "@/components/comunidade/PostTrust";
+import { VoteControl } from "@/components/comunidade/VoteControl";
+import { ComposerSheet } from "@/components/modals/ComposerSheet";
 import { AppTile } from "@/components/ui/AppBadge";
 import { RingedAvatar } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
 import { useDialogFocus } from "@/lib/a11y/useDialogFocus";
 import { copyText } from "@/lib/clipboard";
 import { activeAppIds, COMMUNITY_CATEGORIES, EXTERNAL_APPS, INTENTIONS } from "@/lib/data/intentions";
+import { getPost } from "@/lib/data/posts";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import { articleRoute, publicUrl } from "@/lib/publicUrl";
 import { useDevice } from "@/lib/state/device";
@@ -16,11 +20,13 @@ import { useOrbit } from "@/lib/state/OrbitProvider";
 import { COMMENT_MAX_LENGTH } from "@/lib/state/reducer";
 import type { AppId, CommunityPost, Profile } from "@/lib/types";
 
-/** Profile / article sheets rendered inside the current device screen. */
+/** Profile / article / composer sheets rendered inside the current device screen. */
 export function DeviceModals() {
   const { state, dispatch } = useOrbit();
+  const { device } = useDevice();
   const close = () => dispatch({ type: "closeModals" });
-  const open = Boolean(state.selectedProfileId || state.selectedArticleId);
+  const composerKind = device === "watch" ? null : state.composerKind;
+  const open = Boolean(state.selectedProfileId || state.selectedArticleId || composerKind);
 
   const profile = state.selectedProfileId
     ? SIMULATED_PROFILES.find((p) => p.id === state.selectedProfileId)
@@ -31,6 +37,7 @@ export function DeviceModals() {
     <div className={`absolute inset-0 z-40 ${open ? "" : "pointer-events-none"}`}>
       {profile && <ProfileSheet key={profile.id} profile={profile} onClose={close} />}
       {post && <ArticleSheet key={post.id} post={post} onClose={close} />}
+      {composerKind && <ComposerSheet initialKind={composerKind} onClose={close} />}
     </div>
   );
 }
@@ -242,6 +249,8 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
   const isMobile = device === "mobile";
   const category = COMMUNITY_CATEGORIES[post.category];
   const route = articleRoute(post.id);
+  const isPublicPage = Boolean(getPost(post.id));
+  const pending = post.status === "em_revisao";
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -272,9 +281,12 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
         className={`lg-sheet flex w-full flex-col overflow-hidden rounded-[30px] outline-none ${isMobile ? "max-h-[92%]" : "max-h-[88%] max-w-[620px]"}`}
       >
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.12] px-5 py-4">
-          <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${category.badge}`}>
-            {category.label}
-          </span>
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-bold ${category.badge}`}>
+              c/{category.slug}
+            </span>
+            <PostTrustBadge post={post} />
+          </div>
           <CloseButton onClose={onClose} className="h-8 w-8 text-sm" />
         </div>
 
@@ -290,31 +302,44 @@ function ArticleSheet({ post, onClose }: { post: CommunityPost; onClose: () => v
           <div className="mt-3 mb-4">
             <ArticleProvenance post={post} tone="dark" />
           </div>
+          {pending && (
+            <div className="mb-4 rounded-2xl border border-amber-300/40 bg-amber-400/10 p-3.5 text-xs leading-relaxed text-amber-50">
+              <strong className="font-extrabold">Em revisão · só você vê este artigo.</strong> Na versão real, a equipe
+              confere o registro na consulta pública do conselho profissional e revisa o texto antes de publicar.
+              <button
+                type="button"
+                onClick={() => {
+                  dispatch({ type: "approveArticle", id: post.id });
+                  showToast("Artigo aprovado e publicado com selo de verificado! ✅", "success");
+                }}
+                className="lg-pill mt-2.5 block rounded-full px-3.5 py-1.5 text-xs font-extrabold text-white"
+              >
+                ✅ Aprovar (simular moderação)
+              </button>
+            </div>
+          )}
           <ArticleBody blocks={post.content} className="text-[15px] leading-[1.62] text-white" />
 
           <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-white/[0.12] pt-4">
-            <Link
-              href={route}
-              className="lg-btn-primary rounded-full px-3.5 py-1.5 text-xs font-bold"
-              onClick={() => dispatch({ type: "closeModals" })}
-            >
-              Ler artigo público ↗
-            </Link>
-            <button
-              type="button"
-              onClick={share}
-              className="lg-pill rounded-full px-3.5 py-1.5 text-xs font-semibold text-white"
-            >
-              🔗 Copiar link público
-            </button>
-            <button
-              type="button"
-              aria-pressed={post.liked}
-              onClick={() => dispatch({ type: "togglePostLike", id: post.id })}
-              className={`lg-pill flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold ${post.liked ? "border-rose-300/45 text-rose-200" : "text-white"}`}
-            >
-              {post.liked ? "❤️ Curtido" : "🤍 Curtir"} ({post.likes})
-            </button>
+            <VoteControl post={post} horizontal />
+            {isPublicPage && (
+              <>
+                <Link
+                  href={route}
+                  className="lg-btn-primary rounded-full px-3.5 py-1.5 text-xs font-bold"
+                  onClick={() => dispatch({ type: "closeModals" })}
+                >
+                  Ler artigo público ↗
+                </Link>
+                <button
+                  type="button"
+                  onClick={share}
+                  className="lg-pill rounded-full px-3.5 py-1.5 text-xs font-semibold text-white"
+                >
+                  🔗 Copiar link público
+                </button>
+              </>
+            )}
           </div>
 
           <div className="mt-5">

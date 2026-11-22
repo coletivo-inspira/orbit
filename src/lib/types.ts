@@ -84,19 +84,78 @@ export interface ArticleSource {
   url: string;
 }
 
+export type PostKind = "discussao" | "artigo";
+export type PostStatus = "publicado" | "em_revisao";
+export type ProfessionalCouncil = "CRM" | "COREN" | "CRP";
+export type VoteDirection = -1 | 0 | 1;
+
+export interface ProfessionalCredential {
+  name: string;
+  council: ProfessionalCouncil;
+  registration: string;
+  uf: string;
+}
+
 export interface CommunityPost {
   id: string;
   category: CommunityCategory;
+  kind: PostKind;
+  status: PostStatus;
   title: string;
   summary: string;
   author: string;
+  /** Only articles carry a credential; it is shown as verified once status is "publicado". */
+  professional?: Omit<ProfessionalCredential, "registration"> & { registration?: string };
+  /** Moderator who approved a submitted article (simulated in the demo). */
+  reviewedBy?: string;
   date: string;
+  /** Drives the "Em alta" / "Novos" ordering. */
+  ageHours: number;
   readTime: string;
-  likes: number;
-  liked: boolean;
+  score: number;
+  vote: VoteDirection;
   content: ArticleBlock[];
   /** Editorial review date; left empty until the team reviews the health content. */
   reviewedAt?: string;
   sources?: ArticleSource[];
   comments: PostComment[];
+}
+
+export interface PostDraft {
+  kind: PostKind;
+  category: CommunityCategory;
+  title: string;
+  body: string;
+  professional?: ProfessionalCredential;
+}
+
+export type RegionId =
+  "belo-horizonte" | "sao-paulo" | "rio-de-janeiro" | "recife" | "porto-alegre" | "salvador" | "brasilia";
+
+export interface Region {
+  id: RegionId;
+  city: string;
+  uf: string;
+  healthLabel: string;
+  healthUrl: string;
+}
+
+export interface SourceLink {
+  label: string;
+  url: string;
+}
+
+export interface RegionalAlert {
+  id: string;
+  emoji: string;
+  title: string;
+  text: string;
+  sources: SourceLink[];
+}
+
+export interface ExternalCommunity {
+  name: string;
+  description: string;
+  language: "pt-BR" | "en";
+  categories: CommunityCategory[];
 }

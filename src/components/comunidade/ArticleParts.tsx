@@ -1,3 +1,4 @@
+import { verificationText } from "@/components/comunidade/PostTrust";
 import type { ArticleBlock, CommunityPost, PostComment } from "@/lib/types";
 
 type Tone = "dark" | "light";
@@ -31,8 +32,19 @@ export function ArticleProvenance({ post, tone }: { post: CommunityPost; tone: T
       <dd>
         {post.author} · {post.date} · {post.readTime} de leitura
       </dd>
+      <dt className="font-bold">Verificação</dt>
+      <dd>{verificationText(post)}</dd>
       <dt className="font-bold">Revisão</dt>
-      <dd>{post.reviewedAt ?? "Pendente — conteúdo de saúde ainda sem revisão editorial."}</dd>
+      <dd>
+        {post.kind === "discussao"
+          ? "Não se aplica — conversa aberta, sem revisão editorial."
+          : (post.reviewedAt ??
+            (post.reviewedBy
+              ? `Revisado por ${post.reviewedBy}`
+              : post.status === "em_revisao"
+                ? "Na fila de moderação."
+                : "Pendente — conteúdo de saúde ainda sem revisão editorial."))}
+      </dd>
       <dt className="font-bold">Fontes</dt>
       <dd>
         {post.sources?.length ? (
@@ -45,6 +57,8 @@ export function ArticleProvenance({ post, tone }: { post: CommunityPost; tone: T
               </li>
             ))}
           </ul>
+        ) : post.kind === "discussao" ? (
+          "Relato pessoal, sem fontes."
         ) : (
           "Ainda não cadastradas — aguardando a revisão editorial."
         )}
