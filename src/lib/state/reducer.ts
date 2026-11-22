@@ -1,5 +1,7 @@
 import { applyVote, buildPost, MODERATION_TEAM, validateDraft, type CommunitySort } from "@/lib/community";
+import { hasTalked, recordLine, SEED_CONVERSATIONS, type Conversations, type Speaker } from "@/lib/conversas";
 import { INTENTIONS } from "@/lib/data/intentions";
+import type { Point } from "@/lib/data/park";
 import { COMMUNITY_POSTS } from "@/lib/data/posts";
 import { TOPIC_IDS } from "@/lib/data/profileOptions";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
@@ -23,12 +25,21 @@ import type {
 export type OrbitaFilter = "all" | IntentionId;
 export type CommunityFilter = "all" | CommunityCategory;
 
+export interface MiniChatState {
+  profileId: string;
+  /** Viewport point of the bubble that opened it, so the chat can grow out of it. */
+  origin: Point | null;
+}
+
 export interface OrbitState {
   user: UserProfile;
   posts: CommunityPost[];
   foundPacoca: boolean;
   activeTab: TabId;
-  orbitaViewMode: "radial" | "lista";
+  orbitaViewMode: "radial" | "conexoes" | "lista";
+  /** Last line from each side per profile; never persisted on the device. */
+  conversations: Conversations;
+  miniChat: MiniChatState | null;
   orbitaFilter: OrbitaFilter;
   orbitaFilters: OrbitaFilters;
   orbitaSort: OrbitaSort;
@@ -67,6 +78,8 @@ export type OrbitAction =
   | { type: "hydrateTaps"; ids: unknown }
   | { type: "setWatchPage"; page: OrbitState["watchPage"] }
   | { type: "openProfile"; id: string }
+  | { type: "openMiniChat"; id: string; origin?: Point | null }
+  | { type: "recordLine"; id: string; from: Speaker; text: string }
   | { type: "openArticle"; id: string }
   | { type: "openComposer"; kind: PostKind }
   | { type: "closeModals" }
@@ -97,6 +110,8 @@ export function createInitialState(): OrbitState {
     foundPacoca: false,
     activeTab: "orbita",
     orbitaViewMode: "radial",
+    conversations: SEED_CONVERSATIONS,
+    miniChat: null,
     orbitaFilter: "all",
     orbitaFilters: structuredClone(EMPTY_FILTERS),
     orbitaSort: "proximidade",
@@ -173,6 +188,7 @@ const closed = {
   selectedArticleId: null,
   composerKind: null,
   orbitaFiltersOpen: false,
+  miniChat: null,
 } as const;
 
 export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState {
@@ -209,9 +225,16 @@ export function orbitReducer(state: OrbitState, action: OrbitAction): OrbitState
     case "hydrateTaps":
       return { ...state, sentTaps: sanitizeStoredTaps(action.ids) };
     case "setWatchPage":
-      return { ...state, selectedProfileId: null, watchPage: action.page };
+      return { ...state, selectedProfileId: null, miniChat: null, watchPage: action.page };
     case "openProfile":
       return { ...state, ...closed, selectedProfileId: action.id };
+    case "openMiniChat":
+      if (!hasTalked(state.conversations[action.id])) return state;
+      return { ...state, ...closed, miniChat: { profileId: action.id, origin: action.origin ?? null } };
+    case "recordLine": {
+      const conversations = recordLine(state.conversations, action.id, action.from, action.text);
+      return conversations === state.conversations ? state : { ...state, conversations };
+    }
     case "openArticle":
       return { ...state, ...closed, selectedArticleId: action.id };
     case "openComposer":

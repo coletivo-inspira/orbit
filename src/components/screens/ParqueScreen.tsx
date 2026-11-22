@@ -164,11 +164,22 @@ function ParkRoomView({ scene, room }: { scene: ParkScene; room: ParkRoomDefinit
     }
   }, [activeBot]);
 
+  // What the person nearby says becomes their balloon on the Órbita.
+  const activeId = activeBot?.id;
+  const activeLine = activeBot?.line;
+  useEffect(() => {
+    if (activeId && activeLine) dispatch({ type: "recordLine", id: activeId, from: "them", text: activeLine });
+  }, [activeId, activeLine, dispatch]);
+
   const onChatSubmit = (e: FormEvent) => {
     e.preventDefault();
     const message = chat.trim();
     if (!message) return;
     engineRef.current?.say(message);
+    if (activeBot) {
+      dispatch({ type: "recordLine", id: activeBot.id, from: "me", text: message });
+      engineRef.current?.cycleBotDialogue(activeBot.id);
+    }
     setChat("");
     setAnnouncement(`Mensagem enviada no Parque (simulação): ${message}`);
   };

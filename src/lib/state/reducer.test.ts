@@ -277,6 +277,31 @@ describe("Interesse", () => {
   });
 });
 
+describe("Mini chat", () => {
+  it("opens only for people the user has talked to, alone among modals", () => {
+    const initial = orbitReducer(createInitialState(), { type: "openProfile", id: "p4" });
+    expect(orbitReducer(initial, { type: "openMiniChat", id: "p48" })).toBe(initial);
+    const open = orbitReducer(initial, { type: "openMiniChat", id: "p1", origin: { x: 10, y: 20 } });
+    expect(open.miniChat).toEqual({ profileId: "p1", origin: { x: 10, y: 20 } });
+    expect(open.selectedProfileId).toBeNull();
+    expect(orbitReducer(open, { type: "closeModals" }).miniChat).toBeNull();
+    expect(orbitReducer(open, { type: "setTab", tab: "parque" }).miniChat).toBeNull();
+  });
+
+  it("replaces the user's balloon and keeps the other side's last line", () => {
+    const initial = createInitialState();
+    const theirs = initial.conversations.p1.theirs;
+    const next = orbitReducer(initial, { type: "recordLine", id: "p1", from: "me", text: "Achei ele!" });
+    expect(next.conversations.p1).toEqual({ mine: "Achei ele!", theirs });
+  });
+
+  it("starts a conversation from the Parque so the radar can show it", () => {
+    const next = orbitReducer(createInitialState(), { type: "recordLine", id: "p4", from: "them", text: "Oi!" });
+    expect(next.conversations.p4).toEqual({ mine: null, theirs: "Oi!" });
+    expect(orbitReducer(next, { type: "openMiniChat", id: "p4" }).miniChat?.profileId).toBe("p4");
+  });
+});
+
 describe("sortPosts", () => {
   it("orders by age for Novos and balances score with age for Em alta", () => {
     const posts = createInitialState().posts;
