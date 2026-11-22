@@ -7,6 +7,8 @@ interface ConversationBalloonProps {
   conversation: Conversation;
   onOpen: (origin: { x: number; y: number }) => void;
   onFocus?: React.FocusEventHandler<HTMLButtonElement>;
+  /** Hidden until the engine marks the bubble as touching the user's own (`data-near`). */
+  nearOnly?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -17,6 +19,7 @@ export function ConversationBalloon({
   conversation,
   onOpen,
   onFocus,
+  nearOnly,
   className = "",
   style,
 }: ConversationBalloonProps) {
@@ -24,6 +27,8 @@ export function ConversationBalloon({
   return (
     <button
       type="button"
+      data-balloon
+      data-near={nearOnly ? "false" : undefined}
       onFocus={onFocus}
       onClick={(e) => {
         e.stopPropagation();
@@ -31,7 +36,7 @@ export function ConversationBalloon({
         const rect = (avatar ?? e.currentTarget).getBoundingClientRect();
         onOpen({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
       }}
-      className={`hq-balloon absolute z-10 flex h-[22px] max-w-[84px] cursor-pointer items-center rounded-[11px] px-2 text-[10px] leading-none font-bold ${
+      className={`hq-balloon orbit-balloon absolute z-10 flex h-[22px] max-w-[84px] cursor-pointer items-center rounded-[11px] px-2 text-[10px] leading-none font-bold ${
         theirs ? "hq-balloon-filled text-tinta" : "hq-balloon-empty min-w-[30px]"
       } ${className}`}
       style={style}

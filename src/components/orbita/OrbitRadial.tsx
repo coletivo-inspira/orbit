@@ -61,8 +61,9 @@ export function OrbitRadial({
   const frontierRef = useRef<HTMLDivElement>(null);
 
   const crowded = profiles.length > 24;
-  const baseRadius = isWatch ? 24 : crowded ? 32 : 36;
-  const spacing = isWatch ? 64 : crowded ? 94 : 104;
+  // The watch is glanced at: fewer, bigger faces beat seeing many tiny ones.
+  const baseRadius = isWatch ? 34 : crowded ? 32 : 36;
+  const spacing = isWatch ? 86 : crowded ? 94 : 104;
   const positions = useMemo(() => hexRingPositions(profiles.length, spacing), [profiles.length, spacing]);
   const maxPan = maxPanFor(positions, isWatch);
   const frontier = isWatch ? null : frontierFor(positions, spacing);
@@ -81,6 +82,7 @@ export function OrbitRadial({
               {
                 el,
                 labelEl: el.querySelector<HTMLElement>("[data-label]"),
+                balloonEl: el.querySelector<HTMLElement>("[data-balloon]"),
                 bx: positions[i].x,
                 by: positions[i].y,
                 index: i,
@@ -107,6 +109,8 @@ export function OrbitRadial({
       frontier,
       frontierEl: frontierRef.current,
       onViewChange: setView,
+      // Only the ring right around "Você": a balloon far away reads as noise, not as a conversation.
+      nearRadius: spacing * 1.3,
       nodes: collectNodes(),
     });
     engineRef.current = engine;
@@ -114,7 +118,7 @@ export function OrbitRadial({
       engine.destroy();
       engineRef.current = null;
     };
-  }, [profileKey, positions, maxPan, frontier, isWatch, centerOffsetY, getScale, collectNodes]);
+  }, [profileKey, positions, maxPan, frontier, isWatch, centerOffsetY, getScale, collectNodes, spacing]);
 
   useLayoutEffect(() => {
     visibleRef.current = visible;
@@ -236,7 +240,7 @@ export function OrbitRadial({
                   data-label
                   className={`mt-1.5 rounded-full border border-white/20 bg-tinta/90 px-2 py-0.5 ${isWatch ? "text-[9px]" : "text-[10px]"} font-bold whitespace-nowrap text-white`}
                 >
-                  {p.name} <span className="font-normal text-slate-300">{p.dist}</span>
+                  {p.name} {!isWatch && <span className="font-normal text-slate-300">{p.dist}</span>}
                 </div>
                 <span className="sr-only">
                   , {intention.label}
@@ -252,6 +256,7 @@ export function OrbitRadial({
                   conversation={conversation}
                   onFocus={revealOnKeyboard}
                   onOpen={(origin) => !ignoreIfDragged() && dispatch({ type: "openMiniChat", id: p.id, origin })}
+                  nearOnly
                   style={{ left: diameter * 0.62, top: -24 }}
                 />
               )}

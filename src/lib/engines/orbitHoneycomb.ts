@@ -26,15 +26,26 @@ export function maxPanFor(positions: Point[], isWatch: boolean): number {
   return Math.max(isWatch ? 165 : 240, Math.round(outer * 0.82));
 }
 
-/** Apple Watch–style fisheye: bubbles are larger near the center and shrink/fade toward the edges. */
-export function fisheye(distance: number, maxDistance: number): { scale: number; opacity: number; norm: number } {
+/**
+ * Apple Watch–style fisheye: bubbles are larger near the center and shrink/fade toward the edges.
+ * `shrink` is how much they lose at the edge; the watch uses less so faces stay recognizable.
+ */
+export function fisheye(
+  distance: number,
+  maxDistance: number,
+  shrink = 0.56,
+): { scale: number; opacity: number; norm: number } {
   const norm = Math.min(1, distance / Math.max(120, maxDistance));
-  return { norm, scale: 1.12 - norm * 0.56, opacity: 1 - Math.pow(norm, 2.2) * 0.52 };
+  return { norm, scale: 1.12 - norm * shrink, opacity: 1 - Math.pow(norm, 2.2) * 0.52 };
 }
+
+export const WATCH_SHRINK = 0.38;
 
 export interface OrbitNode {
   el: HTMLElement;
   labelEl: HTMLElement | null;
+  /** Conversation balloon: only shown while the bubble touches the user's own (`data-near`). */
+  balloonEl?: HTMLElement | null;
   bx: number;
   by: number;
   /** Position in the full profile list, when only a window of it is rendered. */
@@ -96,6 +107,8 @@ interface EngineOptions {
   frontierEl?: HTMLElement | null;
   /** Called when the visible window moves to another grid cell (or the field resizes). */
   onViewChange?: (view: OrbitView) => void;
+  /** Bubbles closer than this to the center (after the pan) count as touching the user's bubble. */
+  nearRadius?: number;
 }
 
 export const BACKDROP_PARALLAX = 0.55;
@@ -310,7 +323,10 @@ export class OrbitHoneycombEngine {
     }
 
     const maxDist = Math.min(w, h) * 0.56;
-    const minClear = isWatch ? 54 : 84;
+    const minClear = isWatch ? 74 : 84;
+    const shrink = isWatch ? WATCH_SHRINK : undefined;
+    const labelScale = isWatch ? 0.86 : 0.72;
+    const nearRadius = this.opts.nearRadius ?? 0;
     const frontier2 = frontier ? frontier * frontier : Infinity;
 
     for (const n of nodes) {
@@ -323,12 +339,17 @@ export class OrbitHoneycombEngine {
         rx += (rx / dCenter) * push;
         ry += (ry / dCenter) * push;
       }
-      const { scale, opacity, norm } = fisheye(Math.hypot(rx, ry), maxDist);
+      const dist = Math.hypot(rx, ry);
+      const { scale, opacity, norm } = fisheye(dist, maxDist, shrink);
       n.el.style.transform = `translate3d(${(cx + rx).toFixed(1)}px, ${(cy + ry).toFixed(1)}px, 0) translate(-50%, -50%) scale(${scale.toFixed(3)})`;
       const beyond = n.bx * n.bx + n.by * n.by > frontier2;
       n.el.style.opacity = (beyond ? opacity * 0.4 : opacity).toFixed(3);
       n.el.style.zIndex = String(Math.round((1 - norm) * 15) + 1);
-      if (n.labelEl) n.labelEl.style.opacity = scale > 0.72 ? "1" : "0";
+      if (n.labelEl) n.labelEl.style.opacity = scale > labelScale ? "1" : "0";
+      if (n.balloonEl) {
+        const near = String(dist <= nearRadius);
+        if (n.balloonEl.dataset.near !== near) n.balloonEl.dataset.near = near;
+      }
     }
 
     if (this.dragging || settling) this.schedule();
