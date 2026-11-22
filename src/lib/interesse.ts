@@ -1,8 +1,6 @@
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import type { Profile } from "@/lib/types";
 
-export type InteresseTab = "visualizacoes" | "toques";
-
 export interface InterestEvent {
   profile: Profile;
   minutesAgo: number;

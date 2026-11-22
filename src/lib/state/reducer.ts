@@ -14,7 +14,6 @@ import { TOPIC_IDS } from "@/lib/data/profileOptions";
 import { ORBIT_PROFILES } from "@/lib/data/profiles";
 import { DEFAULT_REGION, isRegionId } from "@/lib/data/regions";
 import { DEMO_USER } from "@/lib/data/user";
-import type { InteresseTab } from "@/lib/interesse";
 import { EMPTY_FILTERS, type OrbitaFilters, type OrbitaSort } from "@/lib/orbitaFilters";
 import type {
   AppId,
@@ -54,7 +53,6 @@ export interface OrbitState {
   communityFilter: CommunityFilter;
   communitySort: CommunitySort;
   regionId: RegionId;
-  interesseTab: InteresseTab;
   /** Profiles the user tapped, newest first. */
   sentTaps: string[];
   /** 0: Órbita, 1: Parque, 2: Meu Cartão */
@@ -92,7 +90,6 @@ export type OrbitAction =
   | { type: "setCommunityFilter"; filter: CommunityFilter }
   | { type: "setCommunitySort"; sort: CommunitySort }
   | { type: "setRegion"; regionId: string }
-  | { type: "setInteresseTab"; tab: InteresseTab }
   | { type: "tapProfile"; id: string }
   | { type: "hydrateTaps"; ids: unknown }
   | { type: "setWatchPage"; page: OrbitState["watchPage"] }
@@ -151,7 +148,6 @@ export function createInitialState(): OrbitState {
     communityFilter: "all",
     communitySort: "hot",
     regionId: DEFAULT_REGION,
-    interesseTab: "visualizacoes",
     sentTaps: [],
     watchPage: 0,
     selectedProfileId: null,
@@ -276,8 +272,6 @@ function baseReducer(state: OrbitState, action: OrbitAction): OrbitState {
       return { ...state, communitySort: action.sort };
     case "setRegion":
       return isRegionId(action.regionId) ? { ...state, regionId: action.regionId } : state;
-    case "setInteresseTab":
-      return { ...state, interesseTab: action.tab };
     case "tapProfile":
       if (!PROFILE_IDS.has(action.id) || state.sentTaps.includes(action.id)) return state;
       return { ...state, sentTaps: [action.id, ...state.sentTaps] };

@@ -1,49 +1,34 @@
 "use client";
 
-import { useId, useRef, type KeyboardEvent } from "react";
+import { useId, type ReactNode } from "react";
 import { TapIcon } from "@/components/interesse/TapIcon";
+import { CardDeck } from "@/components/ui/CardDeck";
 import { ProfileImage } from "@/components/ui/Avatar";
 import { useToast } from "@/components/ui/Toasts";
-import { rovingIndex } from "@/lib/a11y/roving";
-import { formatAgo, PROFILE_VIEWS, RECEIVED_TAPS, type InteresseTab, type InterestEvent } from "@/lib/interesse";
+import { formatAgo, PROFILE_VIEWS, RECEIVED_TAPS, type InterestEvent } from "@/lib/interesse";
 import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 
-const TABS: { id: InteresseTab; label: string; events: InterestEvent[] }[] = [
-  { id: "visualizacoes", label: "Visualizações", events: PROFILE_VIEWS },
-  { id: "toques", label: "Toques", events: RECEIVED_TAPS },
-];
-
-/** Who viewed the user's profile and who tapped them. Simulated data, no paywall. */
+/** Who viewed the user's profile and who tapped them, as two card piles on one screen. Simulated data. */
 export function InteresseScreen() {
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const showToast = useToast();
   const isMobile = device === "mobile";
-  const ids = useId();
-  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const tabId = (tab: InteresseTab) => `${ids}-tab-${tab}`;
-  const panelId = `${ids}-panel`;
-  const activeIndex = TABS.findIndex((t) => t.id === state.interesseTab);
-  const active = TABS[activeIndex];
-  const setTab = (tab: InteresseTab) => dispatch({ type: "setInteresseTab", tab });
 
-  const onTabKeyDown = (e: KeyboardEvent) => {
-    const next = rovingIndex(e.key, activeIndex, TABS.length);
-    if (next === null) return;
-    e.preventDefault();
-    setTab(TABS[next].id);
-    tabRefs.current[next]?.focus();
-  };
-
+  const open = (event: InterestEvent) => dispatch({ type: "openProfile", id: event.profile.id });
   const tapBack = (event: InterestEvent) => {
     dispatch({ type: "tapProfile", id: event.profile.id });
     showToast(`Você tocou de volta em ${event.profile.name}. (simulação)`, "success");
   };
 
+  const stage = isMobile
+    ? "h-[clamp(150px,calc((100cqh-290px)/2),280px)]"
+    : "h-[clamp(220px,calc(100cqh-210px),460px)]";
+
   return (
     <div className="relative flex h-full w-full flex-col">
-      <div className={`lg-header z-20 shrink-0 ${isMobile ? "px-4 pt-2" : "px-5 pt-4"}`}>
+      <div className={`lg-header z-20 shrink-0 ${isMobile ? "px-4 pt-2 pb-2" : "px-5 pt-4 pb-3"}`}>
         <h1
           tabIndex={-1}
           data-focus-fallback
@@ -51,120 +36,117 @@ export function InteresseScreen() {
         >
           Interesse
         </h1>
-        <div role="tablist" aria-label="Tipo de interesse" className="mt-2 flex justify-center gap-8">
-          {TABS.map((tab, i) => {
-            const selected = tab.id === state.interesseTab;
-            return (
-              <button
-                key={tab.id}
-                ref={(el) => {
-                  tabRefs.current[i] = el;
-                }}
-                id={tabId(tab.id)}
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                aria-controls={panelId}
-                tabIndex={selected ? 0 : -1}
-                onKeyDown={onTabKeyDown}
-                onClick={() => setTab(tab.id)}
-                className={`border-b-2 px-1 pb-2 text-base font-bold transition ${
-                  selected ? "border-areia text-white" : "border-transparent text-slate-300 hover:text-white"
-                }`}
-              >
-                {tab.label} {tab.events.length}
-              </button>
-            );
-          })}
-        </div>
+        <p className="mt-0.5 text-[11px] leading-snug text-slate-300">
+          Deslize as pilhas para ver quem passou pela sua órbita. Dados simulados; distâncias aproximadas.
+        </p>
       </div>
 
       <div
-        id={panelId}
-        role="tabpanel"
-        aria-labelledby={tabId(active.id)}
-        className={`orbit-scroll @container min-h-0 flex-1 overflow-y-auto ${isMobile ? "p-2.5 pb-24" : "p-5"}`}
+        style={{ containerType: "size" }}
+        className={`orbit-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto ${isMobile ? "px-3 pt-3 pb-24" : "p-5"}`}
       >
-        <p className="mb-2.5 px-1 text-[11px] leading-snug text-slate-300">
-          {active.id === "visualizacoes"
-            ? "Quem abriu seu perfil recentemente."
-            : "Quem te deu um toque. Toque de volta para mostrar interesse."}{" "}
-          Dados simulados; distâncias aproximadas.
-        </p>
-        <ul
-          className={`grid gap-2 ${isMobile ? "grid-cols-2" : "grid-cols-2 @min-[560px]:grid-cols-3 @min-[820px]:grid-cols-4 @min-[1100px]:grid-cols-5"}`}
-          aria-label={active.label}
-        >
-          {active.events.map((event) => (
-            <InterestCard
-              key={event.profile.id}
-              event={event}
-              tapped={state.sentTaps.includes(event.profile.id)}
-              showTap={active.id === "toques"}
-              onOpen={() => dispatch({ type: "openProfile", id: event.profile.id })}
-              onTapBack={() => tapBack(event)}
-            />
-          ))}
-        </ul>
+        <div className={isMobile ? "flex flex-col gap-5" : "grid grid-cols-2 gap-6"}>
+          <InterestPile
+            title="Visualizações"
+            hint="Quem abriu seu perfil"
+            events={PROFILE_VIEWS}
+            stageClassName={stage}
+            onOpen={open}
+          />
+          <InterestPile
+            title="Toques"
+            hint="Quem te deu um toque"
+            events={RECEIVED_TAPS}
+            stageClassName={stage}
+            onOpen={open}
+            renderActions={(event) => (
+              <TapBackButton
+                name={event.profile.name}
+                tapped={state.sentTaps.includes(event.profile.id)}
+                onTapBack={() => tapBack(event)}
+              />
+            )}
+          />
+        </div>
       </div>
     </div>
   );
 }
 
-function InterestCard({
-  event,
-  tapped,
-  showTap,
+function InterestPile({
+  title,
+  hint,
+  events,
+  stageClassName,
   onOpen,
-  onTapBack,
+  renderActions,
 }: {
-  event: InterestEvent;
-  tapped: boolean;
-  showTap: boolean;
-  onOpen: () => void;
-  onTapBack: () => void;
+  title: string;
+  hint: string;
+  events: InterestEvent[];
+  stageClassName: string;
+  onOpen: (event: InterestEvent) => void;
+  renderActions?: (event: InterestEvent) => ReactNode;
 }) {
+  const headingId = useId();
+  return (
+    <section aria-labelledby={headingId} className="flex min-w-0 flex-col">
+      <div className="mb-2 flex items-baseline justify-between gap-2 px-1">
+        <h2 id={headingId} className="text-base font-bold text-white">
+          {title} <span className="text-areia tabular-nums">{events.length}</span>
+        </h2>
+        <span className="truncate text-[11px] text-slate-300">{hint}</span>
+      </div>
+      <CardDeck
+        items={events}
+        getKey={(e) => e.profile.id}
+        label={`${title}: ${hint.toLowerCase()}`}
+        itemLabel={(e) => `${e.profile.name}, ${e.profile.age}`}
+        stageClassName={stageClassName}
+        onOpen={onOpen}
+        renderCard={(e) => <ProfileImage cfg={e.profile.avatar} photo={e.profile.photo} />}
+        renderActions={renderActions}
+        renderCaption={(e) => <InterestCaption event={e} />}
+      />
+    </section>
+  );
+}
+
+function InterestCaption({ event }: { event: InterestEvent }) {
   const p = event.profile;
   return (
-    <li className="relative">
-      <button
-        type="button"
-        onClick={onOpen}
-        className="group relative block aspect-square w-full overflow-hidden rounded-[18px] border border-white/[0.12] bg-noite text-left"
-      >
-        <ProfileImage cfg={p.avatar} photo={p.photo} />
-        <span
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-linear-to-t from-tinta/95 via-tinta/40 to-transparent"
-          aria-hidden="true"
-        />
-        <span className="absolute right-2.5 bottom-2 left-2.5 flex flex-col gap-0.5">
-          <span className="flex items-center gap-1.5 truncate text-[13px] font-bold text-white">
-            {p.online && <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />}
-            <span className="truncate">
-              {p.name}, {p.age}
-            </span>
-            {p.online && <span className="sr-only">, online</span>}
-          </span>
-          <span className="flex items-center justify-between gap-2 text-[11px] font-medium text-slate-200">
-            <span>{formatAgo(event.minutesAgo)}</span>
-            <span>{p.dist}</span>
-          </span>
+    <>
+      <p className="flex items-center justify-center gap-1.5 truncate text-sm font-bold text-white">
+        <span className="truncate">
+          {p.name}, {p.age}
         </span>
-      </button>
-      {showTap && (
-        <button
-          type="button"
-          onClick={() => !tapped && onTapBack()}
-          aria-disabled={tapped}
-          aria-label={tapped ? `Você já tocou de volta em ${p.name}` : `Tocar de volta em ${p.name}`}
-          title={tapped ? "Tocado de volta" : "Tocar de volta"}
-          className={`absolute top-2 right-2 flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-md aria-disabled:cursor-default ${
-            tapped ? "border-areia bg-areia text-tinta" : "border-white/25 bg-tinta/70 text-white hover:text-areia"
-          }`}
-        >
-          <TapIcon className="h-5 w-5" filled={tapped} />
-        </button>
-      )}
-    </li>
+        {p.online && (
+          <>
+            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" aria-hidden="true" />
+            <span className="sr-only">, online</span>
+          </>
+        )}
+      </p>
+      <p className="text-[12px] font-medium text-slate-300">
+        {formatAgo(event.minutesAgo)} · {p.dist}
+      </p>
+    </>
+  );
+}
+
+function TapBackButton({ name, tapped, onTapBack }: { name: string; tapped: boolean; onTapBack: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => !tapped && onTapBack()}
+      aria-disabled={tapped}
+      aria-label={tapped ? `Você já tocou de volta em ${name}` : `Tocar de volta em ${name}`}
+      title={tapped ? "Tocado de volta" : "Tocar de volta"}
+      className={`absolute top-[8%] right-[8%] z-10 flex h-10 w-10 items-center justify-center rounded-full border backdrop-blur-md aria-disabled:cursor-default ${
+        tapped ? "border-areia bg-areia text-tinta" : "border-white/25 bg-tinta/70 text-white hover:text-areia"
+      }`}
+    >
+      <TapIcon className="h-5 w-5" filled={tapped} />
+    </button>
   );
 }
