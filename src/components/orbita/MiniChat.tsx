@@ -12,6 +12,8 @@ import { useDevice } from "@/lib/state/device";
 import { useOrbit } from "@/lib/state/OrbitProvider";
 import type { Profile } from "@/lib/types";
 
+const QUICK_REPLIES = ["Oi! 👋", "Tudo bem por aí?", "Curti seu perfil ✨", "Bora conversar no Parque? 🌳"];
+
 /** Comic-strip chat: both avatars side by side, each with only their last line. */
 export function MiniChat({
   profile: p,
@@ -33,9 +35,12 @@ export function MiniChat({
   const dialogRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const titleId = useId();
-  const onKeyDown = useDialogFocus(dialogRef, titleRef, onClose);
-  const avatarSize = isMobile ? 104 : 120;
+  const counterId = useId();
+  // On the phone, focusing the field would pop the keyboard over the conversation before it is read.
+  const onKeyDown = useDialogFocus(dialogRef, isMobile ? titleRef : inputRef, onClose);
+  const avatarSize = isMobile ? 76 : 96;
 
   // Grows out of the bubble that was tapped; the studio may scale the device, so convert viewport px to local px.
   useLayoutEffect(() => {
@@ -58,20 +63,24 @@ export function MiniChat({
     );
   }, [origin]);
 
-  const send = (e: FormEvent) => {
-    e.preventDefault();
-    const text = draft.trim();
+  const say = (raw: string) => {
+    const text = raw.trim();
     if (!text) return;
     dispatch({ type: "recordLine", id: p.id, from: "me", text });
     setDraft("");
     setStatus(`Seu balão agora diz: ${text.slice(0, MINI_CHAT_MAX_LENGTH)}`);
   };
+  const send = (e: FormEvent) => {
+    e.preventDefault();
+    say(draft);
+  };
+  const left = MINI_CHAT_MAX_LENGTH - draft.length;
 
   return (
     <div
       ref={overlayRef}
       onClick={onClose}
-      className={`absolute inset-0 z-50 flex items-center justify-center bg-tinta/85 ${isMobile ? "p-3 pb-6" : "p-6"}`}
+      className={`absolute inset-0 z-50 flex justify-center bg-tinta/80 backdrop-blur-sm ${isMobile ? "items-end p-2 pb-3" : "items-center p-6"}`}
     >
       <div
         ref={dialogRef}
@@ -81,23 +90,50 @@ export function MiniChat({
         tabIndex={-1}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
-        className="orbit-scroll flex max-h-full w-full max-w-[440px] flex-col gap-3 overflow-y-auto outline-none"
+        className="lg-sheet orbit-scroll flex max-h-full w-full max-w-[440px] flex-col overflow-y-auto rounded-[28px] outline-none"
       >
-        <div className="flex items-center justify-between gap-2">
-          <h2 ref={titleRef} id={titleId} tabIndex={-1} className="text-base font-bold text-white outline-none">
-            Você e {p.name}
-          </h2>
+        <div className="flex items-center gap-2.5 border-b border-white/[0.12] px-4 py-3">
+          <RingedAvatar cfg={p.avatar} photo={p.photo} color={intention.color} size={40} ring={2} halo={false}>
+            {p.online && (
+              <span className="absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2 border-noite bg-emerald-400" />
+            )}
+          </RingedAvatar>
+          <div className="min-w-0 flex-1">
+            <h2
+              ref={titleRef}
+              id={titleId}
+              tabIndex={-1}
+              className="truncate text-sm font-bold text-white outline-none"
+            >
+              Você e {p.name}
+            </h2>
+            <p className="flex flex-wrap items-center gap-x-1.5 text-[11px] text-slate-300">
+              <span style={{ color: intention.text }}>
+                {intention.emoji} {intention.label}
+              </span>
+              <span aria-hidden="true">·</span>
+              <span>📍 {p.dist}</span>
+              {p.online && <span>· online</span>}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => dispatch({ type: "openProfile", id: p.id })}
+            className="lg-pill shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold text-white"
+          >
+            Perfil
+          </button>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar mini chat"
-            className="lg-pill flex h-8 w-8 items-center justify-center rounded-full text-sm text-white"
+            className="lg-pill flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm text-white"
           >
             ✕
           </button>
         </div>
 
-        <div ref={stageRef} className="grid grid-cols-2 items-stretch gap-3 pt-1">
+        <div ref={stageRef} className="grid grid-cols-2 items-stretch gap-3 px-4 pt-4 pb-2">
           <ComicSpeaker
             label="Você"
             line={conversation.mine}
@@ -118,47 +154,68 @@ export function MiniChat({
           />
         </div>
 
-        <form
-          onSubmit={send}
-          className="lg-pill mt-1 flex h-11 items-center gap-2 rounded-full pr-1.5 pl-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim"
-        >
-          <input
-            type="text"
-            value={draft}
-            maxLength={MINI_CHAT_MAX_LENGTH}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Responder (troca o seu balão)…"
-            aria-label={`Responder para ${p.name}. Sua nova fala substitui a anterior.`}
-            className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-slate-300 focus-visible:outline-none"
-          />
-          <button type="submit" className="lg-btn-primary shrink-0 rounded-full px-4 py-1.5 text-xs font-bold">
-            Enviar
-          </button>
-        </form>
-        <p role="status" aria-live="polite" className="sr-only">
-          {status}
-        </p>
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => dispatch({ type: "openProfile", id: p.id })}
-            className="lg-pill flex-1 rounded-full px-4 py-2 text-xs font-bold text-white"
+        <div className="sticky bottom-0 flex flex-col gap-2 border-t border-white/[0.12] bg-tinta/95 px-3 pt-2.5 pb-3">
+          <div
+            role="group"
+            aria-label="Respostas rápidas"
+            className={`flex gap-1.5 ${isMobile ? "orbit-scroll -mx-3 overflow-x-auto px-3 pb-0.5" : "flex-wrap"}`}
           >
-            Ver perfil
-          </button>
+            {QUICK_REPLIES.map((text) => (
+              <button
+                key={text}
+                type="button"
+                onClick={() => say(text)}
+                className="lg-pill shrink-0 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap text-white"
+              >
+                {text}
+              </button>
+            ))}
+          </div>
+          <form
+            onSubmit={send}
+            className="lg-pill flex h-11 items-center gap-2 rounded-full pr-1.5 pl-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-marfim"
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              value={draft}
+              maxLength={MINI_CHAT_MAX_LENGTH}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Sua fala (troca o seu balão)…"
+              aria-label={`Responder para ${p.name}. Sua nova fala substitui a anterior.`}
+              aria-describedby={counterId}
+              enterKeyHint="send"
+              className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-slate-300 focus-visible:outline-none"
+            />
+            <span
+              id={counterId}
+              className={`shrink-0 text-[10px] tabular-nums ${left <= 10 ? "text-amber-200" : "text-slate-300"} ${draft ? "" : "invisible"}`}
+            >
+              {left}
+              <span className="sr-only"> caracteres restantes</span>
+            </span>
+            <button
+              type="submit"
+              disabled={!draft.trim()}
+              className="lg-btn-primary shrink-0 rounded-full px-4 py-1.5 text-xs font-bold disabled:opacity-40"
+            >
+              Enviar
+            </button>
+          </form>
+          <p role="status" aria-live="polite" className="sr-only">
+            {status}
+          </p>
           {p.inPark && (
             <button
               type="button"
               onClick={() => dispatch({ type: "setTab", tab: "parque" })}
-              className="lg-pill flex-1 rounded-full px-4 py-2 text-xs font-bold text-white"
+              className="lg-pill rounded-full px-4 py-2 text-xs font-bold text-white"
             >
-              🌳 Conversar no Parque
+              🌳 {p.name} está no Parque · conversar lá
             </button>
           )}
+          <SecurityNote />
         </div>
-
-        <SecurityNote />
       </div>
     </div>
   );
@@ -207,10 +264,7 @@ function SecurityNote() {
   const [open, setOpen] = useState(false);
   const detailsId = useId();
   return (
-    <section
-      aria-label="Privacidade da conversa"
-      className="lg-panel rounded-[20px] p-3 text-[11px] leading-relaxed text-slate-300"
-    >
+    <section aria-label="Privacidade da conversa" className="px-1 text-[11px] leading-relaxed text-slate-300">
       <p className="flex items-start gap-2">
         <svg
           className="mt-0.5 h-4 w-4 shrink-0 text-areia"
@@ -226,19 +280,19 @@ function SecurityNote() {
           <path d="M8 11V7a4 4 0 0 1 8 0v4" />
         </svg>
         <span>
-          <strong className="font-bold text-white">Você só vê as 2 últimas falas.</strong> O Orbit guarda um registro
-          criptografado que ninguém lê no dia a dia, aberto só em caso de denúncia ou ordem judicial.
+          <strong className="font-bold text-white">Só as 2 últimas falas ficam visíveis.</strong> O registro
+          criptografado só é aberto em caso de denúncia ou ordem judicial.{" "}
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={detailsId}
+            onClick={() => setOpen((o) => !o)}
+            className="font-bold text-areia underline underline-offset-2"
+          >
+            {open ? "Esconder detalhes" : "Saiba mais"}
+          </button>
         </span>
       </p>
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={detailsId}
-        onClick={() => setOpen((o) => !o)}
-        className="mt-1.5 ml-6 font-bold text-areia underline underline-offset-2"
-      >
-        {open ? "Esconder detalhes" : "Saiba mais"}
-      </button>
       <ul id={detailsId} hidden={!open} className="mt-2 ml-6 flex list-disc flex-col gap-1.5 pl-3">
         <li>
           <strong className="text-white">O que você vê:</strong> só a última fala de cada um. Não existe histórico para
