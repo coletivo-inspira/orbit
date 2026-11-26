@@ -32,7 +32,7 @@ export const CONQUISTAS: Record<ConquistaId, Conquista> = {
   papo: {
     titulo: "Troque falas com 5 pessoas (os dois lados falaram)",
     meta: 5,
-    atual: (c) => Object.values(c.conversations).filter((v) => v.mine && v.theirs).length,
+    atual: (c) => Object.values(c.conversations).filter((v) => v.mine.length > 0 && v.theirs.length > 0).length,
   },
   comunidade: {
     titulo: "Comente ou publique na Comunidade",

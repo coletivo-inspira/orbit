@@ -1,4 +1,4 @@
-import { hasTalked, type Conversation } from "@/lib/conversas";
+import { hasTalked, latestLine, type Conversation } from "@/lib/conversas";
 import type { Profile } from "@/lib/types";
 
 interface SelosStatusProps {
@@ -57,10 +57,10 @@ export function SelosStatus({ profile: p, conversation, variant, minimal = false
       {hasTalked(conversation) && (
         <span
           className={`hq-balloon absolute bottom-[calc(8%+8px)] left-[8%] flex h-[26px] max-w-[44%] items-center rounded-full px-2.5 text-xs leading-none font-bold ${
-            conversation.theirs ? "hq-balloon-filled text-tinta" : "hq-balloon-empty min-w-[34px]"
+            latestLine(conversation.theirs) ? "hq-balloon-filled text-tinta" : "hq-balloon-empty min-w-[34px]"
           }`}
         >
-          <span className="truncate">{conversation.theirs ?? ""}</span>
+          <span className="truncate">{latestLine(conversation.theirs) ?? ""}</span>
         </span>
       )}
     </span>

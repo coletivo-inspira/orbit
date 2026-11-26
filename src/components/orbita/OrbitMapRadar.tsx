@@ -49,7 +49,7 @@ interface OrbitMapRadarProps {
 
 const MIN_ZOOM = 9.5;
 const MAX_ZOOM = 17;
-/** From this zoom on every bubble shows its conversation balloon, not only those touching "Você". */
+/** From this zoom on every bubble shows its conversation balloon, not only those near the center of the view. */
 const BALLOON_ZOOM = 14.5;
 const RADIUS = 32;
 const DIAMETER = RADIUS * 2;
@@ -97,9 +97,10 @@ const markerKey = (item: LayoutItem, profiles: Profile[]) =>
 const ringLabel = (m: number) => (m >= 1000 ? `${m / 1000} km` : `${m} m`);
 
 /**
- * Órbita radar on a real map: "Você" at the user's (or the default) location and everyone else at an
- * approximate spot matching their distance. Bubbles are DOM, laid out per zoom step (nudged or
- * clustered so they never overlap) and culled to the view; the map is a lazily loaded backdrop.
+ * Órbita radar on a real map. "Você" stays at the visual center while the map and everyone else
+ * (placed at an approximate spot matching their distance) slide underneath. Bubbles are DOM, laid
+ * out per zoom step (nudged or clustered so they never overlap) and culled to the view; the map is
+ * a lazily loaded backdrop.
  */
 export function OrbitMapRadar({
   profiles,

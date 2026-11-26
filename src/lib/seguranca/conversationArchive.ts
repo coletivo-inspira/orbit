@@ -10,7 +10,7 @@ export interface ArchiveEntry {
 
 /**
  * Full conversation record kept for safety (reports, court orders), separate from
- * what the user sees (only the last line of each side). The production backend
+ * what the user sees (only the last two lines of each side). The production backend
  * stores it server-side, encrypted, readable only through audited moderation access.
  */
 export interface ConversationArchive {

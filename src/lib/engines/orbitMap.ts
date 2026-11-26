@@ -52,7 +52,7 @@ interface MapEngineOptions {
   backdropTile?: number;
   /** Distance rings around "Você": children with `data-m` (meters) get their radius set every frame. */
   ringsEl?: SVGGElement | null;
-  /** Balloons show on bubbles this close to "Você" (px), or on every bubble from `balloonZoom` on. */
+  /** Balloons show on bubbles this close to the visual center (px), or on every bubble from `balloonZoom` on. */
   nearRadius: number;
   balloonZoom: number;
   nodes: MapNode[];
@@ -405,12 +405,14 @@ export class OrbitMapEngine {
     }
 
     const size = worldSize(this.cam.zoom);
-    const you = this.toScreen(this.origin, w, h);
+    // "Você" stays at the visual center while the camera walks the map, like the watch honeycomb.
+    const you = { sx: w / 2, sy: h / 2 - this.opts.centerOffsetY };
+    const originScreen = this.toScreen(this.origin, w, h);
     this.opts.youEl.style.transform = `translate3d(${you.sx.toFixed(1)}px, ${you.sy.toFixed(1)}px, 0) translate(-50%, -50%)`;
     const backdrop = this.opts.backdropEl;
     if (backdrop) {
       const tile = (this.opts.backdropTile ?? 1200) * Math.pow(2, this.cam.zoom - 14);
-      backdrop.style.backgroundPosition = `${you.sx.toFixed(1)}px ${you.sy.toFixed(1)}px`;
+      backdrop.style.backgroundPosition = `${originScreen.sx.toFixed(1)}px ${originScreen.sy.toFixed(1)}px`;
       backdrop.style.backgroundSize = `${tile.toFixed(1)}px ${tile.toFixed(1)}px`;
     }
 
