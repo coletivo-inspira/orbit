@@ -316,16 +316,16 @@ describe("Mini chat", () => {
     expect(orbitReducer(open, { type: "setTab", tab: "parque" }).miniChat).toBeNull();
   });
 
-  it("replaces the user's balloon and keeps the other side's last line", () => {
+  it("keeps the two newest lines from the user and the other side's lines", () => {
     const initial = createInitialState();
     const theirs = initial.conversations.p1.theirs;
     const next = orbitReducer(initial, { type: "recordLine", id: "p1", from: "me", text: "Achei ele!" });
-    expect(next.conversations.p1).toEqual({ mine: "Achei ele!", theirs });
+    expect(next.conversations.p1).toEqual({ mine: ["Achou o Paçoca?", "Achei ele!"], theirs });
   });
 
   it("starts a conversation from the Parque so the radar can show it", () => {
     const next = orbitReducer(createInitialState(), { type: "recordLine", id: "p4", from: "them", text: "Oi!" });
-    expect(next.conversations.p4).toEqual({ mine: null, theirs: "Oi!" });
+    expect(next.conversations.p4).toEqual({ mine: [], theirs: ["Oi!"] });
     expect(orbitReducer(next, { type: "openMiniChat", id: "p4" }).miniChat?.profileId).toBe("p4");
   });
 });

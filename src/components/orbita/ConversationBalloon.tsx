@@ -1,6 +1,6 @@
 "use client";
 
-import type { Conversation } from "@/lib/conversas";
+import { latestLine, type Conversation } from "@/lib/conversas";
 
 interface ConversationBalloonProps {
   name: string;
@@ -23,7 +23,7 @@ export function ConversationBalloon({
   className = "",
   style,
 }: ConversationBalloonProps) {
-  const { theirs } = conversation;
+  const theirs = latestLine(conversation.theirs);
   return (
     <button
       type="button"

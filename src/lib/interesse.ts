@@ -1,4 +1,4 @@
-import { hasTalked, type Conversation } from "@/lib/conversas";
+import { hasTalked, latestLine, type Conversation } from "@/lib/conversas";
 import { SIMULATED_PROFILES } from "@/lib/data/profiles";
 import type { Profile } from "@/lib/types";
 
@@ -78,7 +78,8 @@ export function profileStatusLabels(profile: Profile, conversation?: Conversatio
   if (profile.visitingFrom) parts.push(`de passagem, mora em ${profile.visitingFrom}`);
   if (profile.inPark) parts.push("no Parque");
   if (hasTalked(conversation)) {
-    parts.push(conversation.theirs ? `última fala no chat: “${conversation.theirs}”` : "conversa sem resposta ainda");
+    const theirs = latestLine(conversation.theirs);
+    parts.push(theirs ? `última fala no chat: “${theirs}”` : "conversa sem resposta ainda");
   }
   return parts;
 }

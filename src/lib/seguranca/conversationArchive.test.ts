@@ -29,7 +29,7 @@ describe("LocalEncryptedArchive", () => {
     }
     expect(archive.size).toBe(4);
     expect(await archive.openForReview()).toEqual(lines);
-    expect(visible).toEqual({ p1: { mine: "Tudo e você?", theirs: "De boa" } });
+    expect(visible).toEqual({ p1: { mine: ["Oi!", "Tudo e você?"], theirs: ["Oi, tudo bem?", "De boa"] } });
   });
 
   it("uses a fresh IV for every message", async () => {

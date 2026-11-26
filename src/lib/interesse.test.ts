@@ -70,9 +70,12 @@ describe("simulated Interesse", () => {
       "de passagem, mora em Recife",
       "no Parque",
     ]);
-    expect(profileStatusLabels(quiet, { mine: "Oi", theirs: "Olá!" })).toEqual(["última fala no chat: “Olá!”"]);
-    expect(profileStatusLabels(quiet, { mine: "Oi", theirs: null })).toEqual(["conversa sem resposta ainda"]);
-    expect(profileStatusLabels(quiet, { mine: null, theirs: null })).toEqual([]);
+    expect(profileStatusLabels(quiet, { mine: ["Oi"], theirs: ["Olá!"] })).toEqual(["última fala no chat: “Olá!”"]);
+    expect(profileStatusLabels(quiet, { mine: ["Oi", "E aí?"], theirs: ["Olá!", "Tudo"] })).toEqual([
+      "última fala no chat: “Tudo”",
+    ]);
+    expect(profileStatusLabels(quiet, { mine: ["Oi"], theirs: [] })).toEqual(["conversa sem resposta ainda"]);
+    expect(profileStatusLabels(quiet, { mine: [], theirs: [] })).toEqual([]);
   });
 
   it("finds who tapped the user", () => {

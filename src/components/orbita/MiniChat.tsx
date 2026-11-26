@@ -15,7 +15,7 @@ import { buttonClass, CloseButton } from "@/components/ui/Button";
 
 const QUICK_REPLIES = ["Oi! 👋", "Tudo bem por aí?", "Curti seu perfil ✨", "Bora conversar no Parque? 🌳"];
 
-/** Comic-strip chat: both avatars side by side, each with only their last line. */
+/** Comic-strip chat: both avatars side by side, each with at most their two newest lines. */
 export function MiniChat({
   profile: p,
   origin,
@@ -28,7 +28,7 @@ export function MiniChat({
   const { state, dispatch } = useOrbit();
   const { device } = useDevice();
   const isMobile = device === "mobile";
-  const conversation = state.conversations[p.id] ?? { mine: null, theirs: null };
+  const conversation = state.conversations[p.id] ?? { mine: [], theirs: [] };
   const intention = INTENTIONS[p.primaryIntention];
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState("");
@@ -128,7 +128,7 @@ export function MiniChat({
         <div ref={stageRef} className="grid grid-cols-2 items-stretch gap-3 px-4 pt-4 pb-2">
           <ComicSpeaker
             label="Você"
-            line={conversation.mine}
+            lines={conversation.mine}
             emptyNote="Você ainda não falou"
             delay={180}
             avatar={
@@ -139,7 +139,7 @@ export function MiniChat({
           />
           <ComicSpeaker
             label={p.name}
-            line={conversation.theirs}
+            lines={conversation.theirs}
             emptyNote="Ainda não respondeu"
             delay={300}
             avatar={
@@ -181,8 +181,8 @@ export function MiniChat({
               value={draft}
               maxLength={MINI_CHAT_MAX_LENGTH}
               onChange={(e) => setDraft(e.target.value)}
-              placeholder="Sua fala (troca o seu balão)…"
-              aria-label={`Responder para ${p.name}. Sua nova fala substitui a anterior.`}
+              placeholder="Sua fala (entra nos seus dois balões)…"
+              aria-label={`Responder para ${p.name}. Só as duas últimas falas suas ficam visíveis.`}
               aria-describedby={counterId}
               enterKeyHint="send"
               className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-marfim-apagado focus-visible:outline-none"
@@ -223,28 +223,33 @@ export function MiniChat({
 
 function ComicSpeaker({
   label,
-  line,
+  lines,
   emptyNote,
   delay,
   avatar,
 }: {
   label: string;
-  line: string | null;
+  lines: readonly string[];
   emptyNote: string;
   delay: number;
   avatar: React.ReactNode;
 }) {
+  const shown: (string | null)[] = lines.length > 0 ? [...lines] : [null];
   return (
     <div className="grid grid-rows-[1fr_auto_auto] justify-items-center gap-3">
-      <p
-        key={line ?? "vazio"}
-        className={`hq-speech hq-speech-pop flex min-h-[64px] w-full items-center justify-center self-end rounded-cartao px-3 py-2.5 text-center text-sm leading-snug font-semibold ${
-          line ? "hq-speech-filled text-tinta" : "hq-speech-empty"
-        }`}
-        style={{ animationDelay: `${delay}ms` }}
-      >
-        {line ? `“${line}”` : <span className="sr-only">{emptyNote}</span>}
-      </p>
+      <div className="flex w-full flex-col justify-end gap-2 self-end">
+        {shown.map((line, i) => (
+          <p
+            key={`${i}-${line ?? "vazio"}`}
+            className={`hq-speech hq-speech-pop flex min-h-[64px] w-full items-center justify-center rounded-cartao px-3 py-2.5 text-center text-sm leading-snug font-semibold ${
+              line ? "hq-speech-filled text-tinta" : "hq-speech-empty"
+            }`}
+            style={{ animationDelay: `${delay + i * 80}ms` }}
+          >
+            {line ? `“${line}”` : <span className="sr-only">{emptyNote}</span>}
+          </p>
+        ))}
+      </div>
       <div className="relative" aria-hidden="true">
         {avatar}
       </div>
@@ -252,7 +257,10 @@ function ComicSpeaker({
         <span className="rounded-full border border-white/25 bg-noite px-2.5 py-0.5 text-xs font-extrabold text-white">
           {label}
         </span>
-        <span className={`min-h-[15px] text-xs text-marfim-suave ${line ? "invisible" : ""}`} aria-hidden="true">
+        <span
+          className={`min-h-[15px] text-xs text-marfim-suave ${lines.length > 0 ? "invisible" : ""}`}
+          aria-hidden="true"
+        >
           {emptyNote}
         </span>
       </div>
@@ -295,8 +303,8 @@ function SecurityNote() {
       </p>
       <ul id={detailsId} hidden={!open} className="mt-2 ml-6 flex list-disc flex-col gap-1.5 pl-3">
         <li>
-          <strong className="text-white">O que você vê:</strong> só a última fala de cada um. Não existe histórico para
-          rolar.
+          <strong className="text-white">O que você vê:</strong> as duas últimas falas de cada pessoa. Não existe
+          histórico para rolar.
         </li>
         <li>
           <strong className="text-white">O que fica guardado:</strong> a conversa completa, criptografada (AES-256), por
